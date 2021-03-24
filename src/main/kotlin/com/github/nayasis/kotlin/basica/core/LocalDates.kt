@@ -1,9 +1,11 @@
 package com.github.nayasis.kotlin.basica.core
 
-import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.MonthDay
+import java.time.Year
+import java.time.YearMonth
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -11,44 +13,10 @@ import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
 import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME
 import java.time.temporal.ChronoField
 import java.util.*
+import kotlin.math.min
 import java.sql.Date as SqlDate
 
-/**
- * convert string to Date
- *
- * @receiver String
- * @param format date format
- * @param native use input format itself
- * @return Date
- */
-@Suppress("NAME_SHADOWING")
-fun String.toDate(format: String = "", native: Boolean = false): Date {
-
-    if( format.isNotEmpty() && native )
-        return SimpleDateFormat(format).parse(this)
-
-    val format = parseFormat(format)
-    val digits = this.replace("[^0-9\\+]".toRegex(), "")
-
-    val size = kotlin.math.min( format.length, digits.replace("+","").length )
-
-    val pattern = StringBuilder()
-    val value   = StringBuilder()
-
-    var k = 0
-    for( i in 0 until size) {
-        val c = format[i]
-        pattern.append(c)
-        if( c == 'Z' ) {
-            repeat(5) { value.append(digits[k++]) }
-        } else {
-            value.append( digits[k++] )
-        }
-    }
-
-    return SimpleDateFormat(pattern.toString()).parse(value.toString())
-
-}
+private val PATTERN_DATE_DIGIT = "[^0-9\\+]".toRegex()
 
 /**
  * convert string to LocalDateTime
@@ -59,7 +27,58 @@ fun String.toDate(format: String = "", native: Boolean = false): Date {
  * @return LocalDateTime
  */
 fun String.toLocalDateTime(format: String = "", native: Boolean = false): LocalDateTime {
-    return this.toDate(format,native).toLocalDateTime()
+
+    if( format.isNotEmpty() && native )
+        return parse(this, format)
+
+    val fmt    = parseFormat(format)
+    val digits = this.replace(PATTERN_DATE_DIGIT, "")
+
+    val pattern = StringBuilder()
+    val value   = StringBuilder()
+
+    var d = 0
+    var pre: Char? = null
+
+    for( f in 0 until min(fmt.length,digits.length) ) {
+        val cur = fmt[f]
+        // avoid bug(JDK-8031085) in Java8
+        if( cur == 'S' && pre != 'S' ) {
+            pattern.append('.')
+            value.append('.')
+        }
+        pattern.append(cur)
+        if( cur == 'Z' ) {
+            repeat(5) { value.append(digits[d++]) }
+        } else {
+            value.append( digits[d++] )
+        }
+        pre = cur
+    }
+
+    return parse(value.toString(), pattern.toString())
+
+}
+
+private fun parse(value: String, pattern: String): LocalDateTime {
+    val ofPattern = DateTimeFormatter.ofPattern(pattern)
+    return try {
+        LocalDateTime.parse( value, ofPattern)
+    } catch (e0: Exception) {
+        try {
+            LocalDate.parse(value, ofPattern).atTime(0,0)
+        } catch (e1: Exception) {
+            try {
+                YearMonth.parse(value,ofPattern).atDay(1).atTime(0,0)
+            } catch (e2: Exception) {
+                try {
+                    Year.parse(value,ofPattern).atMonthDay(MonthDay.of(1,1)).atTime(0,0)
+                } catch (e3: Exception) {
+                    throw e0
+                }
+            }
+        }
+    }
 }
 
 private fun parseFormat(format: String): String {
@@ -103,6 +122,10 @@ fun String.toZonedDateTime(format: String = "", zoneId: ZoneId = ZoneId.systemDe
 
 fun String.toZonedDateTime(format: DateTimeFormatter, zoneId: ZoneId = ZoneId.systemDefault()): ZonedDateTime {
     return ZonedDateTime.of( this.toLocalDateTime(format), zoneId )
+}
+
+fun String.toDate(format: String = "", zoneId: ZoneId = ZoneId.systemDefault()): Date {
+    return Date.from( this.toZonedDateTime(format,zoneId).toInstant() )
 }
 
 fun String.toDate(format: DateTimeFormatter, zoneId: ZoneId = ZoneId.systemDefault()): Date {

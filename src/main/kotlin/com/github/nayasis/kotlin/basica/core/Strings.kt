@@ -58,7 +58,7 @@ fun String.glob(): List<String> {
         Files.walk(Paths.get(root))
             .filter{ it: Path? -> it?.let { matcher.matches(it.fileName) } ?: false }
             .collect(Collectors.toList())
-            .map { it.toString() }
+            .map { it.toAbsolutePath().toString().replace("\\","/") }
     } catch (e: Exception) {
         listOf(this)
     }
