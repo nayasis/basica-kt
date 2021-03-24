@@ -16,6 +16,9 @@ import java.util.*
 import kotlin.math.min
 import java.sql.Date as SqlDate
 
+const val FORMAT_DEFAULT  = "yyyy-MM-dd HH:mm:ss"
+const val FORMAT_ISO_8601 = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+
 private val PATTERN_DATE_DIGIT = "[^0-9\\+]".toRegex()
 
 /**
