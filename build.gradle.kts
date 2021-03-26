@@ -27,6 +27,11 @@ dependencies {
 	// temporary
 	implementation( "com.github.nayasis:basica:0.3.6-SNAPSHOT" ){ isChanging = true }
 
+	implementation("org.mvel:mvel2:2.4.8.Final")
+	implementation("com.googlecode.juniversalchardet:juniversalchardet:1.0.3")
+	implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.12.+")
+//	implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.2")
+
 	// kotlin
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")

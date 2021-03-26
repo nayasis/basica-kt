@@ -1,4 +1,4 @@
-package com.github.nayasis.kotlin.basica.reflection.helper.serializer
+package com.github.nayasis.kotlin.basica.reflection.serializer
 
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.core.JsonParseException
@@ -7,14 +7,13 @@ import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.SerializerProvider
-import com.github.nayasis.kotlin.basica.core.FORMAT_ISO_8601
 import com.github.nayasis.kotlin.basica.core.toDate
-import com.github.nayasis.kotlin.basica.core.toString
+import com.github.nayasis.kotlin.basica.core.toStr
 import java.util.*
 
 class DateSerializer: JsonSerializer<Date>() {
     override fun serialize(value: Date, generator: JsonGenerator, provider: SerializerProvider) {
-        provider.defaultSerializeValue( value.toString(FORMAT_ISO_8601), generator )
+        provider.defaultSerializeValue( value.toStr(), generator )
     }
 }
 
