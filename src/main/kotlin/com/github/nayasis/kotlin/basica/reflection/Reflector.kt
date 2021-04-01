@@ -57,6 +57,10 @@ class Reflector { companion object {
             // let date to text like "yyyy-mm-dd'T'hh:mi:ss"
             configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
             addModule(JavaTimeModule())
+            addModule( SimpleModule("${javaClass.simpleName}").apply {
+                addSerializer(Date::class, DateSerializer())
+                addDeserializer(Date::class, DateDeserializer())
+            })
 
             // only convert by Class' field.
             visibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE)
@@ -81,11 +85,6 @@ class Reflector { companion object {
                 configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true)
             }
 
-            addModule(
-                SimpleModule("${javaClass.simpleName},ignore-nul:${ignoreNull}").apply {
-                    addSerializer(Date::class, DateSerializer())
-                    addDeserializer( Date::class, DateDeserializer() )
-                })
             addModule(kotlinModule{})
 
         }
