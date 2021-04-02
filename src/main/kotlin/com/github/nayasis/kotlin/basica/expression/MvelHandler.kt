@@ -6,9 +6,8 @@ import org.mvel2.MVEL
 import org.mvel2.ParserContext
 import java.io.Serializable
 
-
 @Suppress("MemberVisibilityCanBePrivate")
-class ExpressionCore { companion object {
+class MvelHandler { companion object {
 
     val ctx = ParserContext().apply{
         addPackageImport("com.github.nayasis.kotlin.basica.core")
@@ -38,7 +37,7 @@ class ExpressionCore { companion object {
      * @param <T>           return type
      * @return execution result
     </T> */
-    fun <T> run(expression: Serializable?, param: Any?): T? = MVEL.executeExpression(expression, param) as T
+    fun <T:Any> run(expression: Serializable?, param: Any?): T? = MVEL.executeExpression(expression, param) as T
 
     /**
      * run compiled expression
@@ -47,6 +46,6 @@ class ExpressionCore { companion object {
      * @param <T>           return type
      * @return execution result
     */
-    fun <T> run(expression: Serializable?): T? = run(expression, null)
+    fun <T:Any> run(expression: Serializable?): T? = run(expression, null)
 
 }}
