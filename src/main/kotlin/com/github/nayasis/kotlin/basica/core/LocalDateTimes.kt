@@ -1,3 +1,5 @@
+@file:JvmName("LocalDateTimes")
+
 package com.github.nayasis.kotlin.basica.core
 
 import java.time.Instant
@@ -104,6 +106,8 @@ private fun printFormat(format: String, default: DateTimeFormatter): DateTimeFor
         .replace("(^|[^F])FFF([^F]|$)".toRegex(), "$1SSS$2")
     )
 }
+
+fun String.toLocalDateTime(): LocalDateTime = toLocalDateTime("",false)
 
 fun String.toLocalDateTime(format: DateTimeFormatter): LocalDateTime {
     return LocalDateTime.parse(this, format)

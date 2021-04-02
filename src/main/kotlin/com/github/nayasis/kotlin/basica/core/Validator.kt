@@ -1,3 +1,5 @@
+@file:JvmName("Validator")
+
 package com.github.nayasis.kotlin.basica.core
 
 import com.github.nayasis.basica.model.NList

@@ -1,3 +1,5 @@
+@file:JvmName("Strings")
+
 package com.github.nayasis.kotlin.basica.core
 
 import com.github.nayasis.basica.model.Messages
@@ -77,7 +79,7 @@ fun String.found(pattern: Regex): Boolean {
     return found( pattern.toPattern() )
 }
 
-fun String?.isDate(format: String =""): Boolean {
+fun String?.isDate(format: String): Boolean {
     return when {
         this.isNullOrEmpty() -> false
         else -> try {
@@ -88,3 +90,5 @@ fun String?.isDate(format: String =""): Boolean {
         }
     }
 }
+
+fun String?.isDate(): Boolean = isDate("")

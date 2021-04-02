@@ -93,6 +93,7 @@ class Reflector { companion object {
 
     private fun mapper(ignoreNull: Boolean = true) : ObjectMapper = if( ignoreNull ) mapper else nullMapper
 
+    @JvmStatic
     fun toJson( obj: Any?, pretty: Boolean = false, ignoreNull: Boolean = true, view: Class<*>? = null ): String {
         return when (obj) {
             null -> ""
@@ -104,6 +105,7 @@ class Reflector { companion object {
         }
     }
 
+    @JvmStatic
     fun isJson(string: String?): Boolean {
         return try {
             mapper.readTree(string); true
@@ -112,6 +114,7 @@ class Reflector { companion object {
         }
     }
 
+    @JvmStatic
     inline fun <reified T> toObject(src: Any?, ignoreNull: Boolean = true): T {
         val mapper  = mapper(ignoreNull)
         val typeref = jacksonTypeRef<T>()
@@ -127,6 +130,7 @@ class Reflector { companion object {
         }
     }
 
+    @JvmStatic
     fun <T:Any> toObject(src: Any?, typeClass: KClass<T>, ignoreNull: Boolean = true): T {
         val mapper  = mapper(ignoreNull)
         val typeref = typeClass.java
@@ -142,8 +146,10 @@ class Reflector { companion object {
         }
     }
 
+    @JvmStatic
     fun toMap(src: Any?, ignoreNull: Boolean = true): Map<String,Any?> = toObject(src,ignoreNull)
 
+    @JvmStatic
     fun flattenKeys(obj: Any?): Map<String,Any?> {
         var map = HashMap<String,Any?>().also{ if(isEmpty(obj)) return it}
         flattenKeys("", toMap(obj), map)
@@ -164,6 +170,7 @@ class Reflector { companion object {
         }
     }
 
+    @JvmStatic
     fun unflattenKeys( obj: Any? ): Map<String,Any?> {
         var map = HashMap<String,Any?>().also{ if(isEmpty(obj)) return it}
         toMap(obj).forEach{ (key, value) -> unflattenKeys(key,value,map)}
