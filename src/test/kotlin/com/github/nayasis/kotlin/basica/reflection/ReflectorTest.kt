@@ -70,6 +70,19 @@ internal class ReflectorTest {
         println( Reflector.toMap(person) )
     }
 
+    @Test
+    fun getFunctions() {
+        println("-----------------------------------------------------------")
+        javaClass.classLoader.loadClass("com.github.nayasis.kotlin.basica.core.Validator")
+            .methods.forEach { println(it) }
+        println("-----------------------------------------------------------")
+        javaClass.classLoader.loadClass("com.github.nayasis.kotlin.basica.core.Strings")
+            .methods.forEach { println(it) }
+        println("-----------------------------------------------------------")
+        Reflector.javaClass.methods.forEach { println(it) }
+        println("-----------------------------------------------------------")
+    }
+
 }
 
 data class Dummy(
