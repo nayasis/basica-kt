@@ -170,47 +170,47 @@ class Reflector { companion object {
         return map
     }
 
-    private fun unflattenKeys(jsonPath: String, value: Any?, result: MutableMap<String,Any?>) {
+    private fun unflattenKeys(pathParent: String, value: Any?, result: MutableMap<String,Any?>) {
 
-        val path    = jsonPath.replaceFirst("""\[.*?]""".toRegex(), "").replaceFirst("""\..*?$""".toRegex(), "")
-        var index   = jsonPath.replaceFirst("""^($path)\[(.*?)](.*?)$""".toRegex(), "$2").let{ if(it==jsonPath) "" else it}
+        val key     = pathParent.replaceFirst("""\[.*?]""".toRegex(), "").replaceFirst("""\..*?$""".toRegex(), "")
+        var index   = pathParent.replaceFirst("""^($key)\[(.*?)](.*?)$""".toRegex(), "$2").let{ if(it==pathParent) "" else it}
         val isArray = index.isNotEmpty()
 
-        val currPath = "$path${if(isArray)"[$index]" else ""}"
-        val isKey    = currPath == jsonPath
+        val pathCurr = "$key${if(isArray)"[$index]" else ""}"
+        val isKey    = pathCurr == pathParent
 
         if (isKey) {
             if (isArray) {
-                setValueToList(path, index.toIntOrNull() ?: 0, value, result)
+                setValueToList(key, index.toIntOrNull() ?: 0, value, result)
             } else {
-                result[path] = value
+                result[key] = value
             }
         } else {
-            if (!result.containsKey(path)) {
-                result[path] = if (isArray) ArrayList<Any?>() else HashMap<String,Any?>()
+            if (!result.containsKey(key)) {
+                result[key] = if (isArray) ArrayList<Any?>() else HashMap<String,Any?>()
             }
             val newVal = if (isArray) {
-                val list = result[path] as List<*>
+                val list = result[key] as List<*>
                 val idx  = index.toIntOrNull() ?: 0
                 if (list.size <= idx || list[idx] == null) {
-                    setValueToList(path, idx, HashMap<String,Any?>(), result)
+                    setValueToList(key, idx, HashMap<String,Any?>(), result)
                 }
                 list[idx] as MutableMap<String,Any?>?
             } else {
-                result[path] as MutableMap<String,Any?>?
+                result[key] as MutableMap<String,Any?>?
             }
             newVal?.let {
-                val recursivePath = jsonPath.replaceFirst("${currPath.replace("\\[", "\\\\[")}.".toRegex(), "")
-                unflattenKeys(recursivePath, value, newVal)
+                val pathChild = pathParent.replaceFirst("${pathCurr.replace("[", "\\[")}.".toRegex(), "")
+                unflattenKeys(pathChild, value, newVal)
             }
         }
 
     }
 
-    private fun setValueToList(key: String, idx: Int, value: Any?, json: MutableMap<String,Any?>) {
-        if ( !json.containsKey(key) )
-            json[key] = ArrayList<Any?>()
-        val list = json[key] as MutableList<Any?>
+    private fun setValueToList(key: String, idx: Int, value: Any?, result: MutableMap<String,Any?>) {
+        if ( ! result.containsKey(key) )
+            result[key] = ArrayList<Any?>()
+        val list = result[key] as MutableList<Any?>
         if (idx >= list.size) {
             for (i in list.size..idx)
                 list.add(null)
