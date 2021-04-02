@@ -1,16 +1,11 @@
 package com.github.nayasis.kotlin.basica.core
 
 import com.github.nayasis.kotlin.basica.reflection.Reflector
-import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import java.util.*
 
-internal class MapsKtTest {
-
-    @Test
-    fun flattenKeys() {
-
-        var map = Reflector.toObject<Map<String,Any>>("""
+private val JSON_EXAMPLE = """
             {
               "name" : {
                 "item" : [
@@ -18,7 +13,14 @@ internal class MapsKtTest {
                     ]
               }
             }
-        """.trimIndent())
+        """.trimIndent()
+
+internal class MapsKtTest {
+
+    @Test
+    fun flattenKeys() {
+
+        var map = Reflector.toObject<Map<String,Any>>(JSON_EXAMPLE)
 
         val flatten = map.flattenKeys()
         println(flatten)
@@ -55,4 +57,39 @@ internal class MapsKtTest {
         println( Reflector.toJson(map) )
     }
 
+    @Test
+    fun toObject() {
+
+        val json = Reflector.toJson(Dummy())
+        println(json)
+        val map  = Reflector.toMap(json)
+        println(map)
+        val obj1 = Reflector.toObject<Dummy>(json)
+        println(obj1)
+        val obj2 = map.toObject<Dummy>()
+        println(obj2)
+
+        assertEquals(obj1.name, obj2.name)
+        assertEquals(obj1.age, obj2.age)
+        assertEquals(obj1.birth, obj2.birth)
+
+    }
+
+    @Test
+    fun getByPath() {
+
+        val map = Reflector.toMap(JSON_EXAMPLE)
+
+        assertEquals( "A", map.getByExpr("name.item[0].key") )
+        assertEquals( 1, map.getByExpr("name.item[0].value") )
+        assertEquals( null, map.getByExpr("name.item[0].q") )
+
+    }
+
 }
+
+data class Dummy(
+    val name: String = "nayasis",
+    val age: Int = 10,
+    val birth: Date = "2000-01-01".toDate(),
+)
