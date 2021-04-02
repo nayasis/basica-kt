@@ -21,7 +21,6 @@ internal class StringsKtTest {
 
         "2021-01-01".toLocalDateTime()
 
-
         Assertions.assertTrue( "2021-01-01".isDate() )
         Assertions.assertFalse( "2021-01-33".isDate() )
     }
