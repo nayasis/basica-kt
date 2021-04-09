@@ -15,7 +15,7 @@ fun <V> Map<*,*>.get(expression: MvelExpression? ): V? {
     return when(expression) {
         null -> null
         else -> try {
-            expression.run<Any>(this) as V
+            expression.run<Any>(this) as V?
         } catch (e: Exception) {
             null
         }
