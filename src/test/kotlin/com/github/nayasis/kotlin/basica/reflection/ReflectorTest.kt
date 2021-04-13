@@ -1,5 +1,6 @@
 package com.github.nayasis.kotlin.basica.reflection
 
+import com.github.nayasis.kotlin.basica.core.toJson
 import com.github.nayasis.kotlin.basica.core.toLocalDateTime
 import com.github.nayasis.kotlin.basica.core.toStr
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -7,6 +8,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 import java.util.*
+import kotlin.collections.LinkedHashMap
 
 internal class ReflectorTest {
 
@@ -81,6 +83,24 @@ internal class ReflectorTest {
         println("-----------------------------------------------------------")
         Reflector.javaClass.methods.forEach { println(it) }
         println("-----------------------------------------------------------")
+    }
+
+    @Test
+    fun keyUnsorted() {
+
+        var map = LinkedHashMap<String,Any>()
+        map["c"] = 1
+        map["a"] = "merong"
+        map["z"] = "qqq"
+        map["b"] = "b"
+
+        println(map)
+
+        val json = map.toJson()
+        println(json)
+
+        assertEquals( "{\"c\":1,\"a\":\"merong\",\"z\":\"qqq\",\"b\":\"b\"}", json )
+
     }
 
 }
