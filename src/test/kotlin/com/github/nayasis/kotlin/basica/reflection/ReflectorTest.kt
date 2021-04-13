@@ -74,15 +74,16 @@ internal class ReflectorTest {
 
     @Test
     fun getFunctions() {
-        println("-----------------------------------------------------------")
+        var line = "-".repeat(100)
+        println(line)
         javaClass.classLoader.loadClass("com.github.nayasis.kotlin.basica.core.Validator")
             .methods.forEach { println(it) }
-        println("-----------------------------------------------------------")
+        println(line)
         javaClass.classLoader.loadClass("com.github.nayasis.kotlin.basica.core.Strings")
             .methods.forEach { println(it) }
-        println("-----------------------------------------------------------")
+        println(line)
         Reflector.javaClass.methods.forEach { println(it) }
-        println("-----------------------------------------------------------")
+        println(line)
     }
 
     @Test
