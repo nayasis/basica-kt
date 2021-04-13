@@ -4,6 +4,7 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Serializer
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
@@ -38,6 +39,9 @@ object LocalDateTimeSerializer : KSerializer<LocalDateTime> {
     override fun serialize(encoder: Encoder, value: LocalDateTime) {
         return encoder.encodeString(value.toString())
     }
+
+    override val descriptor: SerialDescriptor
+        get() = TODO("Not yet implemented")
 }
 
 @Serializer(forClass = LocalDateTime::class)
@@ -48,6 +52,9 @@ object LocalDateSerializer : KSerializer<LocalDate> {
     override fun serialize(encoder: Encoder, value: LocalDate) {
         return encoder.encodeString(value.toString())
     }
+
+    override val descriptor: SerialDescriptor
+        get() = TODO("Not yet implemented")
 }
 
 @Serializer(forClass = Date::class)
@@ -58,6 +65,9 @@ object DateSerializer : KSerializer<Date> {
     override fun serialize(encoder: Encoder, value: Date) {
         return encoder.encodeString(value.toString())
     }
+
+    override val descriptor: SerialDescriptor
+        get() = TODO("Not yet implemented")
 }
 
 

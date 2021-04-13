@@ -82,7 +82,7 @@ internal class MapsKtTest {
 
         assertEquals( "A", map.getByExpr("name.item[0].key") )
         assertEquals( 1, map.getByExpr("name.item[0].value") )
-        assertEquals( null, map.getByExpr("name.item[0].q") )
+        assertNull( map.getByExpr("name.item[0].q") )
 
     }
 
