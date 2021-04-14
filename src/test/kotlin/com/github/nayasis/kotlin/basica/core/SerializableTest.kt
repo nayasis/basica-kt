@@ -9,6 +9,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -16,6 +17,7 @@ import java.util.*
 
 class SerializableTest {
 
+    @Disabled
     @Test
     fun test() {
 
@@ -82,4 +84,3 @@ data class Project(
     @Serializable(with = DateSerializer::class)
     val date: Date? = null,
 )
-

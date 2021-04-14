@@ -9,18 +9,18 @@ internal class MvelHandlerTest {
     @Test
     fun simple() {
         assertEquals(21, run<Any>(" 3 * 7") as Int)
-        assertTrue(run("name == 'nayasis' && age == 40 && address == empty", Person()))
-        assertFalse(run("name == 'nayasis' && age == 40 && address != empty", Person()))
+        assertTrue(run<Boolean>("name == 'nayasis' && age == 40 && address == empty", Person()) == true)
+        assertTrue(run<Boolean>("name == 'nayasis' && age == 40 && address != empty", Person()) == false)
     }
 
     @Test
     fun contains() {
-        assertTrue(run("['nayasis','jake'].contains(name)", Person()))
+        assertTrue(run<Boolean>("['nayasis','jake'].contains(name)", Person()) == true)
     }
 
     @Test
     fun like() {
-        assertTrue(run("name.matches('.+?sis$')", Person()))
+        assertTrue(run<Boolean>("name.matches('.+?sis$')", Person()) == true)
     }
 
     @Test
@@ -44,16 +44,16 @@ internal class MvelHandlerTest {
 
     @Test
     fun typecast() {
-        assertTrue(run("1 == '1'"))
-        assertTrue(run("1 + (2 * 3) == '7'"))
-        assertTrue(run("1 + 'a' == '1a'"))
-        assertFalse(run("1 + '2' == '3'"))
-        assertTrue(run("1 + (int)'2' == '3'"))
+        assertTrue(run<Boolean>("1 == '1'") == true)
+        assertTrue(run<Boolean>("1 + (2 * 3) == '7'") == true)
+        assertTrue(run<Boolean>("1 + 'a' == '1a'") == true)
+        assertTrue(run<Boolean>("1 + '2' == '3'") == false)
+        assertTrue(run<Boolean>("1 + (int)'2' == '3'") == true)
     }
 
     private fun <T> run(expression: String, param: Any? = null): T? {
         val exp = MvelHandler.compile(expression)
-        return MvelHandler.run(exp, param)
+        return MvelHandler.run(exp, param)!!
     }
 
 }
