@@ -2,8 +2,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
 	id("maven-publish" )
-	kotlin("jvm") version "1.4.30"
-	kotlin("plugin.serialization") version "1.4.30"
+	kotlin("jvm") version "1.4.32"
+	kotlin("plugin.serialization") version "1.4.32"
 }
 
 group = "com.github.nayasis"
@@ -13,6 +13,12 @@ java.sourceCompatibility = JavaVersion.VERSION_1_8
 configurations.all {
 	resolutionStrategy.cacheChangingModulesFor(  0, "seconds" )
 	resolutionStrategy.cacheDynamicVersionsFor(  5, "minutes" )
+}
+
+java {
+	registerFeature("support") {
+		usingSourceSet(sourceSets["main"])
+	}
 }
 
 repositories {
@@ -32,6 +38,8 @@ dependencies {
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.12.+")
 //	implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.2")
 
+	"supportImplementation"("ch.qos.logback:logback-classic:1.2.3")
+
 	// kotlin
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
@@ -41,7 +49,6 @@ dependencies {
 	testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.1")
 	testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
 	testImplementation("org.junit.jupiter:junit-jupiter-engine:5.7.1")
-	testImplementation("ch.qos.logback:logback-classic:1.2.3")
 
 }
 
