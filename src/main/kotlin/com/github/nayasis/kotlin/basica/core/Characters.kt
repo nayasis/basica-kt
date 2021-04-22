@@ -164,3 +164,7 @@ fun Char?.isChinese(): Boolean {
 fun Char?.isCJK(): Boolean {
     return this != null && CJK.contains(UnicodeBlock.of(this))
 }
+
+fun Char.repeat(n:Int): String {
+    return this.toString().repeat(n)
+}
