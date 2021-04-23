@@ -9,6 +9,8 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.InputStreamReader
+import java.math.BigDecimal
+import java.math.BigInteger
 import java.net.MalformedURLException
 import java.net.URL
 import java.nio.charset.StandardCharsets.ISO_8859_1
@@ -25,6 +27,8 @@ import java.util.zip.GZIPOutputStream
 import kotlin.collections.ArrayList
 import kotlin.math.min
 import kotlin.math.round
+import kotlin.reflect.KClass
+import kotlin.reflect.cast
 
 private val log = KotlinLogging.logger {}
 
@@ -367,4 +371,31 @@ fun String?.hasCjk(): Boolean {
     for( c in this )
         if( c.isCJK() ) return true
     return false
+}
+
+fun <T:Number> String?.toNumber(type: KClass<T>): T {
+    if( this.isNullOrBlank() ) return 0.cast(type)
+    return try {
+        when(type) {
+            Short::class      -> this.toShort()
+            Byte::class       -> this.toByte()
+            Int::class        -> this.toInt()
+            Long::class       -> this.toLong()
+            Float::class      -> this.toFloat()
+            Double::class     -> this.toDouble()
+            BigDecimal::class -> this.toBigDecimal()
+            BigInteger::class -> this.toBigInteger()
+            else              -> 0.cast(type)
+        } as T
+    } catch (e: Exception) {
+        when(type) {
+            BigDecimal::class -> BigDecimal.ZERO
+            BigInteger::class -> BigInteger.ZERO
+            else              -> 0.cast(type)
+        } as T
+    }
+}
+
+inline fun <reified T:Number> String?.toNumber(): T {
+    return toNumber(T::class)
 }
