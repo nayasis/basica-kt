@@ -4,9 +4,7 @@ import com.github.nayasis.kotlin.basica.core.dpadEnd
 import com.github.nayasis.kotlin.basica.core.dpadStart
 import com.github.nayasis.kotlin.basica.core.fontwidth
 import com.github.nayasis.kotlin.basica.core.repeat
-import kotlin.math.log10
-import kotlin.math.min
-import kotlin.math.round
+import kotlin.math.*
 
 private const val INDEX_COLUMN_NAME = "index"
 private const val NO_DATA = "NO DATA"
@@ -162,7 +160,7 @@ private class PrintMeta {
             alias.add(grid.header().getAlias(key))
             width.add(maxwidth(grid,key,maxColumnWidth.toDouble()))
         }
-        indexWidth = log10(grid.size().toDouble()).toInt()
+        indexWidth = max(ceil(log10(grid.size().toDouble())).toInt(),indexWidth)
     }
 
     private fun maxwidth(grid: NGrid, key: Any, maxColumnWidth: Double): Int {
