@@ -135,9 +135,7 @@ class Reflector { companion object {
     @JvmStatic
     fun <T:Any> toObject(src: Any?, typeClass: KClass<T>, ignoreNull: Boolean = true): T {
         val mapper  = mapper(ignoreNull)
-        val typeref = typeClass as TypeReference<T>?
-        val typecls = typeClass.java
-        if( typeref != null )
+        val typeref = typeClass.java
         return when (src) {
             null            -> mapper.readValue(emptyJson(typeClass), typeref)
             is CharSequence -> mapper.readValue(src.toString().let { if(it.isEmpty()) emptyJson(typeClass) else it }, typeref)
@@ -247,11 +245,5 @@ class Reflector { companion object {
 }}
 
 
-fun emptyJson(klass: KClass<*>): String {
-    val type = if( klass == TypeReference::class ) {
-        klass
-    }
-
-if( klass.isSubclassOf(Collection::class) || klass.isSubclassOf(Array::class)) "[]" else "{}"
-
-}
+fun emptyJson(klass: KClass<*>): String =
+    if( klass.isSubclassOf(Collection::class) || klass.isSubclassOf(Array::class)) "[]" else "{}"
