@@ -1,12 +1,16 @@
 package com.github.nayasis.kotlin.basica.model
 
 import com.fasterxml.jackson.core.type.TypeReference
+import com.github.nayasis.kotlin.basica.core.cast
+import com.github.nayasis.kotlin.basica.core.toNumber
 import com.github.nayasis.kotlin.basica.reflection.Reflector
 import java.io.Serializable
 import java.util.*
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 import kotlin.reflect.KClass
+import kotlin.reflect.cast
+import kotlin.reflect.full.isSubclassOf
 
 //@Suppress("MayBeConstant")
 class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
@@ -153,27 +157,38 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
         return list
     }
 
-    fun <T:Any> toListColumn(key: Any, typeClass: KClass<T>): List<T?> {
-        val list = ArrayList<T?>()
-        if( typeClass == TypeReference::class ) {
-
-        }
-        for( i in 0 until size() ) {
-            val row = getData(i, key)
+    private fun <T:Any> cast(value: Any?, typeClass: KClass<T>): T? {
+        return if( value == null ) {
+            null
+        } else if( typeClass == String::class ) {
+            value.toString() as T
+        } else if( (value is CharSequence || value is Char) && typeClass.isSubclassOf(Number::class) ) {
+            value.toString().toNumber(typeClass as KClass<Number>) as T
+        } else if( value is Number ) {
+            value.cast(typeClass as KClass<Number>) as T
+        } else {
             try {
-                list.add( row as T )
+                typeClass.cast(value)
             } catch (e: Exception) {
-                list.add(Reflector.toObject(row, typeClass))
+                Reflector.toObject(value, typeClass)
             }
+        }
+    }
+
+    fun <T:Any> toListFromColumn(key: Any, typeClass: KClass<T>): List<T?> {
+        val list = ArrayList<T?>()
+        for( (_,row) in body) {
+            val v = row[key]
+            list.add(cast(v,typeClass))
         }
         return list
     }
 
-    fun <T:Any> toListColumn(key: Any, typeRef: TypeReference<T>): List<T?> {
+    fun <T:Any> toListFromColumn(key: Any, typeRef: TypeReference<T>): List<T?> {
         val list = ArrayList<T?>()
-
-        for( i in 0 until size() ) {
-            list.add(Reflector.toObject(getData(i, key), typeRef))
+        for( (_,row) in body) {
+            val v = row[key]
+            list.add( if(v==null) null else Reflector.toObject(v, typeRef) )
         }
         return list
     }
