@@ -1,5 +1,6 @@
 package com.github.nayasis.kotlin.basica.model
 
+import com.fasterxml.jackson.core.type.TypeReference
 import com.github.nayasis.kotlin.basica.reflection.Reflector
 import java.io.Serializable
 import java.util.*
@@ -28,48 +29,46 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
     fun header(): NGridHeader = header
     fun body() : Map<Int,Map<Any,Any?>> = body
 
-    fun setRow( index: Int, value: Any?, modifyHeader: Boolean = true ) {
+    fun setRow( index: Int, value: Any? ) {
         if( index < 0 )
             throw IndexOutOfBoundsException(index)
         when (value) {
             null -> body[index] = HashMap()
-            is Map<*,*> -> setMap(index, value, modifyHeader)
+            is Map<*,*> -> setMap(index, value)
             is NGrid -> {
                 header.merge(value.header)
                 value.body.forEach{ body[maxindex()] = it.value }
             }
             is Collection<*> -> {
                 var idx = index
-                value.forEach { setRow(idx++,it,modifyHeader) }
+                value.forEach { setRow(idx++,it) }
             }
             is Array<*> -> {
                 var idx = index
-                value.forEach { setRow(idx++,it,modifyHeader) }
+                value.forEach { setRow(idx++,it) }
             }
             is CharSequence -> {
                 val json = value.toString()
                 try {
-                    setRow( index, Reflector.toObject<ArrayList<Map<String,Any?>>>(json), modifyHeader )
+                    setRow( index, Reflector.toObject<ArrayList<Map<String,Any?>>>(json) )
                 } catch (e: Exception) {
-                    setRow( index, Reflector.toMap(json), modifyHeader )
+                    setRow( index, Reflector.toMap(json) )
                 }
             }
-            else -> setRow( index, Reflector.toMap(value), modifyHeader )
+            else -> setRow( index, Reflector.toMap(value) )
         }
         printer = null
     }
 
-    private fun setMap( index: Int, map: Map<*,*>, modifyHeader: Boolean ) {
-        val e = HashMap<Any, Any?>(map)
+    private fun setMap( index: Int, map: Map<*,*> ) {
+        val e = HashMap<Any,Any?>(map)
         body[index] = e
-        if( modifyHeader ) {
-            e.keys.forEach { header.add(it,index) }
-        }
+        e.keys.forEach { header.add(it,index) }
     }
 
-    fun addRow( value: Any?, modifyHeader: Boolean = true ) = setRow( maxindex(), value, modifyHeader )
+    fun addRow( value: Any? ) = setRow( maxindex(), value )
 
-    fun addData(key: Any, value: Any?) = setData(header.size(key), key, value)
+    fun addData(key: Any, value: Any?) = setData(header.next(key), key, value)
 
     fun removeRow(index: Int) {
         if( ! body.containsKey(index) ) return
@@ -84,6 +83,16 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
             row.remove(key)
             if( row.isEmpty() ) {
                 body.remove(index)
+            }
+        }
+    }
+
+    fun removeData(row: Int, key: Any) {
+        header.remove(key,row)
+        body[row]?.let {
+            it.remove(key)
+            if( it.isEmpty() ) {
+                body.remove(row)
             }
         }
     }
@@ -146,8 +155,25 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
 
     fun <T:Any> toListColumn(key: Any, typeClass: KClass<T>): List<T?> {
         val list = ArrayList<T?>()
+        if( typeClass == TypeReference::class ) {
+
+        }
         for( i in 0 until size() ) {
-            list.add(getData(i,key) as T?)
+            val row = getData(i, key)
+            try {
+                list.add( row as T )
+            } catch (e: Exception) {
+                list.add(Reflector.toObject(row, typeClass))
+            }
+        }
+        return list
+    }
+
+    fun <T:Any> toListColumn(key: Any, typeRef: TypeReference<T>): List<T?> {
+        val list = ArrayList<T?>()
+
+        for( i in 0 until size() ) {
+            list.add(Reflector.toObject(getData(i, key), typeRef))
         }
         return list
     }
@@ -192,103 +218,6 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
             override fun hasNext(): Boolean = index < size
             override fun next(): Map<Any,Any?> = getRow(index++)
         }
-    }
-
-}
-
-class Header(
-    private val grid: NGrid
-): NGridHeader {
-
-    companion object {
-        private const val serialVersionUID = 4570402963506233954L
-    }
-
-    private val keys    = HashMap<Any,TreeSet<Int>>() // key, size (max row index by key)
-    private val indexes = TreeMap<Int,Any>() // column index, key
-    private val aliases = HashMap<Any,String>()
-
-    fun init(header: Header) {
-        clear()
-        keys.putAll( header.keys )
-        indexes.putAll( header.indexes )
-        aliases.putAll( header.aliases )
-    }
-
-    fun merge(header: Header) {
-        header.keys.forEach { add(it.key) }
-        aliases.putAll( header.aliases )
-        grid.printer = null
-    }
-
-    override fun add(key: Any) {
-        if( ! keys.containsKey(key) ) {
-            keys[key] = TreeSet()
-            indexes[nextCol()] = key
-            grid.printer = null
-        }
-    }
-
-    fun add(key: Any, rowindex: Int) {
-        if( rowindex < 0 )
-            throw IndexOutOfBoundsException(rowindex)
-        add(key)
-        keys[key]!!.add(rowindex)
-        grid.printer = null
-    }
-
-    fun remove(key: Any, rowindex: Int ) {
-        keys[key]?.let {
-            it.remove(rowindex)
-            if( it.isEmpty() ) {
-                remove(key)
-            }
-            grid.printer = null
-        }
-    }
-
-    fun remove(key: Any) {
-        if( ! keys.containsKey(key) ) return
-        keys.remove(key)
-        aliases.remove(key)
-        indexes.mapNotNull { if(it.value == key) it.key else null }.firstOrNull().let {
-            indexes.remove(it)
-        }
-        grid.printer = null
-    }
-
-    fun size(key: Any): Int {
-        val last = keys[key]?.lastOrNull()
-        return if( last == null ) 0 else last + 1
-    }
-
-    override fun containsKey(key: Any): Boolean = keys.containsKey(key)
-
-    fun keyByIndex(index: Int): Any? = indexes[index]
-
-    override fun keys(): List<Any> = indexes.map { it.value }
-
-    override fun aliases(): List<String> = keys().map { getAlias(it) }
-
-    override fun size(): Int = keys.size
-
-    override fun setAlias(key: Any, alias: String ) {
-        if( keys.containsKey(key) ) {
-            aliases[key] = alias
-            grid.printer = null
-        }
-    }
-
-    override fun getAlias(key: Any ): String = aliases[key] ?: "$key"
-    override fun isEmpty(): Boolean = keys.isEmpty()
-
-    private fun nextCol(): Int = if(indexes.isEmpty()) 0 else indexes.lastKey() + 1
-
-    fun clear() {
-        keys.clear()
-        indexes.clear()
-        aliases.clear()
-        grid.printer = null
     }
 
 }

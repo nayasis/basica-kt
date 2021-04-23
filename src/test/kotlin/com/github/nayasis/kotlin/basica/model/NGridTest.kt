@@ -1,6 +1,8 @@
 package com.github.nayasis.kotlin.basica.model
 
+import com.github.nayasis.kotlin.basica.annotation.NoArg
 import com.github.nayasis.kotlin.basica.core.Characters
+import jdk.internal.org.objectweb.asm.TypeReference
 import mu.KotlinLogging
 import org.junit.jupiter.api.Test
 
@@ -23,9 +25,8 @@ internal class NGridTest {
         var grid = NGrid()
 
         grid.addData("key", "controller")
-        grid.addData("val", "컨트롤러는 이런 것입니다.")
-
         grid.addData("key", 1)
+        grid.addData("val", "컨트롤러는 이런 것입니다.")
         grid.addData("val", 3359)
 
         grid.header().setAlias("key", "이것은 KEY 입니다.")
@@ -78,4 +79,30 @@ internal class NGridTest {
 
     }
 
+    @Test
+    fun toListColumn() {
+
+        val grid = NGrid()
+
+        grid.addData("key", "nayasis")
+        grid.addData("key", 1)
+        grid.addData("val", mapOf("name" to "nayasis", "age" to 40))
+        grid.addData("val", mapOf("name" to "jake", "age" to 11))
+
+        val rs1 = grid.toListColumn("key", String::class)
+        val rs2 = grid.toListColumn("value", Person::class)
+        val rs3 = grid.toListColumn("value", TypeReference<List<Person>>())
+
+        log.debug { rs1 }
+        log.debug { rs2 }
+        log.debug { rs3 }
+
+    }
+
 }
+
+@NoArg
+data class Person(
+    val name: String?,
+    val age: Int?
+)

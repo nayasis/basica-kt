@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect
 import com.fasterxml.jackson.annotation.JsonInclude.Include
 import com.fasterxml.jackson.annotation.PropertyAccessor
 import com.fasterxml.jackson.core.JsonParser
+import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.MapperFeature
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -21,7 +22,6 @@ import com.fasterxml.jackson.module.kotlin.jacksonTypeRef
 import com.fasterxml.jackson.module.kotlin.jsonMapper
 import com.fasterxml.jackson.module.kotlin.kotlinModule
 import com.github.nayasis.kotlin.basica.core.isEmpty
-import com.github.nayasis.kotlin.basica.core.nvl
 import com.github.nayasis.kotlin.basica.reflection.serializer.DateDeserializer
 import com.github.nayasis.kotlin.basica.reflection.serializer.DateSerializer
 import java.beans.Transient
@@ -32,6 +32,8 @@ import java.net.URL
 import java.util.*
 import kotlin.collections.HashMap
 import kotlin.reflect.KClass
+import kotlin.reflect.full.isSubclassOf
+
 
 @Suppress("DuplicatedCode")
 class Reflector { companion object {
@@ -116,11 +118,11 @@ class Reflector { companion object {
 
     @JvmStatic
     inline fun <reified T> toObject(src: Any?, ignoreNull: Boolean = true): T {
-        val mapper  = mapper(ignoreNull)
-        val typeref = jacksonTypeRef<T>()
+        val mapper    = mapper(ignoreNull)
+        val typeref   = jacksonTypeRef<T>()
         return when (src) {
-            null            -> mapper.readValue("", typeref)
-            is CharSequence -> mapper.readValue(nvl(src.toString(),""), typeref)
+            null            -> mapper.readValue(emptyJson(typeref.type::class), typeref)
+            is CharSequence -> mapper.readValue(src.toString().let { if(it.isEmpty()) emptyJson(typeref.type::class) else it }, typeref)
             is File         -> mapper.readValue(src, typeref)
             is URL          -> mapper.readValue(src, typeref)
             is Reader       -> mapper.readValue(src, typeref)
@@ -133,10 +135,27 @@ class Reflector { companion object {
     @JvmStatic
     fun <T:Any> toObject(src: Any?, typeClass: KClass<T>, ignoreNull: Boolean = true): T {
         val mapper  = mapper(ignoreNull)
-        val typeref = typeClass.java
+        val typeref = typeClass as TypeReference<T>?
+        val typecls = typeClass.java
+        if( typeref != null )
         return when (src) {
-            null            -> mapper.readValue("", typeref)
-            is CharSequence -> mapper.readValue(nvl(src.toString(),""), typeref)
+            null            -> mapper.readValue(emptyJson(typeClass), typeref)
+            is CharSequence -> mapper.readValue(src.toString().let { if(it.isEmpty()) emptyJson(typeClass) else it }, typeref)
+            is File         -> mapper.readValue(src, typeref)
+            is URL          -> mapper.readValue(src, typeref)
+            is Reader       -> mapper.readValue(src, typeref)
+            is InputStream  -> mapper.readValue(src, typeref)
+            is ByteArray    -> mapper.readValue(src, typeref)
+            else            -> mapper.convertValue(src,typeref)
+        }
+    }
+
+    @JvmStatic
+    fun <T:Any> toObject(src: Any?, typeref: TypeReference<T>, ignoreNull: Boolean = true): T {
+        val mapper = mapper(ignoreNull)
+        return when (src) {
+            null            -> mapper.readValue(emptyJson(typeref.type::class), typeref)
+            is CharSequence -> mapper.readValue(src.toString().let { if(it.isEmpty()) emptyJson(typeref.type::class) else it }, typeref)
             is File         -> mapper.readValue(src, typeref)
             is URL          -> mapper.readValue(src, typeref)
             is Reader       -> mapper.readValue(src, typeref)
@@ -227,3 +246,12 @@ class Reflector { companion object {
 
 }}
 
+
+fun emptyJson(klass: KClass<*>): String {
+    val type = if( klass == TypeReference::class ) {
+        klass
+    }
+
+if( klass.isSubclassOf(Collection::class) || klass.isSubclassOf(Array::class)) "[]" else "{}"
+
+}

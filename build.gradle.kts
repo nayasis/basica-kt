@@ -3,7 +3,23 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
 	id("maven-publish" )
 	kotlin("jvm") version "1.4.32"
+	kotlin("plugin.allopen") version "1.4.20"
+	kotlin("plugin.noarg") version "1.4.20"
 	kotlin("plugin.serialization") version "1.4.32"
+}
+
+allOpen {
+	annotation("javax.persistence.Entity")
+	annotation("javax.persistence.MappedSuperclass")
+	annotation("javax.persistence.Embeddable")
+}
+
+noArg {
+	annotation("javax.persistence.Entity")
+	annotation("javax.persistence.MappedSuperclass")
+	annotation("javax.persistence.Embeddable")
+	annotation("com.github.nayasis.kotlin.basica.annotation.NoArg")
+	invokeInitializers = true
 }
 
 group = "com.github.nayasis"
