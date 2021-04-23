@@ -203,14 +203,14 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
 
     fun sort(comparator: Comparator<Map<Any,Any?>>) {
 
-        val incies = ArrayList(body.keys)
+        val indies = ArrayList(body.keys)
         val rows   = ArrayList(body.values)
 
         Collections.sort(rows,comparator)
 
         body.clear()
-        for( i in 0 until incies.size ) {
-            body[incies[i]] = rows[i]
+        for( i in 0 until indies.size ) {
+            body[indies[i]] = rows[i]
         }
 
     }
