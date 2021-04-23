@@ -13,8 +13,8 @@ Currently, only snapshot version is available.
 ```xml
 <repositories>
   <repository>
-    <id>nayasis-maven-repo</id>
-    <url>https://raw.github.com/nayasis/maven-repo/mvn-repo</url>
+    <id>jitpack</id>
+    <url>https://jitpack.io</url>
   </repository>
 </repositories>
 ```
@@ -35,7 +35,7 @@ Currently, only snapshot version is available.
 
 ```kotlin
 repositories {
-  maven { url = uri("https://raw.github.com/nayasis/maven-repo/mvn-repo") }
+  maven { url = uri("https://jitpack.io") }
 }
 ```
 
