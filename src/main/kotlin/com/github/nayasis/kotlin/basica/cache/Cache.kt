@@ -1,7 +1,5 @@
 package com.github.nayasis.kotlin.basica.cache
 
-import com.github.nayasis.basica.cache.Cache
-
 /**
  * Interface that defines common cache operations.<br><br>
  *

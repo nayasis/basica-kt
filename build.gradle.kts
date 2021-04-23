@@ -1,8 +1,24 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-	kotlin("jvm") version "1.4.30"
-	kotlin("plugin.serialization") version "1.4.30"
+	kotlin("jvm") version "1.4.32"
+	kotlin("plugin.allopen") version "1.4.20"
+	kotlin("plugin.noarg") version "1.4.20"
+	kotlin("plugin.serialization") version "1.4.32"
+}
+
+allOpen {
+	annotation("javax.persistence.Entity")
+	annotation("javax.persistence.MappedSuperclass")
+	annotation("javax.persistence.Embeddable")
+}
+
+noArg {
+	annotation("javax.persistence.Entity")
+	annotation("javax.persistence.MappedSuperclass")
+	annotation("javax.persistence.Embeddable")
+	annotation("com.github.nayasis.kotlin.basica.annotation.NoArg")
+	invokeInitializers = true
 }
 
 group = "com.github.nayasis"
@@ -14,29 +30,40 @@ configurations.all {
 	resolutionStrategy.cacheDynamicVersionsFor(  5, "minutes" )
 }
 
+java {
+	registerFeature("support") {
+		usingSourceSet(sourceSets["main"])
+	}
+}
+
 repositories {
 	mavenLocal()
 	mavenCentral()
 	jcenter()
-	maven { url = uri("https://raw.github.com/nayasis/maven-repo/mvn-repo") }
 	maven { url = uri("https://jitpack.io") }
 }
 
 dependencies {
 
 	// temporary
-	implementation( "com.github.nayasis:basica:0.3.6-SNAPSHOT" ){ isChanging = true }
+	implementation( "com.github.nayasis:basica:0.3.6" )
+
+	implementation("org.mvel:mvel2:2.4.12.Final")
+	implementation("com.googlecode.juniversalchardet:juniversalchardet:1.0.3")
+	implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.12.+")
+	implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.2")
+
+	"supportImplementation"("ch.qos.logback:logback-classic:1.2.3")
 
 	// kotlin
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 	implementation( "io.github.microutils:kotlin-logging:1.8.3" )
-	implementation("au.com.console:kassava:2.1.0-rc.1")
+	implementation("au.com.console:kassava:2.1.0")
 
-	implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.1")
-	testImplementation("org.junit.jupiter:junit-jupiter-api:5.3.1")
-	testImplementation("org.junit.jupiter:junit-jupiter-engine:5.3.1")
-	testImplementation("ch.qos.logback:logback-classic:1.2.3")
+	testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.1")
+	testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
+	testImplementation("org.junit.jupiter:junit-jupiter-engine:5.7.1")
 
 }
 
