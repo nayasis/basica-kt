@@ -12,7 +12,6 @@ import kotlin.reflect.KClass
 import kotlin.reflect.cast
 import kotlin.reflect.full.isSubclassOf
 
-//@Suppress("MayBeConstant")
 class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
 
     companion object {
@@ -157,7 +156,7 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
         return list
     }
 
-    private fun <T:Any> cast(value: Any?, typeClass: KClass<T>): T? {
+    private fun <T:Any> cast(value: Any?, typeClass: KClass<T>, ignoreError: Boolean): T? {
         return if( value == null ) {
             null
         } else if( typeClass == String::class ) {
@@ -170,25 +169,44 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
             try {
                 typeClass.cast(value)
             } catch (e: Exception) {
-                Reflector.toObject(value, typeClass)
+                try {
+                    Reflector.toObject(value, typeClass)
+                } catch (e1: Exception) {
+                    if( ignoreError ) {
+                        null
+                    } else {
+                        throw e1
+                    }
+                }
             }
         }
     }
 
-    fun <T:Any> toListFromColumn(key: Any, typeClass: KClass<T>): List<T?> {
+    fun <T:Any> toListFrom(key: Any, typeClass: KClass<T>, ignoreError: Boolean = true): List<T?> {
         val list = ArrayList<T?>()
         for( (_,row) in body) {
             val v = row[key]
-            list.add(cast(v,typeClass))
+            list.add(cast(v,typeClass,ignoreError))
         }
         return list
     }
 
-    fun <T:Any> toListFromColumn(key: Any, typeRef: TypeReference<T>): List<T?> {
+    fun <T:Any> toListFrom(key: Any, typeRef: TypeReference<T>, ignoreError: Boolean = true): List<T?> {
         val list = ArrayList<T?>()
         for( (_,row) in body) {
-            val v = row[key]
-            list.add( if(v==null) null else Reflector.toObject(v, typeRef) )
+            list.add( row[key].let {
+                if(it == null) null else {
+                    try {
+                        Reflector.toObject(it, typeRef)
+                    } catch (e: Exception) {
+                        if( ignoreError ) {
+                            null
+                        } else {
+                            throw e
+                        }
+                    }
+                }
+            })
         }
         return list
     }
@@ -209,15 +227,12 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
         Collections.sort(rows,comparator)
 
         body.clear()
-        for( i in 0 until indies.size ) {
+        for( i in 0 until indies.size )
             body[indies[i]] = rows[i]
-        }
 
     }
 
-    override fun toString(): String {
-        return toString(true)
-    }
+    override fun toString(): String = toString(true)
 
     fun toString(showHeader: Boolean = true, rowcount:Int = 500, showIndexColumn: Boolean = false, useAlias: Boolean = true, maxColumnWidth: Int = 100): String {
         if( printer == null || printer!!.maxColumnWidth != maxColumnWidth ) {
