@@ -59,7 +59,7 @@ class Reflector { companion object {
             // let date to text like "yyyy-mm-dd'T'hh:mi:ss"
             configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false)
             addModule(JavaTimeModule())
-            addModule( SimpleModule("${javaClass.simpleName}").apply {
+            addModule( SimpleModule(javaClass.simpleName).apply {
                 addSerializer(Date::class, DateSerializer())
                 addDeserializer(Date::class, DateDeserializer())
             })
@@ -108,9 +108,10 @@ class Reflector { companion object {
     }
 
     @JvmStatic
-    fun isJson(string: String?): Boolean {
+    fun isJson(string: CharSequence?): Boolean {
+        if( string.isNullOrEmpty() ) return false
         return try {
-            mapper.readTree(string); true
+            mapper.readTree(if(string is String) string else string.toString()); true
         } catch (e: Exception) {
             false
         }
@@ -122,7 +123,7 @@ class Reflector { companion object {
         val typeref   = jacksonTypeRef<T>()
         return when (src) {
             null            -> mapper.readValue(emptyJson(typeref.type::class), typeref)
-            is CharSequence -> mapper.readValue(src.toString().let { if(it.isEmpty()) emptyJson(typeref.type::class) else it }, typeref)
+            is CharSequence -> mapper.readValue(src.toString().let { it.ifEmpty { emptyJson(typeref.type::class) } }, typeref)
             is File         -> mapper.readValue(src, typeref)
             is URL          -> mapper.readValue(src, typeref)
             is Reader       -> mapper.readValue(src, typeref)
@@ -138,7 +139,7 @@ class Reflector { companion object {
         val typeref = typeClass.java
         return when (src) {
             null            -> mapper.readValue(emptyJson(typeClass), typeref)
-            is CharSequence -> mapper.readValue(src.toString().let { if(it.isEmpty()) emptyJson(typeClass) else it }, typeref)
+            is CharSequence -> mapper.readValue(src.toString().let { it.ifEmpty { emptyJson(typeClass) } }, typeref)
             is File         -> mapper.readValue(src, typeref)
             is URL          -> mapper.readValue(src, typeref)
             is Reader       -> mapper.readValue(src, typeref)
@@ -153,7 +154,7 @@ class Reflector { companion object {
         val mapper = mapper(ignoreNull)
         return when (src) {
             null            -> mapper.readValue(emptyJson(typeref.type::class), typeref)
-            is CharSequence -> mapper.readValue(src.toString().let { if(it.isEmpty()) emptyJson(typeref.type::class) else it }, typeref)
+            is CharSequence -> mapper.readValue(src.toString().let { it.ifEmpty { emptyJson(typeref.type::class) } }, typeref)
             is File         -> mapper.readValue(src, typeref)
             is URL          -> mapper.readValue(src, typeref)
             is Reader       -> mapper.readValue(src, typeref)
@@ -168,7 +169,7 @@ class Reflector { companion object {
 
     @JvmStatic
     fun flattenKeys(obj: Any?): Map<String,Any?> {
-        var map = HashMap<String,Any?>().also{ if(isEmpty(obj)) return it}
+        val map = HashMap<String,Any?>().also{ if(isEmpty(obj)) return it}
         flattenKeys("", toMap(obj), map)
         return map
     }
@@ -189,7 +190,7 @@ class Reflector { companion object {
 
     @JvmStatic
     fun unflattenKeys( obj: Any? ): Map<String,Any?> {
-        var map = HashMap<String,Any?>().also{ if(isEmpty(obj)) return it}
+        val map = HashMap<String,Any?>().also{ if(isEmpty(obj)) return it}
         toMap(obj).forEach{ (key, value) -> unflattenKeys(key,value,map)}
         return map
     }
@@ -197,7 +198,7 @@ class Reflector { companion object {
     private fun unflattenKeys(pathParent: String, value: Any?, result: MutableMap<String,Any?>) {
 
         val key     = pathParent.replaceFirst("""\[.*?]""".toRegex(), "").replaceFirst("""\..*?$""".toRegex(), "")
-        var index   = pathParent.replaceFirst("""^($key)\[(.*?)](.*?)$""".toRegex(), "$2").let{ if(it==pathParent) "" else it}
+        val index   = pathParent.replaceFirst("""^($key)\[(.*?)](.*?)$""".toRegex(), "$2").let{ if(it==pathParent) "" else it}
         val isArray = index.isNotEmpty()
 
         val pathCurr = "$key${if(isArray)"[$index]" else ""}"

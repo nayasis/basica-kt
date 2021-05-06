@@ -24,11 +24,9 @@ import java.util.regex.Pattern
 import java.util.stream.Collectors
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
-import kotlin.collections.ArrayList
 import kotlin.math.min
 import kotlin.math.round
 import kotlin.reflect.KClass
-import kotlin.reflect.cast
 
 private val log = KotlinLogging.logger {}
 
@@ -37,7 +35,7 @@ private val REGEX_SNAKE = "([A-Z])".toPattern()
 
 fun String.message(locale: Locale? = null): String = Messages.get(locale, this)
 
-fun String.toPath(): Path = Paths.get(this.trim())
+fun String.toPath(): Path = Path(this)
 
 fun String.toDir(filecheck: Boolean = true): Path? {
     val path = this.toPath()

@@ -3,8 +3,7 @@ package com.github.nayasis.kotlin.basica.reflection
 import com.github.nayasis.kotlin.basica.core.toJson
 import com.github.nayasis.kotlin.basica.core.toLocalDateTime
 import com.github.nayasis.kotlin.basica.core.toStr
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 import java.util.*
@@ -102,6 +101,21 @@ internal class ReflectorTest {
 
         assertEquals( "{\"c\":1,\"a\":\"merong\",\"z\":\"qqq\",\"b\":\"b\"}", json )
 
+    }
+
+    @Test
+    fun isJson() {
+        assertFalse( Reflector.isJson(null) )
+        assertFalse( Reflector.isJson("") )
+        assertTrue( Reflector.isJson("{}") )
+        assertTrue( Reflector.isJson("""
+            {
+              "a": "merong",
+              "b": [1,2,3,4],
+              "c": "20170304"
+            }            
+        """.trimIndent()) )
+        assertFalse( Reflector.isJson("{c}") )
     }
 
 }
