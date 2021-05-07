@@ -6,8 +6,10 @@ package com.github.nayasis.kotlin.basica.core
 import org.mozilla.universalchardet.UniversalDetector
 import java.io.*
 import java.net.URI
+import java.net.URL
 import java.nio.charset.Charset
 import java.nio.file.*
+import java.nio.file.StandardOpenOption.APPEND
 import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.attribute.FileAttribute
 import java.nio.file.attribute.FileTime
@@ -16,12 +18,8 @@ import java.nio.file.attribute.UserPrincipal
 import java.util.stream.Stream
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
-import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.Path
-import kotlin.io.path.appendLines
 import kotlin.io.path.inputStream
-import kotlin.io.path.reader
-import kotlin.io.path.writeLines
 import kotlin.reflect.KClass
 import kotlin.streams.toList
 
@@ -35,13 +33,21 @@ val Path.extension: String
     get() = fileName?.toString()?.substringAfterLast('.', "") ?: ""
 
 val Path.pathWithoutExtension: String
-    get() = pathWithoutExtension().toString()
+    get() = pathWithoutExtension().pathString
 
 val Path.invariantSeparators: String
-    get() = if ( File.separatorChar != '/' ) toString().replace(File.separatorChar, '/') else toString()
+    get() = if ( File.separatorChar != '/' ) pathString.replace(File.separatorChar, '/') else pathString
 
 val Path.pathString: String
-    get() = toString()
+    get() {
+        return toString().let{
+            if( it.length > 1 && it.last() == File.separatorChar ) {
+                it.substring(0, it.length - 1)
+            } else {
+                it
+            }
+        }
+    }
 
 val Path.directory: Path
     get() {
@@ -53,6 +59,8 @@ val Path.directory: Path
     }
 
 fun Path.pathWithoutExtension(): Path = parent / nameWithoutExtension
+
+fun Path.toUrl(): URL = this.toUri().toURL()
 
 /**
  * Calculates the relative path for this path from a [base] path.
@@ -77,6 +85,26 @@ fun Path.toRelative(base: Path): Path? = try {
  * @return the relative path from [base] to this, or `null` if this and base paths have different roots.
  */
 fun Path.toRelativeOrSelf(base: Path): Path = toRelative(base) ?: this
+
+/**
+ * Calculates the relative path for this path from a [base] path.
+ *
+ * Note that the [base] path is treated as a directory.
+ * If this path matches the [base] path, then a [Path] with an empty path will be returned.
+ *
+ * @return the relative path from [base] to this.
+ */
+fun Path.toRelative(base: String): Path? = this.toRelative(base.toPath())
+
+/**
+ * Calculates the relative path for this path from a [base] path.
+ *
+ * Note that the [base] path is treated as a directory.
+ * If this path matches the [base] path, then a [Path] with an empty path will be returned.
+ *
+ * @return the relative path from [base] to this, or `null` if this and base paths have different roots.
+ */
+fun Path.toRelativeOrSelf(base: String): Path = this.toRelativeOrSelf(base.toPath())
 
 /*
  * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
@@ -363,6 +391,20 @@ operator fun Path.div(other: Path): Path = resolve(other)
 operator fun Path.div(other: String): Path = resolve(other.trim())
 
 /**
+ * Resolves the given [other] path against this path.
+ *
+ * This operator is a shortcut for the [Path.resolve] function.
+ */
+operator fun Path.plus(other: Path): Path = resolve(other)
+
+/**
+ * Resolves the given [other] path string against this path.
+ *
+ * This operator is a shortcut for the [Path.resolve] function.
+ */
+operator fun Path.plus(other: String): Path = resolve(other.trim().replace("^[\\/]".toRegex(),""))
+
+/**
  * Converts the provided [path] string to a [Path] object of the [default][FileSystems.getDefault] filesystem.
  */
 fun Path(path: String): Path = Paths.get(path.trim())
@@ -378,13 +420,13 @@ fun Path(base: String, vararg more: String): Path = Paths.get(base.trim(), *more
  */
 fun URI.toPath(): Path = Paths.get(this)
 
-fun Path.read(fn: (ObjectInputStream) -> Unit) {
+fun Path.readGzip(fn: (ObjectInputStream) -> Unit) {
     if( ! isFile() )
         throw IOException("file is not existed.($this)")
     ObjectInputStream(GZIPInputStream(FileInputStream(this.toFile()))).use { fn.invoke(it) }
 }
 
-fun Path.write(fn: (ObjectOutputStream) -> Unit) {
+fun Path.writeGzip(fn: (ObjectOutputStream) -> Unit) {
     makeFile()
     try {
         ObjectOutputStream(GZIPOutputStream(FileOutputStream(this.toFile()))).use {
@@ -395,22 +437,23 @@ fun Path.write(fn: (ObjectOutputStream) -> Unit) {
     }
 }
 
+@Suppress("UNCHECKED_CAST")
 fun <T> Path.readObject(): T? {
     var rs: T? = null
-    read { rs = it.readObject() as T? }
+    readGzip { rs = it.readObject() as T? }
     return rs
 }
 
-fun Path.writeObject(any: Any?) = write {
+fun Path.writeObject(any: Any?) = writeGzip {
     it.writeObject(any)
     it.flush()
 }
 
 fun userHome(): Path = System.getProperty("user.home").toPath()
 
-fun rootPath(): Path = Path("").toAbsolutePath()
+fun rootPath(): Path = Paths.get("").toAbsolutePath()
 
-fun KClass<*>.rootPath(): Path = this.java.protectionDomain.codeSource.location.file.toPath()
+fun KClass<*>.rootPath(): Path = this.java.protectionDomain.codeSource.location.file.toFile().toPath()
 
 /**
  * Returns a new [BufferedReader] for reading the content of this file.
@@ -418,33 +461,44 @@ fun KClass<*>.rootPath(): Path = this.java.protectionDomain.codeSource.location.
  * @param charset character set to use for reading text, UTF-8 by default.
  */
 fun Path.reader(charset: Charset = Charsets.UTF_8): BufferedReader {
-    return Files.newBufferedReader(this, charset ?: this.detectCharset() )
+    return Files.newBufferedReader(this, charset )
 }
 
 /**
  * Returns a new [BufferedWriter] for writing the content of this file.
  *
  * @param charset character set to use for writing text, UTF-8 by default.
- * @param bufferSize necessary size of the buffer.
  * @param options options to determine how the file is opened.
+ * @param bufferSize necessary size of the buffer.
  */
 fun Path.writer(charset: Charset = Charsets.UTF_8, vararg options: OpenOption, bufferSize: Int = DEFAULT_BUFFER_SIZE): BufferedWriter {
-    return outputStream(*options).writer(charset ?: detectCharset()).buffered(bufferSize)
+    this.makeFile()
+    return outputstream(*options).writer(charset).buffered(bufferSize)
 }
 
-fun Path.inputStream(vararg options: OpenOption): InputStream {
+/**
+ * Returns a new [BufferedWriter] for appending the content of this file.
+ *
+ * @param charset character set to use for writing text, UTF-8 by default.
+ * @param bufferSize necessary size of the buffer.
+ */
+fun Path.appender(charset: Charset = Charsets.UTF_8, bufferSize: Int = DEFAULT_BUFFER_SIZE): BufferedWriter {
+    return this.writer(charset,APPEND,bufferSize = bufferSize)
+}
+
+fun Path.inputstream(vararg options: OpenOption): InputStream {
     return Files.newInputStream(this, *options)
 }
 
-fun Path.outputStream(vararg options: OpenOption): OutputStream {
+fun Path.outputstream(vararg options: OpenOption): OutputStream {
     return Files.newOutputStream(this, *options)
 }
 
 fun Path.detectCharset(default: Charset = Charsets.UTF_8): Charset {
-    return inputStream().use { detectCharset(it,default) }
+    return this.inputstream().use { detectCharset(it,default) }
 }
 
-private fun detectCharset(inputstream: InputStream,default: Charset = Charsets.UTF_8): Charset {
+private fun detectCharset(inputstream: InputStream, default: Charset = Charsets.UTF_8): Charset {
 
     val buffer = ByteArray(4096)
     var detector: UniversalDetector = UniversalDetector(null)
@@ -456,8 +510,8 @@ private fun detectCharset(inputstream: InputStream,default: Charset = Charsets.U
     }
     detector.dataEnd()
 
+    @Suppress("UNCHECKED_CAST")
     return detector.detectedCharset.let {
-        if( it.isNullOrEmpty() ) default
         try {
             Charset.forName(it)
         } catch (e: Exception) {
@@ -467,9 +521,10 @@ private fun detectCharset(inputstream: InputStream,default: Charset = Charsets.U
 
 }
 
-fun Path.readLines(charset: Charset = Charsets.UTF_8, action: (line: String) -> Unit): Boolean {
+fun Path.readLines(charset: Charset = Charsets.UTF_8, reader: (line: String) -> Unit): Boolean {
     if( notExists() ) return false
-    this.reader(charset).useLines { it.forEach(action) }
+    this.reader(charset = charset).useLines { it.forEach(reader) }
+
     return true
 }
 
@@ -484,11 +539,11 @@ fun Path.readLines(charset: Charset = Charsets.UTF_8): String {
 }
 
 fun Path.writeLines(lines: Iterable<CharSequence>, charset: Charset = Charsets.UTF_8, vararg options: OpenOption): Path {
-    return Files.write(this, lines, charset ?: detectCharset(), *options)
+    return Files.write(this, lines, charset, *options)
 }
 
 fun Path.appendLines(lines: Iterable<CharSequence>, charset: Charset = Charsets.UTF_8): Path {
-    return Files.write(this, lines, charset ?: detectCharset(), StandardOpenOption.APPEND)
+    return Files.write(this, lines, charset, APPEND)
 }
 
 /**
@@ -513,7 +568,7 @@ fun Path.readBytes(): ByteArray {
  * @param array byte array to write into this file.
  * @param options options to determine how the file is opened.
  */
-fun Path.writeBytes(array: ByteArray, vararg options: OpenOption): Unit {
+fun Path.writeBytes(array: ByteArray, vararg options: OpenOption) {
     Files.write(this, array, *options)
 }
 
@@ -523,14 +578,14 @@ fun Path.writeBytes(array: ByteArray, vararg options: OpenOption): Unit {
  * @param array byte array to append to this file.
  */
 fun Path.appendBytes(array: ByteArray) {
-    Files.write(this, array, StandardOpenOption.APPEND)
+    Files.write(this, array, APPEND)
 }
 
 /**
  * Gets the entire content of this file as a String using UTF-8 or the specified [charset].
  *
  * It's not recommended to use this function on huge files.
- * For reading large files or files of unknown size, open a [Reader][Path.reader] and read blocks of text sequentially.
+ * For reading large files or files of unknown size, open a [Reader][Path.reader1] and read blocks of text sequentially.
  *
  * @param charset character set to use for reading text, UTF-8 by default.
  * @return the entire content of this file as a String.
@@ -561,5 +616,5 @@ fun Path.writeText(text: CharSequence, charset: Charset = Charsets.UTF_8, vararg
  * @param charset character set to use for writing text, UTF-8 by default.
  */
 fun Path.appendText(text: CharSequence, charset: Charset = Charsets.UTF_8) {
-    writer(charset,StandardOpenOption.APPEND).use { it.append(text) }
+    writer(charset, APPEND).use { it.append(text) }
 }

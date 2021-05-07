@@ -2,7 +2,7 @@ package com.github.nayasis.kotlin.basica.core
 
 import mu.KotlinLogging
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.io.Serializable
@@ -70,10 +70,8 @@ internal class PathsTest {
 
         log.debug { written }
 
-        assertEquals( person.name, written!!.name )
-        assertEquals( person.age, written!!.age )
-
-        path.useLines {  }
+        assertEquals( person.name, written?.name )
+        assertEquals( person.age, written?.age )
 
     }
 
@@ -99,6 +97,153 @@ internal class PathsTest {
             456
             7890
         """.trimIndent(), path.readLines())
+
+        path.delete()
+
+        path.writer().use {
+            it.append("merong")
+            it.append("-nayasis")
+        }
+
+        assertEquals("merong-nayasis", path.readText())
+
+        path.appender().use {
+            it.append("-0666")
+        }
+
+        assertEquals("merong-nayasis-0666", path.readText())
+
+//        path.writer{ writer -> }
+
+
+    }
+
+    @Test
+    fun readLines() {
+
+        val path = rootPath() + "/build/resources/test/xml/Grammar.xml"
+            log.debug { path }
+
+        val txt = path.readLines()
+            log.debug { txt }
+
+        assertFalse(txt.isEmpty())
+
+    }
+
+    @Test
+    fun invariantPath() {
+        assertEquals( "//NAS/Game & Watch - Zelda", "\\\\NAS\\Game & Watch - Zelda".toPath().invariantSeparators )
+        assertEquals( "a", "a\\".toPath().invariantSeparators )
+        assertEquals( "/", "\\".toPath().invariantSeparators )
+    }
+
+    @Test
+    fun relativePath() {
+        val relative = "\\\\NAS\\emul\\ArcadeMame\\Game & Watch - Zelda".toPath().toRelative("//NAS/emul/ArcadeMame")
+            log.debug { relative }
+        assertEquals("Game & Watch - Zelda",relative.toString())
+    }
+
+    @Test
+    fun normalize() {
+        val root = "/root/bin/".toPath()
+        assertEquals( "/root/temp", root.resolve(".././temp").normalize().invariantSeparators)
+        assertEquals( "/root/bin/temp", root.resolve("./temp").normalize().invariantSeparators)
+        assertEquals( "/root/bin/temp", root.resolve("temp").normalize().invariantSeparators)
+        assertEquals( "/temp", root.resolve("/./temp").normalize().invariantSeparators)
+    }
+
+    @Test
+    fun copy() {
+
+        val root = TEST_DIR / "copy"
+
+        val src = root / "src"
+        val trg = root / "trg"
+        val file = src / "sample.txt"
+
+        file.writeText("merong")
+        trg.makeDir()
+
+        file.copy(trg)
+        assertTrue( (root + "/trg/sample.txt").isFile() )
+
+        src.copy(trg)
+        assertTrue( (root + "/trg/src").isDirectory() )
+        assertTrue( (root + "/trg/src/sample.txt").isFile() )
+
+        src.copy(root / "trg2")
+        assertTrue( (root + "/trg2").isDirectory() )
+        assertTrue( (root + "/trg2/sample.txt").isFile() )
+
+        file.copy(root / "sample2.txt")
+        assertTrue( (root + "/sample2.txt").isFile() )
+
+        file.copy( root + "/new/child/clone.txt")
+        assertTrue( (root + "/new/child/clone.txt").isFile() )
+
+    }
+
+    @Test
+    fun moveDir() {
+
+        val src = TEST_DIR / "src"
+        val trg = TEST_DIR / "trg"
+
+        val file = src / "sample.txt"
+        file.writeText("merong")
+
+        // existed dir !!
+        trg.makeDir()
+
+        var moved = src.move(trg)
+
+        assertTrue(src.notExists())
+        assertTrue(moved.exists())
+        assertTrue((trg + "/src/sample.txt").isFile())
+        assertEquals(trg + "/src", moved)
+
+    }
+
+    @Test
+    fun moveDirNotExist() {
+
+        val src = TEST_DIR / "src"
+        val trg = TEST_DIR / "trg"
+
+        val file = src / "sample.txt"
+        file.writeText("merong")
+
+        val moved = src.move(trg)
+
+        assertTrue(src.notExists())
+        assertTrue(moved.exists())
+        assertTrue((trg + "/sample.txt").isFile())
+        assertEquals(trg, moved)
+
+    }
+
+    @Test
+    fun moveFile() {
+
+        val src = TEST_DIR / "src"
+        val trg = TEST_DIR / "trg"
+
+        val file1 = src / "sample1.txt"
+        val file2 = src / "sample2.txt"
+
+        file1.writeText("merong")
+        file2.writeText("merong")
+
+        val moved1 = file1.move(trg + "/sample.txt")
+        val moved2 = file2.move(trg + "/children/sample2.txt")
+
+        assertEquals( trg + "/sample.txt", moved1 )
+        assertEquals( trg + "/children/sample2.txt", moved2 )
+
+        assertTrue( moved1.isFile() )
+        assertTrue( moved2.isFile() )
 
     }
 
