@@ -75,9 +75,7 @@ tasks.withType<KotlinCompile> {
 	kotlinOptions {
 		useIR = true
 		freeCompilerArgs = listOf(
-			"-Xjsr305=strict",
-			"-Xuse-experimental=kotlin.io.path.ExperimentalPathApi",
-			"-Xuse-experimental=kotlinx.serialization.ExperimentalSerializationApi"
+			"-Xjsr305=strict"
 		)
 		jvmTarget = "1.8"
 	}
