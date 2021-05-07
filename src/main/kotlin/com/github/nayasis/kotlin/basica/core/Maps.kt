@@ -11,6 +11,7 @@ fun Map<*,*>.toJson(pretty: Boolean = false, ignoreNull: Boolean = true, view: C
 
 inline fun <reified T> Map<*,*>.toObject(ignoreNull: Boolean = true): T = Reflector.toObject(this,ignoreNull)
 
+@Suppress("UNCHECKED_CAST")
 fun <V> Map<*,*>.get(expression: MvelExpression? ): V? {
     return when(expression) {
         null -> null

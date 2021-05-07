@@ -4,6 +4,7 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import kotlin.reflect.KClass
 
+@Suppress("UNCHECKED_CAST")
 fun <T:Number> Number.cast(type: KClass<T>): T {
     return when(type) {
         this::class -> this

@@ -195,6 +195,7 @@ class Reflector { companion object {
         return map
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun unflattenKeys(pathParent: String, value: Any?, result: MutableMap<String,Any?>) {
 
         val key     = pathParent.replaceFirst("""\[.*?]""".toRegex(), "").replaceFirst("""\..*?$""".toRegex(), "")
@@ -232,6 +233,7 @@ class Reflector { companion object {
 
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun setValueToList(key: String, idx: Int, value: Any?, result: MutableMap<String,Any?>) {
         if ( ! result.containsKey(key) )
             result[key] = ArrayList<Any?>()

@@ -12,6 +12,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.cast
 import kotlin.reflect.full.isSubclassOf
 
+@Suppress("UNCHECKED_CAST")
 class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
 
     companion object {

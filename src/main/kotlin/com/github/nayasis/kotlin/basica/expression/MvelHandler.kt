@@ -37,6 +37,7 @@ class MvelHandler { companion object {
      * @param <T>           return type
      * @return execution result
     </T> */
+    @Suppress("UNCHECKED_CAST")
     fun <T:Any> run(expression: Serializable?, param: Any?): T? = MVEL.executeExpression(expression, param) as T
 
     /**
