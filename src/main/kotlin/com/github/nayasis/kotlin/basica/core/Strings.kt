@@ -11,17 +11,13 @@ import java.io.File
 import java.io.InputStreamReader
 import java.math.BigDecimal
 import java.math.BigInteger
-import java.net.MalformedURLException
+import java.net.URI
 import java.net.URL
 import java.nio.charset.StandardCharsets.ISO_8859_1
-import java.nio.file.FileSystems
-import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
 import java.util.*
 import java.util.regex.Matcher
 import java.util.regex.Pattern
-import java.util.stream.Collectors
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 import kotlin.math.min
@@ -48,39 +44,12 @@ fun String.toDir(filecheck: Boolean = true): Path? {
 
 fun String.toFile(): File = File(this)
 
-fun String.toUrl(raiseException: Boolean = false): URL? {
-    return try {
-        URL(this)
-    } catch ( e : MalformedURLException ) {
-        log.trace(e.message, e)
-        if( raiseException ) throw e
-        return null
-    }
-}
+fun String.toUrl(): URL = URL(this)
 
-fun String.glob(): List<String> {
+fun String.toUri(): URI = URI(this)
 
-    if( ! this.startsWith("glob:") ) return listOf(this)
-
-    val pattern = this.removePrefix("glob:")
-
-    var root = pattern
-        .replaceFirst("^(.*?)([*?{\\[].*)$".toRegex(),"$1")
-        .replace("\\","/")
-        .substringBeforeLast("/")
-        .also { if(it.isEmpty()) "." }
-
-    var matcher = FileSystems.getDefault().getPathMatcher("glob:${pattern.removePrefix(root).removePrefix("/")}")
-
-    return try {
-        Files.walk(Paths.get(root))
-            .filter{ it: Path? -> it?.let { matcher.matches(it.fileName) } ?: false }
-            .collect(Collectors.toList())
-            .map { it.toAbsolutePath().toString().replace("\\","/") }
-    } catch (e: Exception) {
-        listOf(this)
-    }
-
+fun String.glob(glob: String = "*", depth: Int = -1, includeFile: Boolean = true, includeDirectory: Boolean = true ): List<Path> {
+    return this.toPath().find(glob,depth,includeFile,includeDirectory)
 }
 
 fun String.decodeBase64(): ByteArray = Base64.getDecoder().decode(this)
@@ -371,6 +340,7 @@ fun String?.hasCjk(): Boolean {
     return false
 }
 
+@Suppress("UNCHECKED_CAST")
 fun <T:Number> String?.toNumber(type: KClass<T>): T {
     if( this.isNullOrBlank() ) return 0.cast(type)
     return try {
