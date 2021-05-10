@@ -4,15 +4,15 @@ import mu.KotlinLogging
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.io.Serializable
-import kotlin.io.path.useLines
 
 private val log = KotlinLogging.logger {}
 
 internal class PathsTest {
 
-    val TEST_DIR = userHome() / "basica-test"
+    val TEST_DIR = userHome() / "basica-file-test"
 
     @BeforeEach
     fun makeTemp() {
@@ -244,6 +244,37 @@ internal class PathsTest {
 
         assertTrue( moved1.isFile() )
         assertTrue( moved2.isFile() )
+
+    }
+
+    @Test
+    @Disabled
+    fun symbolicLink() {
+
+        val src = TEST_DIR + "/src/sample.txt"
+        val trg = TEST_DIR + "/trg/sample.txt"
+
+        src.writeText("merong")
+        src.makeSymbolicLink(trg)
+
+        assertTrue(trg.exists())
+        assertTrue(trg.isSymbolicLink())
+        assertEquals("merong", trg.readText())
+
+    }
+
+    @Test
+    @Disabled
+    fun hardLink() {
+
+        val src = TEST_DIR + "/src/sample.txt"
+        val trg = TEST_DIR + "/trg/sample.txt"
+
+        src.writeText("merong")
+        src.makeHardLink(trg)
+
+        assertTrue(trg.exists())
+        assertEquals("merong", trg.readText())
 
     }
 
