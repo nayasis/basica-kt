@@ -72,6 +72,7 @@ internal class ReflectorTest {
     }
 
     @Test
+    @Suppress("UNCHECKED_CAST")
     fun getFunctions() {
         var line = "-".repeat(100)
         println(line)
@@ -81,7 +82,7 @@ internal class ReflectorTest {
         javaClass.classLoader.loadClass("com.github.nayasis.kotlin.basica.core.Strings")
             .methods.forEach { println(it) }
         println(line)
-        Reflector.javaClass.methods.forEach { println(it) }
+        Reflector::class.java.methods.forEach { println(it) }
         println(line)
     }
 

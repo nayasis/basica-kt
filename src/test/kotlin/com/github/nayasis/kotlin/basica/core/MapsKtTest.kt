@@ -18,6 +18,7 @@ private val JSON_EXAMPLE = """
 internal class MapsKtTest {
 
     @Test
+    @Suppress("UNCHECKED_CAST")
     fun flattenKeys() {
 
         var map = Reflector.toObject<Map<String,Any>>(JSON_EXAMPLE)

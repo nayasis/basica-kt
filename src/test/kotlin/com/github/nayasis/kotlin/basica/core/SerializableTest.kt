@@ -33,6 +33,8 @@ class SerializableTest {
 
 }
 
+@Suppress("UNCHECKED_CAST")
+@OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
 @Serializer(forClass = LocalDateTime::class)
 object LocalDateTimeSerializer : KSerializer<LocalDateTime> {
     override fun deserialize(decoder: Decoder): LocalDateTime {
@@ -46,6 +48,8 @@ object LocalDateTimeSerializer : KSerializer<LocalDateTime> {
         get() = TODO("Not yet implemented")
 }
 
+@Suppress("UNCHECKED_CAST")
+@OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
 @Serializer(forClass = LocalDateTime::class)
 object LocalDateSerializer : KSerializer<LocalDate> {
     override fun deserialize(decoder: Decoder): LocalDate {
@@ -59,6 +63,7 @@ object LocalDateSerializer : KSerializer<LocalDate> {
         get() = TODO("Not yet implemented")
 }
 
+@OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
 @Serializer(forClass = Date::class)
 object DateSerializer : KSerializer<Date> {
     override fun deserialize(decoder: Decoder): Date {
