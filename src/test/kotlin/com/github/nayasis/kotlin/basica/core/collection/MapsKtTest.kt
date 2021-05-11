@@ -1,9 +1,5 @@
-package com.github.nayasis.kotlin.basica.core
+package com.github.nayasis.kotlin.basica.core.collection
 
-import com.github.nayasis.kotlin.basica.core.collection.flattenKeys
-import com.github.nayasis.kotlin.basica.core.collection.getByExpr
-import com.github.nayasis.kotlin.basica.core.collection.toObject
-import com.github.nayasis.kotlin.basica.core.collection.unflattenKeys
 import com.github.nayasis.kotlin.basica.core.localdate.toDate
 import com.github.nayasis.kotlin.basica.reflection.Reflector
 import org.junit.jupiter.api.Assertions.*

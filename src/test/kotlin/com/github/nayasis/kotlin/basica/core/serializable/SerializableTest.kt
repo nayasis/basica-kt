@@ -1,4 +1,4 @@
-package com.github.nayasis.kotlin.basica.core
+package com.github.nayasis.kotlin.basica.core.serializable
 
 import com.github.nayasis.kotlin.basica.core.localdate.toDate
 import com.github.nayasis.kotlin.basica.core.localdate.toLocalDate
