@@ -1,4 +1,4 @@
-package com.github.nayasis.kotlin.basica.core
+package com.github.nayasis.kotlin.basica.core.collection
 
 fun <T> Iterator<T>.toList(): List<T> {
     return ArrayList<T>().apply {

@@ -1,8 +1,8 @@
 package com.github.nayasis.kotlin.basica.reflection
 
-import com.github.nayasis.kotlin.basica.core.toJson
-import com.github.nayasis.kotlin.basica.core.toLocalDateTime
-import com.github.nayasis.kotlin.basica.core.toStr
+import com.github.nayasis.kotlin.basica.core.collection.toJson
+import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
+import com.github.nayasis.kotlin.basica.core.localdate.toStr
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime

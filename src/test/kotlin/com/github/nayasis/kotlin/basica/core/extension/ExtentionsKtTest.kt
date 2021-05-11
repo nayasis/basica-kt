@@ -1,5 +1,6 @@
-package com.github.nayasis.kotlin.basica.core
+package com.github.nayasis.kotlin.basica.core.extension
 
+import com.github.nayasis.kotlin.basica.core.extention.then
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 

@@ -1,4 +1,4 @@
-package com.github.nayasis.kotlin.basica.core
+package com.github.nayasis.kotlin.basica.core.character
 
 import java.lang.Character.UnicodeBlock
 

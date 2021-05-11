@@ -1,4 +1,4 @@
-package com.github.nayasis.kotlin.basica.core
+package com.github.nayasis.kotlin.basica.core.localdate
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test

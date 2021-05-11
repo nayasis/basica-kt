@@ -1,6 +1,6 @@
 @file:JvmName("LocalDateTimes")
 
-package com.github.nayasis.kotlin.basica.core
+package com.github.nayasis.kotlin.basica.core.localdate
 
 import java.time.Instant
 import java.time.LocalDate

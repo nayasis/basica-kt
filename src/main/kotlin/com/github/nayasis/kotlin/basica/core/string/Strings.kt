@@ -1,8 +1,15 @@
 @file:JvmName("Strings")
 
-package com.github.nayasis.kotlin.basica.core
+package com.github.nayasis.kotlin.basica.core.string
 
 import com.github.nayasis.basica.model.Messages
+import com.github.nayasis.kotlin.basica.core.character.Characters
+import com.github.nayasis.kotlin.basica.core.character.fontwidth
+import com.github.nayasis.kotlin.basica.core.character.isCJK
+import com.github.nayasis.kotlin.basica.core.extention.then
+import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
+import com.github.nayasis.kotlin.basica.core.number.cast
+import com.github.nayasis.kotlin.basica.core.path.*
 import mu.KotlinLogging
 import java.io.BufferedReader
 import java.io.ByteArrayInputStream
@@ -207,7 +214,9 @@ private fun unescapeChar(escaped: String): String? {
 
 fun String?.toSingleSpace(includeLineBreaker:Boolean = false): String =
     if (this.isNullOrEmpty()) "" else this.replace(((includeLineBreaker) then "[ \t]+" ?: "[ \t\n\r]+").toRegex(), " ").trim()
-fun String?.toSingleEnter(): String = if( this.isNullOrEmpty() ) "" else this.replace(" *[\n\r]".toRegex(), "\n").replace( "[ \n\r]+".toRegex(), "\n" )
+
+fun String?.toSingleEnter(): String =
+    if( this.isNullOrEmpty() ) "" else this.replace(" *[\n\r]".toRegex(), "\n").replace( "[ \n\r]+".toRegex(), "\n" )
 
 fun String?.extractDigit(): String = if( this.isNullOrEmpty() ) "" else this.replace( "[^0-9]".toRegex(), "" )
 fun String?.extractUppers(): String = if( this.isNullOrEmpty() ) "" else this.replace( "[^A-Z]".toRegex(), "" )

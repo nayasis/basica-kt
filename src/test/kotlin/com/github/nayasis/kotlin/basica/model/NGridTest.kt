@@ -2,7 +2,7 @@ package com.github.nayasis.kotlin.basica.model
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.github.nayasis.kotlin.basica.annotation.NoArg
-import com.github.nayasis.kotlin.basica.core.Characters
+import com.github.nayasis.kotlin.basica.core.character.Characters
 import mu.KotlinLogging
 import org.junit.jupiter.api.Test
 

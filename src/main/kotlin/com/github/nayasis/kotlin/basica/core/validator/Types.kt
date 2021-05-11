@@ -1,6 +1,4 @@
-package com.github.nayasis.kotlin.basica.core
-
-import kotlin.reflect.KClass
+package com.github.nayasis.kotlin.basica.core.validator
 
 class Types { companion object {
 

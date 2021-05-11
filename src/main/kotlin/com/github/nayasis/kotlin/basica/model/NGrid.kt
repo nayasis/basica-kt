@@ -1,8 +1,8 @@
 package com.github.nayasis.kotlin.basica.model
 
 import com.fasterxml.jackson.core.type.TypeReference
-import com.github.nayasis.kotlin.basica.core.cast
-import com.github.nayasis.kotlin.basica.core.toNumber
+import com.github.nayasis.kotlin.basica.core.number.cast
+import com.github.nayasis.kotlin.basica.core.string.toNumber
 import com.github.nayasis.kotlin.basica.reflection.Reflector
 import java.io.Serializable
 import java.util.*

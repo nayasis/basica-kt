@@ -1,8 +1,10 @@
 @file:JvmMultifileClass
 @file:JvmName("Paths")
 
-package com.github.nayasis.kotlin.basica.core
+package com.github.nayasis.kotlin.basica.core.path
 
+import com.github.nayasis.kotlin.basica.core.string.toFile
+import com.github.nayasis.kotlin.basica.core.string.toPath
 import org.mozilla.universalchardet.UniversalDetector
 import java.io.*
 import java.net.URI

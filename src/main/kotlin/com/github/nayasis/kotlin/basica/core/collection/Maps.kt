@@ -1,4 +1,4 @@
-package com.github.nayasis.kotlin.basica.core
+package com.github.nayasis.kotlin.basica.core.collection
 
 import com.github.nayasis.kotlin.basica.expression.MvelExpression
 import com.github.nayasis.kotlin.basica.reflection.Reflector

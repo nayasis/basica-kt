@@ -1,5 +1,6 @@
-package com.github.nayasis.kotlin.basica.core
+package com.github.nayasis.kotlin.basica.core.path
 
+import com.github.nayasis.kotlin.basica.core.string.toPath
 import mu.KotlinLogging
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*

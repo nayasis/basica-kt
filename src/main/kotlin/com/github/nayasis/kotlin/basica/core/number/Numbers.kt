@@ -1,4 +1,4 @@
-package com.github.nayasis.kotlin.basica.core
+package com.github.nayasis.kotlin.basica.core.number
 
 import java.math.BigDecimal
 import java.math.BigInteger

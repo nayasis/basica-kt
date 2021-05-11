@@ -1,4 +1,4 @@
-package com.github.nayasis.kotlin.basica.core
+package com.github.nayasis.kotlin.basica.core.klass
 
 import java.net.URL
 import kotlin.reflect.KClass
