@@ -14,21 +14,23 @@ interface Cache<K,V> {
 
     fun setCapacity(capacity: Int)
 
-    fun setFlushCycle(seconds: Int)
+    operator fun contains(key: K): Boolean
 
-    operator fun contains(key: K?): Boolean
+    fun put(key: K, value: V): V
 
-    fun put(key: K?, value: V?)
+    fun putIfAbsent(key: K, value: V): V
 
-    fun putIfAbsent(key: K?, value: V?)
+    operator fun get(key: K): V?
 
-    operator fun get(key: K?): V?
+    fun getOrElse(key: K): V?
 
-    fun clear(key: K?)
+    fun getOrDefault(key: K, default: V): V
 
-    fun clear()
+    fun evict(key: K)
 
-    fun keySet(): Set<K?>
+    fun evict()
+
+    fun keySet(): Set<K>
 
     fun putAll(map: Map<K,V>)
 
