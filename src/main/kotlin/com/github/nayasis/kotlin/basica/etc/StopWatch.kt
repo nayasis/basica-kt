@@ -23,7 +23,7 @@ class StopWatch: Serializable {
     }
 
     fun elapsedNanos(): Long = if( start == 0L ) 0L else System.nanoTime() - start
-    fun elapsedMillis(): Long = elapsedNanos() / 1_000_000
+    fun elapsedMilis(): Long = elapsedNanos() / 1_000_000
     fun elapsedSeconds(): Double = round(elapsedNanos() / 1_000_000_000.0, 3 )
 
     fun stop(): StopWatch {
@@ -35,7 +35,7 @@ class StopWatch: Serializable {
 
     private fun addLog() {
         if (enable && start != 0L)
-            logs.add(Log(task, elapsedMillis()))
+            logs.add(Log(task, elapsedMilis()))
     }
 
     fun tick(task: String = ""): StopWatch {
@@ -53,7 +53,7 @@ class StopWatch: Serializable {
     override fun toString(): String {
         if( ! enable ) return ""
 
-        val total = logs.sumByLong { it.millis }
+        val total = logs.sumByLong { it.milis }
 
         var remainPercent = 100.0
 
@@ -63,7 +63,7 @@ class StopWatch: Serializable {
             if (i == last) {
                 log.percent = remainPercent
             } else {
-                log.percent = round(log.millis.toDouble() / total * 100,1)
+                log.percent = round(log.milis.toDouble() / total * 100,1)
                 remainPercent -= log.percent
             }
         }
@@ -72,7 +72,7 @@ class StopWatch: Serializable {
 
         logs.forEach {
             grid.addData( "Task", it.task )
-            grid.addData( "ms", it.millis )
+            grid.addData( "ms", it.milis )
             grid.addData( "%", "%.1f".format(it.percent) )
         }
 
@@ -88,6 +88,6 @@ class StopWatch: Serializable {
 
 private data class Log(
     var task: String,
-    var millis: Long = 0,
+    var milis: Long = 0,
     var percent: Double = 0.0
 ): Serializable
