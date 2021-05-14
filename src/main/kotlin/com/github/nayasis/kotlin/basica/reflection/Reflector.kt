@@ -244,8 +244,12 @@ class Reflector { companion object {
         list[idx] = value
     }
 
-}}
+    @JvmStatic
+    inline fun <reified T> merge(from: Any?, to: T?, skipEmpty: Boolean = true): T {
+        return Merger.merge(from,to,skipEmpty)
+    }
 
+}}
 
 fun emptyJson(klass: KClass<*>): String =
     if( klass.isSubclassOf(Collection::class) || klass.isSubclassOf(Array::class)) "[]" else "{}"

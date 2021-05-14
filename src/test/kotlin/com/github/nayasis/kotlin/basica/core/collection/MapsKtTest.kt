@@ -2,9 +2,12 @@ package com.github.nayasis.kotlin.basica.core.collection
 
 import com.github.nayasis.kotlin.basica.core.localdate.toDate
 import com.github.nayasis.kotlin.basica.reflection.Reflector
+import mu.KotlinLogging
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.util.*
+
+private val log = KotlinLogging.logger {}
 
 private val JSON_EXAMPLE = """
             {
@@ -85,6 +88,31 @@ internal class MapsKtTest {
         assertEquals( "A", map.getByExpr("name.item[0].key") )
         assertEquals( 1, map.getByExpr("name.item[0].value") )
         assertNull( map.getByExpr("name.item[0].q") )
+
+    }
+
+    @Test
+    fun mergeTest() {
+
+        val map1 = mapOf(1 to 1, 2 to 2, 5 to mapOf("name" to "nayasis"))
+        val map2 = mapOf(3 to 3, 4 to 4, 5 to listOf(
+            mapOf("age" to 45),
+            mapOf("name" to "jake", "age" to 11)
+        ))
+
+        val merged = map2.merge(map1)
+
+        log.debug { merged }
+
+        for( i in 1..4 )
+            assertEquals(i, merged[i])
+
+        val e5 = merged[5] as List<Map<String,Any>>
+
+        assertEquals( "nayasis" , e5[0]["name"] )
+        assertEquals( 45        , e5[0]["age"]  )
+        assertEquals( "jake"    , e5[1]["name"] )
+        assertEquals( 11        , e5[1]["age"]  )
 
     }
 
