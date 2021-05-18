@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.nayasis.kotlin.basica.core.resource.type.interfaces
+package com.github.nayasis.kotlin.basica.`resource-backup`.type.interfaces
 
 import java.io.File
 import java.io.IOException
@@ -24,7 +24,6 @@ import java.nio.channels.Channels
 import java.nio.channels.ReadableByteChannel
 
 interface Resource {
-
     /**
      * Determine whether this resource actually exists in physical form.
      *
@@ -46,7 +45,8 @@ interface Resource {
      * @see .getInputStream
      * @see .exists
      */
-    fun isReadable(): Boolean = exists()
+    fun isReadable(): Boolean
+        get() = exists()
 
     /**
      * Indicate whether this resource represents a handle with an open stream.
@@ -55,7 +55,8 @@ interface Resource {
      *
      * Will be `false` for typical resource descriptors.
      */
-    fun isOpen(): Boolean = false
+    var isOpen: Boolean
+        get() = false
 
     /**
      * Determine whether this resource represents a file in a file system.
@@ -66,15 +67,16 @@ interface Resource {
      * @since 5.0
      * @see .getFile
      */
-    fun isFile(): Boolean = false
+    var isFile: Boolean
+        get() = false
 
     /**
      * Return a URL handle for this resource.
      * @throws IOException if the resource cannot be resolved as URL,
      * i.e. if the resource is not available as descriptor
      */
-    @Throws(IOException::class)
-    fun getURL(): URL
+    @get:Throws(IOException::class)
+    var url: URL
 
     /**
      * Return a URI handle for this resource.
@@ -82,8 +84,8 @@ interface Resource {
      * i.e. if the resource is not available as descriptor
      * @since 2.5
      */
-    @Throws(IOException::class)
-    fun getURI(): URI
+    @get:Throws(IOException::class)
+    var uri: URI
 
     /**
      * Return a File handle for this resource.
@@ -92,8 +94,8 @@ interface Resource {
      * @throws IOException in case of general resolution/reading failures
      * @see .getInputStream
      */
-    @Throws(IOException::class)
-    fun getFile(): File
+    @get:Throws(IOException::class)
+    var file: File
 
     /**
      * Return a [ReadableByteChannel].
@@ -109,8 +111,8 @@ interface Resource {
      * @see .getInputStream
      */
     @Throws(IOException::class)
-    fun readableChannel(): ReadableByteChannel {
-        return Channels.newChannel(getInputStream())
+    fun readableChannel(): ReadableByteChannel? {
+        return Channels.newChannel(inputStream)
     }
 
     /**
@@ -118,16 +120,16 @@ interface Resource {
      * @throws IOException if the resource cannot be resolved
      * (in the file system or as some other known physical resource type)
      */
-    @Throws(IOException::class)
-    fun contentLength(): Long
+    @get:Throws(IOException::class)
+    val contentLength: Long
 
     /**
      * Determine the last-modified timestamp for this resource.
      * @throws IOException if the resource cannot be resolved
      * (in the file system or as some other known physical resource type)
      */
-    @Throws(IOException::class)
-    fun lastModified(): Long
+    @get:Throws(IOException::class)
+    var lastModified: Long
 
     /**
      * Create a resource relative to this resource.
@@ -145,7 +147,7 @@ interface Resource {
      * Returns `null` if this type of resource does not
      * have a filename.
      */
-    fun getFilename(): String
+    var filename: String?
 
     /**
      * Return a description for this resource,
@@ -155,7 +157,7 @@ interface Resource {
      * from their `toString` method.
      * @see Object.toString
      */
-    fun getDescription(): String
+    var description: String?
 
     /**
      * Return an [InputStream] for the content of an underlying resource.
@@ -170,7 +172,6 @@ interface Resource {
      * @throws java.io.FileNotFoundException if the underlying resource doesn't exist
      * @throws IOException if the content stream could not be opened
      */
-    @Throws(IOException::class)
-    fun getInputStream(): InputStream
-
+    @get:Throws(IOException::class)
+    val inputStream: InputStream
 }

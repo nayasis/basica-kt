@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.nayasis.kotlin.basica.core.resource.type.abstracts
+package com.github.nayasis.kotlin.basica.`resource-backup`.type.abstracts
 
-import com.github.nayasis.kotlin.basica.core.resource.type.VfsResource
-import com.github.nayasis.kotlin.basica.core.resource.type.interfaces.Resource
-import com.github.nayasis.kotlin.basica.core.resource.util.Resources
-import com.github.nayasis.kotlin.basica.core.resource.util.VfsUtils
+import com.github.nayasis.kotlin.basica.core.`resource-backup`.type.VfsResource
+import com.github.nayasis.kotlin.basica.core.`resource-backup`.type.interfaces.Resource
+import com.github.nayasis.kotlin.basica.core.`resource-backup`.util.Resources
+import com.github.nayasis.kotlin.basica.core.`resource-backup`.util.VfsUtils
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -45,10 +45,10 @@ import java.nio.file.StandardOpenOption
 abstract class AbstractFileResolvingResource: AbstractResource() {
     override fun exists(): Boolean {
         return try {
-            val url = getURL()
+            val url = url
             if (Resources.isFileURL(url)) {
                 // Proceed with file system resolution
-                getFile().exists()
+                file.exists()
             } else {
                 // Try a URL connection content-length header
                 val con = url.openConnection()
@@ -71,7 +71,7 @@ abstract class AbstractFileResolvingResource: AbstractResource() {
                     false
                 } else {
                     // Fall back to stream existence: can we open the stream?
-                    getInputStream().close()
+                    inputStream.close()
                     true
                 }
             }
@@ -80,81 +80,79 @@ abstract class AbstractFileResolvingResource: AbstractResource() {
         }
     }
 
-    override fun isReadable(): Boolean {
-        return try {
-            val url = getURL()
-            if (Resources.isFileURL(url)) {
-                // Proceed with file system resolution
-                val file = getFile()
-                file.canRead() && !file.isDirectory
-            } else {
-                // Try InputStream resolution for jar resources
-                val con = url.openConnection()
-                customizeConnection(con)
-                if (con is HttpURLConnection) {
-                    val httpCon = con
-                    val code = httpCon.responseCode
-                    if (code != HttpURLConnection.HTTP_OK) {
-                        httpCon.disconnect()
-                        return false
+    override val isReadable: Boolean
+        get() {
+            try {
+                val url = url
+                if (Resources.isFileURL(url)) {
+                    // Proceed with file system resolution
+                    return file.let { it.canRead() && ! it.isDirectory }
+                } else {
+                    // Try InputStream resolution for jar resources
+                    val conn = url.openConnection()
+                    customizeConnection(conn)
+                    if (conn is HttpURLConnection) {
+                        val code = conn.responseCode
+                        if (code != HttpURLConnection.HTTP_OK) {
+                            conn.disconnect()
+                            return false
+                        }
+                    }
+                    val contentLength = conn.contentLengthLong
+                    return when {
+                        contentLength > 0 -> true
+                        // Empty file or directory -> not considered readable...
+                        contentLength == 0L -> false
+                        // Fall back to stream existence: can we open the stream?
+                        else -> {
+                            inputStream.close(); true
+                        }
                     }
                 }
-                val contentLength = con.contentLengthLong
-                if (contentLength > 0) {
-                    true
-                } else if (contentLength == 0L) {
-                    // Empty file or directory -> not considered readable...
-                    false
-                } else {
-                    // Fall back to stream existence: can we open the stream?
-                    getInputStream().close()
-                    true
-                }
+            } catch (ex: IOException) {
+                return false
             }
-        } catch (ex: IOException) {
-            false
         }
-    }
 
-    override fun isFile(): Boolean {
-        return try {
-            val url = getURL()
+    override val isFile: Boolean
+        get() = try {
+            val url = url
             if (url.protocol.startsWith(Resources.URL_PROTOCOL_VFS)) {
-                VfsResourceDelegate.getResource(url).isFile()
+                VfsResourceDelegate.getResource(url).isFile
             } else Resources.URL_PROTOCOL_FILE == url.protocol
         } catch (ex: IOException) {
             false
         }
-    }
 
     /**
      * This implementation returns a File reference for the underlying class path
      * resource, provided that it refers to a file in the file system.
      */
-    @Throws(IOException::class)
-    override fun getFile(): File {
-        val url = getURL()
-        return if (url.protocol.startsWith(Resources.URL_PROTOCOL_VFS)) {
-            VfsResourceDelegate.getResource(url).getFile()
-        } else Resources.getFile(url, getDescription())
-    }
+    override val file: File
+        get() {
+            val url = url
+            return if (url.protocol.startsWith(Resources.URL_PROTOCOL_VFS)) {
+                VfsResourceDelegate.getResource(
+                    url
+                ).file
+            } else Resources.getFile(url, description)
+        }
 
     /**
      * This implementation determines the underlying File
      * (or jar file, in case of a resource in a jar/zip).
      */
-    @Throws(IOException::class)
     override fun getFileForLastModifiedCheck(): File {
-        val url = getURL()
+        val url = url
         return if (Resources.isJarURL(url)) {
             val actualUrl = Resources.extractArchiveURL(url)
             if (actualUrl.protocol.startsWith(Resources.URL_PROTOCOL_VFS)) {
                 VfsResourceDelegate.getResource(
                     actualUrl
-                ).getFile()
+                ).file
             } else Resources.getFile(actualUrl, "Jar URL")
         } else {
-            getFile()
+            file
         }
     }
 
@@ -167,7 +165,7 @@ abstract class AbstractFileResolvingResource: AbstractResource() {
     protected fun isFile(uri: URI): Boolean {
         return try {
             if (uri.scheme.startsWith(Resources.URL_PROTOCOL_VFS)) {
-                VfsResourceDelegate.getResource(uri).isFile()
+                VfsResourceDelegate.getResource(uri).isFile
             } else Resources.URL_PROTOCOL_FILE == uri.scheme
         } catch (ex: IOException) {
             false
@@ -181,8 +179,10 @@ abstract class AbstractFileResolvingResource: AbstractResource() {
     @Throws(IOException::class)
     protected fun getFile(uri: URI): File {
         return if (uri.scheme.startsWith(Resources.URL_PROTOCOL_VFS)) {
-            VfsResourceDelegate.getResource(uri).getFile()
-        } else Resources.getFile(uri, getDescription())
+            VfsResourceDelegate.getResource(
+                uri
+            ).file
+        } else Resources.getFile(uri, description)
     }
 
     /**
@@ -195,7 +195,7 @@ abstract class AbstractFileResolvingResource: AbstractResource() {
     override fun readableChannel(): ReadableByteChannel {
         return try {
             // Try file system channel
-            FileChannel.open(getFile().toPath(), StandardOpenOption.READ)
+            FileChannel.open(file.toPath(), StandardOpenOption.READ)
         } catch (ex: FileNotFoundException) {
             // Fall back to InputStream adaptation in superclass
             super.readableChannel()
@@ -204,30 +204,27 @@ abstract class AbstractFileResolvingResource: AbstractResource() {
         }
     }
 
-    @Throws(IOException::class)
-    override fun contentLength(): Long {
-        val url = getURL()
-        return if (Resources.isFileURL(url)) {
-            // Proceed with file system resolution
-            val file = getFile()
-            val length = file.length()
-            if (length == 0L && !file.exists()) {
-                throw FileNotFoundException(
-                    "${getDescription()} cannot be resolved in the file system for checking its content length"
-                )
+    override val contentLength: Long
+        get() {
+            val url = url
+            return if (Resources.isFileURL(url)) {
+                // Proceed with file system resolution
+                val file = file
+                val length = file.length()
+                if (length == 0L && !file.exists())
+                    throw FileNotFoundException("$description cannot be resolved in the file system for checking its content length")
+                length
+            } else {
+                // Try a URL connection content-length header
+                val con = url.openConnection()
+                customizeConnection(con)
+                con.contentLengthLong
             }
-            length
-        } else {
-            // Try a URL connection content-length header
-            val con = url.openConnection()
-            customizeConnection(con)
-            con.contentLengthLong
         }
-    }
 
-    @Throws(IOException::class)
-    override fun lastModified(): Long {
-        val url = getURL()
+    override val lastModified: Long
+        get() {
+        val url = url
         var fileCheck = false
         if (Resources.isFileURL(url) || Resources.isJarURL(url)) {
             // Proceed with file system resolution
@@ -248,7 +245,8 @@ abstract class AbstractFileResolvingResource: AbstractResource() {
         val lastModified = con.lastModified
         if (fileCheck && lastModified == 0L && con.contentLengthLong <= 0) {
             throw FileNotFoundException(
-                "${getDescription()} cannot be resolved in the file system for checking its last-modified timestamp"
+                description +
+                    " cannot be resolved in the file system for checking its last-modified timestamp"
             )
         }
         return lastModified
@@ -277,12 +275,12 @@ abstract class AbstractFileResolvingResource: AbstractResource() {
      * [.exists], [.contentLength] or [.lastModified] call.
      *
      * Sets request method "HEAD" by default. Can be overridden in subclasses.
-     * @param con the HttpURLConnection to customize
+     * @param conn the HttpURLConnection to customize
      * @throws IOException if thrown from HttpURLConnection methods
      */
     @Throws(IOException::class)
-    protected fun customizeConnection(con: HttpURLConnection) {
-        con.requestMethod = "HEAD"
+    protected fun customizeConnection(conn: HttpURLConnection) {
+        conn.requestMethod = "HEAD"
     }
 
     /**

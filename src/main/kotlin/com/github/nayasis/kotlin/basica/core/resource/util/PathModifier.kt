@@ -1,15 +1,15 @@
 package com.github.nayasis.kotlin.basica.core.resource.util
 
-import com.github.nayasis.basica.base.Strings
-import com.github.nayasis.basica.file.Files
+import com.github.nayasis.kotlin.basica.core.path.FOLDER_SEPARATOR
+import com.github.nayasis.kotlin.basica.core.path.FOLDER_SEPARATOR_WINDOWS
 import java.util.*
 
 object PathModifier {
     private const val PATH_PARENT = ".."
     private const val PATH_CURRENT = "."
-    fun clean(path: String): String {
-        if (Strings.isEmpty(path)) return path
-        var pathToUse = path.replace(Files.FOLDER_SEPARATOR_WINDOWS, Files.FOLDER_SEPARATOR)
+    fun clean(path: String?): String {
+        if(path.isNullOrEmpty()) return ""
+        var pathToUse = path.replace(FOLDER_SEPARATOR_WINDOWS, FOLDER_SEPARATOR)
 
         // Strip prefix from path to analyze, to not treat it as part of the
         // first path element. This is necessary to correctly parse paths like
@@ -19,17 +19,17 @@ object PathModifier {
         var prefix = ""
         if (prefixIndex != -1) {
             prefix = pathToUse.substring(0, prefixIndex + 1)
-            if (prefix.contains(Files.FOLDER_SEPARATOR)) {
+            if (prefix.contains(FOLDER_SEPARATOR)) {
                 prefix = ""
             } else {
                 pathToUse = pathToUse.substring(prefixIndex + 1)
             }
         }
-        if (pathToUse.startsWith(Files.FOLDER_SEPARATOR)) {
-            prefix = prefix + Files.FOLDER_SEPARATOR
+        if (pathToUse.startsWith(FOLDER_SEPARATOR)) {
+            prefix = prefix + FOLDER_SEPARATOR
             pathToUse = pathToUse.substring(1)
         }
-        val pathArray = Strings.split(pathToUse, Files.FOLDER_SEPARATOR)
+        val pathArray = pathToUse.split(FOLDER_SEPARATOR)
         val pathElements = LinkedList<String?>()
         var tops = 0
         for (i in pathArray.indices.reversed()) {
@@ -55,9 +55,9 @@ object PathModifier {
             pathElements.add(0, PATH_PARENT)
         }
         // If nothing else left, at least explicitly point to current path.
-        if (pathElements.size == 1 && "" == pathElements.last && !prefix.endsWith(Files.FOLDER_SEPARATOR)) {
+        if (pathElements.size == 1 && "" == pathElements.last && !prefix.endsWith(FOLDER_SEPARATOR)) {
             pathElements.add(0, PATH_CURRENT)
         }
-        return prefix + Strings.join(pathElements, Files.FOLDER_SEPARATOR)
+        return prefix + pathElements.joinToString(FOLDER_SEPARATOR)
     }
 }

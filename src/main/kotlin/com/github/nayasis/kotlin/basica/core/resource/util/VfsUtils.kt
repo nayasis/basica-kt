@@ -16,7 +16,6 @@
 package com.github.nayasis.kotlin.basica.core.resource.util
 
 import com.github.nayasis.basica.exception.unchecked.BaseRuntimeException
-import com.github.nayasis.basica.reflection.core.ClassReflector
 import com.github.nayasis.basica.resource.util.VfsUtils
 import com.github.nayasis.kotlin.basica.core.klass.getValue
 import java.io.File

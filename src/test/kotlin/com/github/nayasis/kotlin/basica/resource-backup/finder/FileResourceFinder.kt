@@ -1,13 +1,16 @@
-package com.github.nayasis.kotlin.basica.core.resource.finder
+package com.github.nayasis.kotlin.basica.`resource-backup`.finder
 
-import com.github.nayasis.basica.file.Files
-import com.github.nayasis.basica.resource.matcher.PathMatcher
-import com.github.nayasis.basica.resource.type.FileSystemResource
-import com.github.nayasis.basica.resource.type.interfaces.Resource
-import lombok.extern.slf4j.Slf4j
+import com.github.nayasis.kotlin.basica.core.`resource-backup`.matcher.PathMatcher
+import com.github.nayasis.kotlin.basica.core.`resource-backup`.type.FileSystemResource
+import com.github.nayasis.kotlin.basica.core.`resource-backup`.type.interfaces.Resource
+import mu.KotlinLogging
+import java.io.File
+import java.io.FileNotFoundException
+import java.io.IOException
 import java.util.function.Function
 
-@Slf4j
+private val log = KotlinLogging.logger {}
+
 class FileResourceFinder(private var pathMatcher: PathMatcher) {
     fun setPathMatcher(pathMatcher: PathMatcher) {
         this.pathMatcher = pathMatcher
@@ -28,7 +31,7 @@ class FileResourceFinder(private var pathMatcher: PathMatcher) {
             val rootDir: File = root.file.absoluteFile
             toFileSystemResource(findFiles(rootDir, pattern))
         } catch (e: FileNotFoundException) {
-            log.debug("Cannot search for matching files underneath {} in the file system: {}", root, e.message)
+            log.debug{"Cannot search for matching files underneath $root in the file system: ${e.message}"}
             emptySet()
         } catch (e: Exception) {
             log.info("Failed to resolve {} in the file system: {}", root, e)

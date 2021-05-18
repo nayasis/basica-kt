@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.nayasis.kotlin.basica.core.resource.type
+package com.github.nayasis.kotlin.basica.`resource-backup`.type
 
-import com.github.nayasis.kotlin.basica.core.resource.type.interfaces.Resource
+import com.github.nayasis.basica.resource.type.interfaces.Resource
 import java.io.IOException
 import java.io.OutputStream
 import java.nio.channels.Channels
@@ -41,7 +41,8 @@ interface WritableResource: Resource {
      * @see .getOutputStream
      * @see .isReadable
      */
-    fun isWritable(): Boolean = true
+    val isWritable: Boolean
+        get() = true
 
     /**
      * Return an [OutputStream] for the underlying resource,
@@ -49,8 +50,8 @@ interface WritableResource: Resource {
      * @throws IOException if the stream could not be opened
      * @see .getInputStream
      */
-    @Throws(IOException::class)
-    fun getOutputStream(): OutputStream
+    @get:Throws(IOException::class)
+    val outputStream: OutputStream?
 
     /**
      * Return a [WritableByteChannel].
@@ -66,7 +67,7 @@ interface WritableResource: Resource {
      * @see .getOutputStream
      */
     @Throws(IOException::class)
-    fun writableChannel(): WritableByteChannel {
-        return Channels.newChannel(getOutputStream())
+    fun writableChannel(): WritableByteChannel? {
+        return Channels.newChannel(outputStream)
     }
 }

@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.nayasis.kotlin.basica.core.resource.type
+package com.github.nayasis.kotlin.basica.`resource-backup`.type
 
-import com.github.nayasis.kotlin.basica.core.resource.type.abstracts.AbstractResource
-import com.github.nayasis.kotlin.basica.core.resource.type.interfaces.Resource
-import com.github.nayasis.kotlin.basica.core.resource.util.PathModifier
+import com.github.nayasis.kotlin.basica.core.`resource-backup`.type.abstracts.AbstractResource
+import com.github.nayasis.kotlin.basica.core.`resource-backup`.type.interfaces.Resource
+import com.github.nayasis.kotlin.basica.core.`resource-backup`.util.PathModifier
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -59,7 +59,6 @@ class FileSystemResource: AbstractResource, WritableResource {
      * Return the file path for this resource.
      */
     val path: String
-    private val file: File?
     private val filePath: Path
 
     /**
@@ -76,7 +75,6 @@ class FileSystemResource: AbstractResource, WritableResource {
      */
     constructor(path: String) {
         this.path = PathModifier.clean(path)
-        file = File(path)
         filePath = file.toPath()
     }
 
@@ -96,7 +94,6 @@ class FileSystemResource: AbstractResource, WritableResource {
      */
     constructor(file: File) {
         path = PathModifier.clean(file.path)
-        this.file = file
         filePath = file.toPath()
     }
 
@@ -113,7 +110,6 @@ class FileSystemResource: AbstractResource, WritableResource {
      */
     constructor(filePath: Path) {
         path = PathModifier.clean(filePath.toString())
-        file = null
         this.filePath = filePath
     }
 
@@ -128,9 +124,8 @@ class FileSystemResource: AbstractResource, WritableResource {
      * @since 5.1.1
      * @see .FileSystemResource
      */
-    constructor(fileSystem: FileSystem, path: String?) {
+    constructor(fileSystem: FileSystem, path: String) {
         this.path = PathModifier.clean(path)
-        file = null
         filePath = fileSystem.getPath(this.path).normalize()
     }
 
@@ -142,14 +137,18 @@ class FileSystemResource: AbstractResource, WritableResource {
         return if (file != null) file.exists() else Files.exists(filePath)
     }
 
+    override fun getFile(): File {
+        return filePath.toFile()
+    }
     /**
      * This implementation checks whether the underlying file is marked as readable
      * (and corresponds to an actual file with content, not to a directory).
      * @see File.canRead
      * @see File.isDirectory
      */
-    override fun isReadable(): Boolean {
-        return if (file != null) file.canRead() && !file.isDirectory else Files.isReadable(filePath) && !Files.isDirectory(
+    override val isReadable: Boolean
+        get() {
+            return file.canRead() && !file.isDirectory else Files.isReadable(filePath) && !Files.isDirectory(
             filePath
         )
     }
@@ -158,14 +157,14 @@ class FileSystemResource: AbstractResource, WritableResource {
      * This implementation opens a NIO file stream for the underlying file.
      * @see java.io.FileInputStream
      */
-    @Throws(IOException::class)
-    override fun getInputStream(): InputStream {
-        return try {
-            Files.newInputStream(filePath)
-        } catch (ex: NoSuchFileException) {
-            throw FileNotFoundException(ex.message)
+    override val inputStream: InputStream
+        get() {
+            return try {
+                Files.newInputStream(filePath)
+            } catch (ex: NoSuchFileException) {
+                throw FileNotFoundException(ex.message)
+            }
         }
-    }
 
     /**
      * This implementation checks whether the underlying file is marked as writable
@@ -201,24 +200,15 @@ class FileSystemResource: AbstractResource, WritableResource {
      * This implementation returns a URI for the underlying file.
      * @see File.toURI
      */
-    @Throws(IOException::class)
-    override fun getURI(): URI {
-        return if (file != null) file.toURI() else filePath.toUri()
-    }
+    override val uri: URI
+        get() {
+            return if (file != null) file.toURI() else filePath.toUri()
+        }
 
-    /**
-     * This implementation always indicates a file.
-     */
-    override fun isFile(): Boolean {
-        return true
-    }
-
-    /**
-     * This implementation returns the underlying File reference.
-     */
-    override fun getFile(): File {
-        return file ?: filePath.toFile()
-    }
+    override val isFile: Boolean
+        get() {
+            return true
+        }
 
     /**
      * This implementation opens a FileChannel for the underlying file.
@@ -251,7 +241,8 @@ class FileSystemResource: AbstractResource, WritableResource {
             val length = file.length()
             if (length == 0L && !file.exists()) {
                 throw FileNotFoundException(
-                    "${getDescription()} cannot be resolved in the file system for checking its content length"
+                    description +
+                        " cannot be resolved in the file system for checking its content length"
                 )
             }
             length
@@ -295,18 +286,20 @@ class FileSystemResource: AbstractResource, WritableResource {
      * This implementation returns the name of the file.
      * @see File.getName
      */
-    override fun getFilename(): String {
-        return if (file != null) file.name else filePath.fileName.toString()
-    }
+    override val filename: String
+        get() {
+            return filePath.fileName.toString()
+        }
 
     /**
      * This implementation returns a description that includes the absolute
      * path of the file.
      * @see File.getAbsolutePath
      */
-    override fun getDescription(): String {
-        return "file [${(if (file != null) file.absolutePath else filePath.toAbsolutePath())}]"
-    }
+    override val description: String
+        get() {
+            return "file [" + (if (file != null) file.absolutePath else filePath.toAbsolutePath()) + "]"
+        }
 
     /**
      * This implementation compares the underlying File references.

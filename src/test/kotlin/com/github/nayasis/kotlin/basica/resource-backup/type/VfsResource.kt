@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.nayasis.kotlin.basica.core.resource.type
+package com.github.nayasis.kotlin.basica.`resource-backup`.type
 
-import com.github.nayasis.kotlin.basica.core.resource.type.abstracts.AbstractResource
-import com.github.nayasis.kotlin.basica.core.resource.type.interfaces.Resource
-import com.github.nayasis.kotlin.basica.core.resource.util.VfsUtils
+import com.github.nayasis.kotlin.basica.core.`resource-backup`.type.abstracts.AbstractResource
+import com.github.nayasis.kotlin.basica.core.`resource-backup`.type.interfaces.Resource
+import com.github.nayasis.kotlin.basica.core.`resource-backup`.util.VfsUtils
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
@@ -38,82 +38,67 @@ import java.net.URL
  * @author Sam Brannen
  * @since 3.0
  */
-class VfsResource(private val resource: Any): AbstractResource() {
+class VfsResource(val resource: Any): AbstractResource() {
 
-    @Throws(IOException::class)
-    override fun getInputStream(): InputStream {
-        return VfsUtils.getInputStream(resource)
-    }
+    override val inputStream: InputStream
+        get() = VfsUtils.getInputStream(resource)
 
     override fun exists(): Boolean {
         return VfsUtils.exists(resource)
     }
 
-    override fun isReadable(): Boolean {
-        return VfsUtils.isReadable(resource)
-    }
+    override val isReadable: Boolean
+        get() = VfsUtils.isReadable(resource)
 
-    @Throws(IOException::class)
-    override fun getURL(): URL {
-        return try {
+    override val url: URL
+        get() = try {
             VfsUtils.getURL(resource)
         } catch (e: Exception) {
-            throw IOException("Failed to obtain URL for file ${resource}", e)
+            throw IOException("Failed to obtain URL for file $resource", e)
         }
-    }
 
-    @Throws(IOException::class)
-    override fun getURI(): URI {
-        return try {
+    override val uri: URI
+        get() = try {
             VfsUtils.getURI(resource)
         } catch (e: Exception) {
-            throw IOException("Failed to obtain URI for file ${resource}", e)
+            throw IOException("Failed to obtain URL for $resource", e)
         }
-    }
 
-    @Throws(IOException::class)
-    override fun getFile(): File {
-        return VfsUtils.getFile(resource)
-    }
+    override val file: File
+        get() = VfsUtils.getFile(resource)
 
-    @Throws(IOException::class)
-    override fun contentLength(): Long {
-        return VfsUtils.getSize(resource)
-    }
+    override val contentLength: Long
+        get() = VfsUtils.getSize(resource)
 
-    @Throws(IOException::class)
-    override fun lastModified(): Long {
-        return VfsUtils.getLastModified(resource)
-    }
+    override val lastModified: Long
+        get() = VfsUtils.getLastModified(resource)
 
-    @Throws(IOException::class)
     override fun createRelative(relativePath: String): Resource {
         if (!relativePath.startsWith(".") && relativePath.contains("/")) {
             try {
-                return VfsResource(VfsUtils.getChild(resource, relativePath))
+                return VfsResource( VfsUtils.getChild(resource, relativePath))
             } catch (ex: IOException) {
                 // fall back to getRelative
             }
         }
         return VfsResource(
-            VfsUtils.getRelative(URL(getURL(), relativePath))
+            VfsUtils.getRelative( URL(url, relativePath) )
         )
     }
 
-    override fun getFilename(): String {
-        return VfsUtils.getName(resource)
-    }
 
-    override fun getDescription(): String {
-        return "VFS resource [$resource]"
-    }
+    override val filename: String?
+        get() = VfsUtils.getName(resource)
+
+    override val description: String
+        get() = "VFS resource [$resource]"
 
     override fun equals(other: Any?): Boolean {
-        return this === other || other is VfsResource && resource == other.resource
+        return this == other || (other is VfsResource && resource == other.resource)
     }
 
     override fun hashCode(): Int {
         return resource.hashCode()
     }
 
-}
+ }

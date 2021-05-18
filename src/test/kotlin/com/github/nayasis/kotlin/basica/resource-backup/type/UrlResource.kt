@@ -13,20 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.nayasis.kotlin.basica.core.resource.type
+package com.github.nayasis.kotlin.basica.`resource-backup`.type
 
-import com.github.nayasis.basica.file.Files
-import com.github.nayasis.basica.resource.type.UrlResource
-import com.github.nayasis.basica.resource.type.abstracts.AbstractFileResolvingResource
-import com.github.nayasis.basica.resource.type.interfaces.Resource
-import com.github.nayasis.basica.resource.util.PathModifier
-import com.github.nayasis.basica.resource.util.Resources
-import com.github.nayasis.basica.validation.Assert
-import lombok.extern.slf4j.Slf4j
+import com.github.nayasis.kotlin.basica.core.path.name
+import com.github.nayasis.kotlin.basica.core.`resource-backup`.type.abstracts.AbstractFileResolvingResource
+import com.github.nayasis.kotlin.basica.core.`resource-backup`.type.interfaces.Resource
+import com.github.nayasis.kotlin.basica.core.`resource-backup`.util.PathModifier
+import com.github.nayasis.kotlin.basica.core.`resource-backup`.util.Resources
+import com.github.nayasis.kotlin.basica.core.string.toPath
+import mu.KotlinLogging
+import java.io.File
+import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
+import java.net.MalformedURLException
 import java.net.URI
+import java.net.URISyntaxException
 import java.net.URL
+
+private val log = KotlinLogging.logger {}
 
 /**
  * [Resource] implementation for `java.net.URL` locators.
@@ -37,22 +42,22 @@ import java.net.URL
  * @since 28.12.2003
  * @see URL
  */
-@Slf4j
 class UrlResource: AbstractFileResolvingResource {
+
     /**
      * Original URI, if available; used for URI and File access.
      */
-    private val uri: URI
+    private var originUri: URI? = null
 
     /**
      * Original URL, used for actual access.
      */
-    private val url: URL
+    private var originUrl: URL? = null
 
     /**
      * Cleaned URL (with normalized path), used for comparisons.
      */
-    private val cleanedUrl: URL
+    private var cleanedUrl: URL
 
     /**
      * Create a new `UrlResource` based on the given URI object.
@@ -61,10 +66,9 @@ class UrlResource: AbstractFileResolvingResource {
      * @since 2.5
      */
     constructor(uri: URI) {
-        Assert.notNull(uri, "URI must not be null")
-        this.uri = uri
-        url = uri.toURL()
-        cleanedUrl = getCleanedUrl(url, uri.toString())
+        originUri = uri
+        originUrl = uri.toURL()
+        cleanedUrl = clear(originUrl!!, uri.toString())
     }
 
     /**
@@ -72,10 +76,9 @@ class UrlResource: AbstractFileResolvingResource {
      * @param url a URL
      */
     constructor(url: URL) {
-        Assert.notNull(url, "URL must not be null")
-        this.url = url
-        cleanedUrl = getCleanedUrl(this.url, url.toString())
-        uri = null
+        originUri  = null
+        originUrl  = url
+        cleanedUrl = clear(originUrl!!, url.toString())
     }
 
     /**
@@ -87,10 +90,9 @@ class UrlResource: AbstractFileResolvingResource {
      * @see URL.URL
      */
     constructor(path: String) {
-        Assert.notNull(path, "Path must not be null")
-        uri = null
-        url = URL(path)
-        cleanedUrl = getCleanedUrl(url, path)
+        originUri = null
+        originUrl = URL(path)
+        cleanedUrl = clear(originUrl!!, path)
     }
     /**
      * Create a new `UrlResource` based on a URI specification.
@@ -119,13 +121,11 @@ class UrlResource: AbstractFileResolvingResource {
     @JvmOverloads
     constructor(protocol: String?, location: String?, fragment: String? = null) {
         try {
-            uri = URI(protocol, location, fragment)
-            url = uri.toURL()
-            cleanedUrl = getCleanedUrl(url, uri.toString())
-        } catch (ex: URISyntaxException) {
-            val exToThrow = MalformedURLException(ex.message)
-            exToThrow.initCause(ex)
-            throw exToThrow
+            originUri = URI(protocol, location, fragment)
+            originUrl = uri.toURL()
+            cleanedUrl = clear(originUrl!!, uri.toString())
+        } catch (e: URISyntaxException) {
+            throw MalformedURLException(e.message).apply { initCause(e) }
         }
     }
 
@@ -135,14 +135,13 @@ class UrlResource: AbstractFileResolvingResource {
      * @param originalPath the original URL path
      * @return the cleaned URL (possibly the original URL as-is)
      */
-    private fun getCleanedUrl(originalUrl: URL, originalPath: String): URL {
+    private fun clear(originalUrl: URL, originalPath: String): URL {
         val cleanedPath = PathModifier.clean(originalPath)
-        log.trace(
-            "\n\t - original url  : {}\n\t - original path : {}\n\t - cleaned path  : {}\n",
-            originalUrl,
-            originalPath,
-            cleanedPath
-        )
+        log.trace{"""
+            - original url  : {$originalUrl}
+            - original path : {$originalPath}
+            - cleaned path  : {$cleanedPath}
+        """.trimIndent()}
         if (cleanedPath != originalPath) {
             try {
                 return URL(cleanedPath)
@@ -162,42 +161,38 @@ class UrlResource: AbstractFileResolvingResource {
      * @see URLConnection.setUseCaches
      * @see URLConnection.getInputStream
      */
-    @Throws(IOException::class)
-    override fun getInputStream(): InputStream {
-        val con = url.openConnection()
-        Resources.useCachesIfNecessary(con)
-        return try {
-            con.getInputStream()
-        } catch (ex: IOException) {
-            // Close the HTTP connection (if applicable).
-            if (con is HttpURLConnection) {
-                con.disconnect()
+    override val inputStream: InputStream
+        get() {
+            if( url == null )
+                throw IOException("There is no url to connect.")
+            val con = url.openConnection()
+            Resources.useCachesIfNecessary(con)
+            return try {
+                con.getInputStream()
+            } catch (ex: IOException) {
+                // Close the HTTP connection (if applicable).
+                if (con is HttpURLConnection) {
+                    con.disconnect()
+                }
+                throw ex
             }
-            throw ex
         }
-    }
 
     /**
      * This implementation returns the underlying URL reference.
      */
-    override fun getURL(): URL {
-        return url
-    }
+    override val url: URL
+        get() = originUrl ?: throw IOException("NO URL")
 
-    /**
-     * This implementation returns the underlying URI directly,
-     * if possible.
-     */
-    @Throws(IOException::class)
-    override fun getURI(): URI {
-        return uri ?: super.getURI()
-    }
+    override val uri: URI
+        get() = originUri ?: super.uri
 
-    override fun isFile(): Boolean {
-        return if (uri != null) {
-            super.isFile(uri)
+    override val isFile: Boolean
+        get() {
+        return if (originUri != null) {
+            super.isFile(originUri!!)
         } else {
-            super.isFile()
+            super.isFile
         }
     }
 
@@ -205,12 +200,12 @@ class UrlResource: AbstractFileResolvingResource {
      * This implementation returns a File reference for the underlying URL/URI,
      * provided that it refers to a file in the file system.
      */
-    @Throws(IOException::class)
-    override fun getFile(): File {
-        return if (uri != null) {
-            super.getFile(uri)
+    override val file: File
+        get() {
+        return if (originUri != null) {
+            super.getFile(originUri!!)
         } else {
-            super.getFile()
+            super.file
         }
     }
 
@@ -225,23 +220,22 @@ class UrlResource: AbstractFileResolvingResource {
         if (relativePath.startsWith("/")) {
             relativePath = relativePath.substring(1)
         }
-        return UrlResource(URL(url, relativePath))
+        val url1 = URL(url, relativePath)
+        return UrlResource(url1)
     }
 
     /**
      * This implementation returns the name of the file that this URL refers to.
      * @see URL.getPath
      */
-    override fun getFilename(): String {
-        return Files.name(cleanedUrl.path)
-    }
+    override val filename: String?
+        get() = cleanedUrl.path.toPath().name
 
     /**
      * This implementation returns a description that includes the URL.
      */
-    override fun getDescription(): String {
-        return "URL [" + url + "]"
-    }
+    override val description: String
+        get() = "URL [${url}]"
 
     /**
      * This implementation compares the underlying URL references.

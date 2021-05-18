@@ -25,6 +25,9 @@ import kotlin.io.path.inputStream
 import kotlin.reflect.KClass
 import kotlin.streams.toList
 
+const val FOLDER_SEPARATOR = "/"
+const val FOLDER_SEPARATOR_WINDOWS = "\\"
+
 val Path.name: String
     get() = fileName?.toString().orEmpty()
 

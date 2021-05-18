@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.nayasis.kotlin.basica.core.resource.type.abstracts
+package com.github.nayasis.kotlin.basica.`resource-backup`.type.abstracts
 
-import com.github.nayasis.kotlin.basica.core.resource.type.interfaces.Resource
-import com.github.nayasis.kotlin.basica.core.resource.util.Resources
+import com.github.nayasis.kotlin.basica.core.`resource-backup`.type.interfaces.Resource
+import com.github.nayasis.kotlin.basica.core.`resource-backup`.util.Resources
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -41,6 +41,7 @@ private const val SEPARATOR_FOLDER = "/"
  * @since 28.12.2003
  */
 abstract class AbstractResource: Resource {
+
     /**
      * This implementation checks whether a File can be opened,
      * falling back to whether an InputStream can be opened.
@@ -49,70 +50,42 @@ abstract class AbstractResource: Resource {
     override fun exists(): Boolean {
         // Try file existence: can we find the file in the file system?
         return try {
-            getFile().exists()
-        } catch (ex: IOException) {
+            file.exists()
+        } catch (e: IOException) {
             // Fall back to stream existence: can we open the stream?
             try {
-                getInputStream().close()
+                inputStream.close()
                 true
-            } catch (isEx: Throwable) {
+            } catch (ex: Throwable) {
                 false
             }
         }
     }
 
     /**
-     * This implementation always returns `true` for a resource
-     * that [exists][.exists] (revised as of 5.1).
-     */
-    override fun isReadable(): Boolean {
-        return exists()
-    }
-
-    /**
-     * This implementation always returns `false`.
-     */
-    override fun isOpen(): Boolean {
-        return false
-    }
-
-    /**
-     * This implementation always returns `false`.
-     */
-    override fun isFile(): Boolean {
-        return false
-    }
-
-    /**
      * This implementation throws a FileNotFoundException, assuming
      * that the resource cannot be resolved to a URL.
      */
-    @Throws(IOException::class)
-    override fun getURL(): URL {
-        throw FileNotFoundException("${getDescription()} cannot be resolved to URL")
-    }
+    override var url: URL
+        get() = throw FileNotFoundException("$description cannot be resolved to URL")
 
     /**
      * This implementation builds a URI based on the URL returned
      * by [.getURL].
      */
-    @Throws(IOException::class)
-    override fun getURI(): URI {
-        return try {
-            Resources.toURI(getURL())
+    override val uri: URI
+        get() = try {
+            Resources.toURI(url)
         } catch (e: URISyntaxException) {
-            throw IOException("Invalid URI [${getURL()}]", e)
+            throw IOException("Invalid URI [$url]", e)
         }
-    }
 
     /**
      * This implementation throws a FileNotFoundException, assuming
      * that the resource cannot be resolved to an absolute file path.
      */
-    @Throws(IOException::class)
-    override fun getFile(): File {
-        throw FileNotFoundException("${getDescription()} cannot be resolved to absolute file path")
-    }
+    override val file: File
+        get() = throw FileNotFoundException("$description cannot be resolved to absolute file path")
 
     /**
      * This implementation returns [Channels.newChannel]
@@ -123,7 +96,7 @@ abstract class AbstractResource: Resource {
      */
     @Throws(IOException::class)
     override fun readableChannel(): ReadableByteChannel {
-        return Channels.newChannel(getInputStream())
+        return Channels.newChannel(inputStream)
     }
 
     /**
@@ -132,38 +105,33 @@ abstract class AbstractResource: Resource {
      * a more optimal version of this, e.g. checking a File length.
      * @see .getInputStream
      */
-    @Throws(IOException::class)
-    override fun contentLength(): Long {
-        return try {
-            getInputStream().use { stream ->
-                var size: Long = 0
-                val buf = ByteArray(256)
-                var read: Int
-                while (stream.read(buf).also { read = it } != -1) {
-                    size += read.toLong()
-                }
-                size
-
+    override val contentLength: Long
+        get() = inputStream.use {
+            var size: Long = 0
+            val buf = ByteArray(256)
+            var read: Int
+            while (it.read(buf).also { byte -> read = byte } != -1) {
+                size += read.toLong()
             }
-        } catch (e: Exception) {0}
-    }
+            size
+        }
 
     /**
      * This implementation checks the timestamp of the underlying File,
      * if available.
      * @see .getFileForLastModifiedCheck
      */
-    @Throws(IOException::class)
-    override fun lastModified(): Long {
-        val fileToCheck = getFileForLastModifiedCheck()
-        val lastModified = fileToCheck.lastModified()
-        if (lastModified == 0L && !fileToCheck.exists()) {
-            throw FileNotFoundException(
-                "${getDescription()} cannot be resolved in the file system for checking its last-modified timestamp"
-            )
+    override val lastModified: Long
+        get() {
+            val fileToCheck = getFileForLastModifiedCheck()
+            val lastModified = fileToCheck.lastModified()
+            if (lastModified == 0L && !fileToCheck.exists()) {
+                throw FileNotFoundException(
+                    "${description} cannot be resolved in the file system for checking its last-modified timestamp"
+                )
+            }
+            return lastModified
         }
-        return lastModified
-    }
 
     /**
      * Determine the File to use for timestamp checking.
@@ -175,31 +143,31 @@ abstract class AbstractResource: Resource {
      * @throws IOException in case of general resolution/reading failures
      */
     @Throws(IOException::class)
-    protected open fun getFileForLastModifiedCheck(): File = getFile()
+    protected open fun getFileForLastModifiedCheck(): File {
+        return file
+    }
 
     /**
      * This implementation throws a FileNotFoundException, assuming
      * that relative resources cannot be created for this resource.
      */
-    @Throws(IOException::class)
     override fun createRelative(relativePath: String): Resource {
-        throw FileNotFoundException("Cannot create a relative resource for ${getDescription()}")
+        throw FileNotFoundException("Cannot create a relative resource for $description")
     }
 
     /**
      * This implementation always returns `null`,
      * assuming that this resource type does not have a filename.
      */
-    override fun getFilename(): String {
-        return ""
-    }
+    override val filename: String?
+        get() = null
 
     /**
      * This implementation compares description strings.
      * @see .getDescription
      */
     override fun equals(other: Any?): Boolean {
-        return this === other || other is Resource && other.getDescription() == getDescription()
+        return this === other || other is Resource && other.description == description
     }
 
     /**
@@ -207,7 +175,7 @@ abstract class AbstractResource: Resource {
      * @see .getDescription
      */
     override fun hashCode(): Int {
-        return getDescription().hashCode()
+        return description.hashCode()
     }
 
     /**
@@ -215,7 +183,7 @@ abstract class AbstractResource: Resource {
      * @see .getDescription
      */
     override fun toString(): String {
-        return getDescription()
+        return description ?: ""
     }
 
     protected fun applyRelativePath(path: String, relativePath: String): String {
@@ -231,4 +199,4 @@ abstract class AbstractResource: Resource {
         }
     }
 
-}
+ }
