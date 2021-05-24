@@ -15,11 +15,8 @@
  */
 package com.github.nayasis.kotlin.basica.core.resource.type
 
-import com.github.nayasis.basica.resource.type.FileUrlResource
-import com.github.nayasis.basica.resource.type.UrlResource
-import com.github.nayasis.basica.resource.type.WritableResource
-import com.github.nayasis.basica.resource.type.interfaces.Resource
-import com.github.nayasis.basica.resource.util.Resources
+import com.github.nayasis.kotlin.basica.core.resource.type.interfaces.Resource
+import com.github.nayasis.kotlin.basica.core.resource.util.Resources
 import java.io.File
 import java.io.IOException
 import java.io.OutputStream
@@ -47,6 +44,7 @@ import java.nio.file.StandardOpenOption
  * @since 5.0.2
  */
 class FileUrlResource: UrlResource, WritableResource {
+
     @Volatile
     private var file: File? = null
 
@@ -59,7 +57,7 @@ class FileUrlResource: UrlResource, WritableResource {
      * @see Resources.isFileURL
      * @see .getFile
      */
-    constructor(url: URL?): super(url) {}
+    constructor(url: URL): super(url) {}
 
     /**
      * Create a new `FileUrlResource` based on the given file location,
@@ -75,18 +73,14 @@ class FileUrlResource: UrlResource, WritableResource {
 
     @Throws(IOException::class)
     override fun getFile(): File {
-        var file = file
-        if (file != null) {
-            return file
-        }
-        file = super.getFile()
-        this.file = file
-        return file
+        if( file != null ) return file!!
+        this.file = super.getFile()
+        return file!!
     }
 
     override fun isWritable(): Boolean {
         return try {
-            val url = url
+            val url = getURL()
             if (Resources.isFileURL(url)) {
                 // Proceed with file system resolution
                 val file = getFile()
@@ -111,10 +105,9 @@ class FileUrlResource: UrlResource, WritableResource {
 
     @Throws(MalformedURLException::class)
     override fun createRelative(relativePath: String): Resource {
-        var relativePath = relativePath
-        if (relativePath.startsWith("/")) {
-            relativePath = relativePath.substring(1)
+        var relativePath = relativePath.let{
+            if(it.startsWith("/")) it.substring(1) else it
         }
-        return FileUrlResource(URL(url, relativePath))
+        return FileUrlResource(URL(getURL(), relativePath))
     }
 }

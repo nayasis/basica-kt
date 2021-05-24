@@ -26,7 +26,7 @@ interface PathMatcher {
      * @param path the path String to check
      * @return `true` if the given `path` represents a pattern
      */
-    fun isPattern(path: String?): Boolean
+    fun isPattern(path: String): Boolean
 
     /**
      * Match the given `path` against the given `pattern`,
@@ -36,7 +36,7 @@ interface PathMatcher {
      * @return `true` if the supplied `path` matched,
      * `false` if it didn't
      */
-    fun match(pattern: String?, path: String?): Boolean
+    fun match(pattern: String, path: String): Boolean
 
     /**
      * Match the given `path` against the corresponding part of the given
@@ -49,7 +49,7 @@ interface PathMatcher {
      * @return `true` if the supplied `path` matched,
      * `false` if it didn't
      */
-    fun matchStart(pattern: String?, path: String?): Boolean
+    fun matchStart(pattern: String, path: String): Boolean
 
     /**
      * Given a pattern and a full path, determine the pattern-mapped part.
@@ -74,7 +74,7 @@ interface PathMatcher {
      * @return the pattern-mapped part of the given `path`
      * (never `null`)
      */
-    fun extractPathWithinPattern(pattern: String?, path: String?): String?
+    fun extractPathWithinPattern(pattern: String, path: String): String
 
     /**
      * Given a pattern and a full path, extract the URI template variables. URI template
@@ -86,7 +86,7 @@ interface PathMatcher {
      * @param path the full path to extract template variables from
      * @return a map, containing variable names as keys; variables values as values
      */
-    fun extractUriTemplateVariables(pattern: String?, path: String?): Map<String?, String?>?
+    fun extractUriTemplateVariables(pattern: String, path: String): Map<String,String>
 
     /**
      * Given a full path, returns a [Comparator] suitable for sorting patterns
@@ -99,7 +99,7 @@ interface PathMatcher {
      * @param path the full path to use for comparison
      * @return a comparator capable of sorting patterns in order of explicitness
      */
-    fun getPatternComparator(path: String?): Comparator<String?>?
+    fun getPatternComparator(path: String): Comparator<String>
 
     /**
      * Combines two patterns into a new pattern that is returned.
@@ -110,5 +110,5 @@ interface PathMatcher {
      * @return the combination of the two patterns
      * @throws IllegalArgumentException when the two patterns cannot be combined
      */
-    fun combine(pattern1: String?, pattern2: String?): String?
+    fun combine(pattern1: String, pattern2: String): String
 }

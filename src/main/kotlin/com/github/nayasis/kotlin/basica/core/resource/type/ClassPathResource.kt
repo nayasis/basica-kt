@@ -15,14 +15,13 @@
  */
 package com.github.nayasis.kotlin.basica.core.resource.type
 
-import com.github.nayasis.basica.base.Classes
-import com.github.nayasis.basica.file.Files
-import com.github.nayasis.basica.resource.type.ClassPathResource
-import com.github.nayasis.basica.resource.type.abstracts.AbstractFileResolvingResource
-import com.github.nayasis.basica.resource.type.interfaces.Resource
-import com.github.nayasis.basica.resource.util.PathModifier
-import com.github.nayasis.basica.validation.Assert
-import com.github.nayasis.basica.validation.Validator
+import com.github.nayasis.kotlin.basica.core.klass.SEPARATOR_PACKAGE
+import com.github.nayasis.kotlin.basica.core.klass.SEPARATOR_PATH
+import com.github.nayasis.kotlin.basica.core.path.name
+import com.github.nayasis.kotlin.basica.core.resource.type.abstracts.AbstractFileResolvingResource
+import com.github.nayasis.kotlin.basica.core.resource.type.interfaces.Resource
+import com.github.nayasis.kotlin.basica.core.resource.util.PathModifier
+import com.github.nayasis.kotlin.basica.core.string.toPath
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.io.InputStream
@@ -43,7 +42,7 @@ import java.net.URL
  * @see ClassLoader.getResourceAsStream
  * @see Class.getResourceAsStream
  */
-class ClassPathResource: AbstractFileResolvingResource {
+open class ClassPathResource: AbstractFileResolvingResource {
     /**
      * Return the path for this resource (as resource path within the class path).
      */
@@ -70,14 +69,12 @@ class ClassPathResource: AbstractFileResolvingResource {
      * @see ClassLoader.getResourceAsStream
      */
     @JvmOverloads
-    constructor(path: String?, classLoader: ClassLoader? = null as ClassLoader?) {
-        Assert.notNull(path, "Path must not be null")
-        var pathToUse = PathModifier.clean(path)
-        if (pathToUse.startsWith("/")) {
-            pathToUse = pathToUse.substring(1)
+    constructor(path: String, classLoader: ClassLoader? = null) {
+        var pathToUse = PathModifier.clean(path).let{
+            if(it.startsWith("/")) it.substring(1) else it
         }
         this.path = pathToUse
-        this.classLoader = classLoader ?: Classes.getClassLoader()
+        this.classLoader = classLoader ?: getClassLoader()
     }
 
     /**
@@ -88,8 +85,7 @@ class ClassPathResource: AbstractFileResolvingResource {
      * @param clazz the class to load resources with
      * @see Class.getResourceAsStream
      */
-    constructor(path: String?, clazz: Class<*>?) {
-        Assert.notNull(path, "Path must not be null")
+    constructor(path: String, clazz: Class<*>?) {
         this.path = PathModifier.clean(path)
         this.clazz = clazz
     }
@@ -148,18 +144,11 @@ class ClassPathResource: AbstractFileResolvingResource {
      */
     @Throws(IOException::class)
     override fun getInputStream(): InputStream {
-        val `is`: InputStream?
-        `is` = if (clazz != null) {
-            clazz!!.getResourceAsStream(path)
-        } else if (classLoader != null) {
-            classLoader!!.getResourceAsStream(path)
-        } else {
-            ClassLoader.getSystemResourceAsStream(path)
-        }
-        if (`is` == null) {
-            throw FileNotFoundException("$description cannot be opened because it does not exist")
-        }
-        return `is`
+        return when {
+            clazz != null -> clazz!!.getResourceAsStream(path)
+            classLoader != null -> classLoader!!.getResourceAsStream(path)
+            else -> ClassLoader.getSystemResourceAsStream(path)
+        } ?: throw FileNotFoundException("${getDescription()} cannot be opened because it does not exist")
     }
 
     /**
@@ -171,7 +160,7 @@ class ClassPathResource: AbstractFileResolvingResource {
     @Throws(IOException::class)
     override fun getURL(): URL {
         return resolveURL()
-            ?: throw FileNotFoundException("$description cannot be resolved to URL because it does not exist")
+            ?: throw FileNotFoundException("${getDescription()} cannot be resolved to URL because it does not exist")
     }
 
     /**
@@ -188,7 +177,7 @@ class ClassPathResource: AbstractFileResolvingResource {
      * resource refers to.
      */
     override fun getFilename(): String {
-        return Files.name(path)
+        return path.toPath().name
     }
 
     /**
@@ -212,12 +201,12 @@ class ClassPathResource: AbstractFileResolvingResource {
     private fun classPackageAsResourcePath(clazz: Class<*>?): String {
         if (clazz == null) return ""
         val className = clazz.name
-        val packageEndIndex = className.lastIndexOf(Classes.SEPARATOR_PACKAGE)
+        val packageEndIndex = className.lastIndexOf(SEPARATOR_PACKAGE)
         if (packageEndIndex == -1) {
             return ""
         }
         val packageName = className.substring(0, packageEndIndex)
-        return packageName.replace(Classes.SEPARATOR_PACKAGE, Classes.SEPARATOR_PATH)
+        return packageName.replace(SEPARATOR_PACKAGE, SEPARATOR_PATH)
     }
 
     /**
@@ -226,10 +215,7 @@ class ClassPathResource: AbstractFileResolvingResource {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is ClassPathResource) return false
-        val otherRes = other
-        return path == otherRes.path &&
-            Validator.isEqual(classLoader, otherRes.classLoader) &&
-            Validator.isEqual(clazz, otherRes.clazz)
+        return path == other.path && classLoader == other.classLoader && clazz == other.clazz
     }
 
     /**
@@ -239,4 +225,5 @@ class ClassPathResource: AbstractFileResolvingResource {
     override fun hashCode(): Int {
         return path.hashCode()
     }
+
 }

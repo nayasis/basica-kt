@@ -1,14 +1,19 @@
 package com.github.nayasis.kotlin.basica.core.resource.finder
 
-import com.github.nayasis.basica.file.Files
-import com.github.nayasis.basica.resource.matcher.PathMatcher
-import com.github.nayasis.basica.resource.type.FileSystemResource
-import com.github.nayasis.basica.resource.type.interfaces.Resource
-import lombok.extern.slf4j.Slf4j
-import java.util.function.Function
+import com.github.nayasis.kotlin.basica.core.path.invariantSeparators
+import com.github.nayasis.kotlin.basica.core.resource.matcher.PathMatcher
+import com.github.nayasis.kotlin.basica.core.resource.type.FileSystemResource
+import com.github.nayasis.kotlin.basica.core.resource.type.interfaces.Resource
+import com.github.nayasis.kotlin.basica.core.string.toPath
+import mu.KotlinLogging
+import java.io.File
+import java.io.FileNotFoundException
+import java.io.IOException
 
-@Slf4j
+private val log = KotlinLogging.logger {}
+
 class FileResourceFinder(private var pathMatcher: PathMatcher) {
+
     fun setPathMatcher(pathMatcher: PathMatcher) {
         this.pathMatcher = pathMatcher
     }
@@ -25,23 +30,19 @@ class FileResourceFinder(private var pathMatcher: PathMatcher) {
     @Throws(IOException::class)
     fun find(root: Resource, pattern: String): Set<Resource> {
         return try {
-            val rootDir: File = root.file.absoluteFile
+            val rootDir: File = root.getFile().absoluteFile
             toFileSystemResource(findFiles(rootDir, pattern))
         } catch (e: FileNotFoundException) {
-            log.debug("Cannot search for matching files underneath {} in the file system: {}", root, e.message)
+            log.debug{"Cannot search for matching files underneath $root in the file system: ${e.message}"}
             emptySet()
         } catch (e: Exception) {
-            log.info("Failed to resolve {} in the file system: {}", root, e)
+            log.info{"Failed to resolve $root in the file system: $e"}
             emptySet()
         }
     }
 
-    private fun toFileSystemResource(files: Collection<File?>): Set<Resource> {
-        val result: MutableSet<Resource> = LinkedHashSet(files.size)
-        for (file in files) {
-            result.add(FileSystemResource(file))
-        }
-        return result
+    private fun toFileSystemResource(files: Collection<File>): Set<Resource> {
+        return files.map { FileSystemResource(it) }.toSet()
     }
 
     /**
@@ -54,16 +55,14 @@ class FileResourceFinder(private var pathMatcher: PathMatcher) {
      * @throws IOException if directory contents could not be retrieved
      */
     @Throws(IOException::class)
-    private fun findFiles(rootDir: File, pattern: String): Set<File?> {
-        if (Files.notExists(rootDir) || !rootDir.isDirectory() || !rootDir.canRead()) return emptySet<File>()
-        var fullPattern = Files.normalizeSeparator(rootDir.getAbsolutePath())
+    private fun findFiles(rootDir: File, pattern: String): Set<File> {
+        if(! rootDir.exists() || !rootDir.isDirectory() || !rootDir.canRead()) return emptySet()
+        var fullPattern = rootDir.toPath().toAbsolutePath().invariantSeparators
         if (!pattern.startsWith("/")) {
             fullPattern += "/"
         }
-        fullPattern = fullPattern + Files.normalizeSeparator(pattern)
-        val result: MutableSet<File?> = LinkedHashSet<File>(8)
-        findFiles(fullPattern, rootDir, result)
-        return result
+        fullPattern += pattern.toPath().invariantSeparators
+        return LinkedHashSet<File>().apply { findFiles(fullPattern,rootDir,this) }
     }
 
     /**
@@ -75,9 +74,9 @@ class FileResourceFinder(private var pathMatcher: PathMatcher) {
      * @param dir       current directory
      * @param result Set of matching File instances to add to
      */
-    protected fun findFiles(pattern: String?, dir: File?, result: MutableSet<File?>) {
+    protected fun findFiles(pattern: String, dir: File?, result: MutableSet<File>) {
         for (content in listDirectory(dir)) {
-            val currPath = Files.normalizeSeparator(content.getAbsolutePath())
+            val currPath = content.toPath().toAbsolutePath().invariantSeparators
             if (content.isDirectory() && pathMatcher.matchStart(pattern, "$currPath/")) {
                 if (content.canRead()) {
                     findFiles(pattern, content, result)
@@ -89,12 +88,8 @@ class FileResourceFinder(private var pathMatcher: PathMatcher) {
         }
     }
 
-    private fun listDirectory(dir: File?): Array<File?> {
-        val files: Array<File?> = dir.listFiles() ?: return arrayOfNulls<File>(0)
-        Arrays.sort<File>(
-            files,
-            Comparator.comparing<File, String>(Function<File, String> { obj: File -> obj.getName() })
-        )
-        return files
+    private fun listDirectory(dir: File?): Array<File> {
+        return dir?.listFiles()?.apply { sortBy { it.name } } ?: emptyArray()
     }
+
 }

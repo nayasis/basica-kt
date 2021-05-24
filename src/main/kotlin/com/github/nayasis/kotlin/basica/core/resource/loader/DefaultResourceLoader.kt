@@ -15,15 +15,13 @@
  */
 package com.github.nayasis.kotlin.basica.core.resource.loader
 
-import com.github.nayasis.basica.base.Classes
-import com.github.nayasis.basica.resource.loader.ResourceLoader
-import com.github.nayasis.basica.resource.resolver.ProtocolResolver
-import com.github.nayasis.basica.resource.type.ClassPathResource
-import com.github.nayasis.basica.resource.type.FileUrlResource
-import com.github.nayasis.basica.resource.type.UrlResource
-import com.github.nayasis.basica.resource.type.interfaces.Resource
-import com.github.nayasis.basica.resource.util.Resources
-import com.github.nayasis.basica.validation.Assert
+import com.github.nayasis.kotlin.basica.core.klass.Classes
+import com.github.nayasis.kotlin.basica.core.resource.resolver.ProtocolResolver
+import com.github.nayasis.kotlin.basica.core.resource.type.ClassPathResource
+import com.github.nayasis.kotlin.basica.core.resource.type.FileUrlResource
+import com.github.nayasis.kotlin.basica.core.resource.type.UrlResource
+import com.github.nayasis.kotlin.basica.core.resource.type.interfaces.Resource
+import com.github.nayasis.kotlin.basica.core.resource.util.Resources
 import java.net.MalformedURLException
 import java.net.URL
 import java.util.concurrent.ConcurrentHashMap
@@ -41,7 +39,7 @@ class DefaultResourceLoader: ResourceLoader {
      * @see Thread.getContextClassLoader
      */
     constructor() {
-        classLoader = Classes.getClassLoader()
+        classLoader = Classes.classLoader
     }
 
     /**
@@ -71,7 +69,7 @@ class DefaultResourceLoader: ResourceLoader {
      * ClassPathResource objects created by this resource loader.
      */
     override fun getClassLoader(): ClassLoader {
-        return if (classLoader != null) classLoader else Classes.getClassLoader()
+        return classLoader
     }
 
     /**
@@ -84,7 +82,6 @@ class DefaultResourceLoader: ResourceLoader {
      * @see .getProtocolResolvers
      */
     fun addProtocolResolver(resolver: ProtocolResolver) {
-        Assert.notNull(resolver, "ProtocolResolver must not be null")
         protocolResolvers.add(resolver)
     }
 
@@ -117,25 +114,26 @@ class DefaultResourceLoader: ResourceLoader {
     }
 
     override fun getResource(location: String): Resource {
-        Assert.notNull(location, "Location must not be null")
         for (protocolResolver in protocolResolvers) {
             val resource = protocolResolver.resolve(location, this)
             if (resource != null) {
                 return resource
             }
         }
-        return if (location.startsWith("/")) {
-            getResourceByPath(location)
-        } else if (location.startsWith(Resources.URL_PREFIX_CLASSPATH)) {
-            ClassPathResource(location.substring(Resources.URL_PREFIX_CLASSPATH.length), getClassLoader())
-        } else {
-            try {
-                // Try to parse the location as a URL...
-                val url = URL(location)
-                if (Resources.isFileURL(url)) FileUrlResource(url) else UrlResource(url)
-            } catch (ex: MalformedURLException) {
-                // No URL -> resolve as resource path.
-                getResourceByPath(location)
+        return when {
+            location.startsWith("/") -> getResourceByPath(location)
+            location.startsWith(Resources.URL_PREFIX_CLASSPATH) -> {
+                ClassPathResource(location.substring(Resources.URL_PREFIX_CLASSPATH.length), getClassLoader())
+            }
+            else -> {
+                try {
+                    // Try to parse the location as a URL...
+                    val url = URL(location)
+                    if (Resources.isFileURL(url)) FileUrlResource(url) else UrlResource(url)
+                } catch (ex: MalformedURLException) {
+                    // No URL -> resolve as resource path.
+                    getResourceByPath(location)
+                }
             }
         }
     }
@@ -150,7 +148,7 @@ class DefaultResourceLoader: ResourceLoader {
      * @return the corresponding Resource handle
      * @see ClassPathResource
      */
-    protected fun getResourceByPath(path: String?): Resource {
+    protected fun getResourceByPath(path: String): Resource {
         return ClassPathContextResource(path, getClassLoader())
     }
 
@@ -158,11 +156,10 @@ class DefaultResourceLoader: ResourceLoader {
      * ClassPathResource that explicitly expresses a context-relative path
      * through implementing the ContextResource interface.
      */
-    protected class ClassPathContextResource(path: String?, classLoader: ClassLoader?):
-        ClassPathResource(path, classLoader) {
+    protected class ClassPathContextResource(path: String, classLoader: ClassLoader?): ClassPathResource(path, classLoader) {
         override fun createRelative(relativePath: String): Resource {
-            val pathToUse = applyRelativePath(path, relativePath)
-            return ClassPathContextResource(pathToUse, classLoader)
+            val usePath = applyRelativePath(path, relativePath)
+            return ClassPathContextResource(usePath, getClassLoader())
         }
     }
 }

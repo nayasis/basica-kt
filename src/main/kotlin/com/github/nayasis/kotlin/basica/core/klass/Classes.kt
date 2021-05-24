@@ -2,6 +2,7 @@ package com.github.nayasis.kotlin.basica.core.klass
 
 import org.objenesis.ObjenesisStd
 import java.io.InputStream
+import java.lang.reflect.Array
 import java.lang.reflect.Constructor
 import java.lang.reflect.Field
 import java.lang.reflect.Method
@@ -11,6 +12,24 @@ import java.net.URL
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.isSubclassOf
+
+/** Suffix for array class names: `"[]"`.  */
+private const val SUFFIX_ARRAY = "[]"
+
+/** Prefix for internal non-primitive array class names: `"[L"`.  */
+private const val PREFIX_NON_PRIMITIVE_ARRAY = "[L"
+
+/** Prefix for internal array class names: `"["`.  */
+private const val PREFIX_INTERNAL_ARRAY = "["
+
+/** The package separator character: `'.'`.  */
+const val SEPARATOR_PACKAGE = '.'
+
+/** The path separator character: `'/'`.  */
+const val SEPARATOR_PATH = '/'
+
+/** The inner class separator character: `'$'`.  */
+const val SEPARATOR_INNER_CLASS = '$'
 
 fun Class<*>.extends( klass: Class<*> ): Boolean {
     return klass.isAssignableFrom(this)
@@ -132,6 +151,52 @@ class Classes { companion object{
                 it
             }
         })
+    }
+
+    /**
+     * get class for name.
+     * it could understand array class name (ex. "String[]") and inner class's source name (ex. java.lang.Thread.State instread of "java.lang.Thread@State" )
+     *
+     * @param name            class name
+     * @param classLoader    class loader
+     * @return    class instance
+     * @throws ClassNotFoundException    if class was not found
+     * @throws LinkageError    if class file could not be loaded
+     */
+    @Throws(ClassNotFoundException::class, LinkageError::class)
+    fun forName(name: String, classLoader: ClassLoader = this.classLoader ): Class<*> {
+
+        if (name.endsWith(SUFFIX_ARRAY)) {
+            val elementClassName =
+                name.substring(0, name.length - SUFFIX_ARRAY.length)
+            val elementClass = forName(elementClassName, classLoader)
+            return Array.newInstance(elementClass, 0).javaClass
+        }
+        if (name.startsWith(PREFIX_NON_PRIMITIVE_ARRAY) && name.endsWith(";")) {
+            val elementName = name.substring(PREFIX_NON_PRIMITIVE_ARRAY.length,name.length - 1)
+            val elementClass = forName(elementName, classLoader)
+            return Array.newInstance(elementClass, 0).javaClass
+        }
+        if (name.startsWith(PREFIX_INTERNAL_ARRAY)) {
+            val elementName = name.substring(PREFIX_INTERNAL_ARRAY.length)
+            val elementClass = forName(elementName, classLoader)
+            return Array.newInstance(elementClass, 0).javaClass
+        }
+
+        return try {
+            Class.forName(name, false, classLoader)
+        } catch (ex: ClassNotFoundException) {
+            val lastDotIndex = name.lastIndexOf(SEPARATOR_PACKAGE)
+            if (lastDotIndex != -1) {
+                val innerClassName = name.substring(0,lastDotIndex) + SEPARATOR_INNER_CLASS + name.substring(lastDotIndex + 1)
+                try {
+                    return Class.forName(innerClassName, false, classLoader)
+                } catch (ex2: ClassNotFoundException) {
+                    // let original exception get through
+                }
+            }
+            throw ex
+        }
     }
 
     fun <T:Any> newInstance(klass: KClass<T>) : T {

@@ -15,8 +15,6 @@
  */
 package com.github.nayasis.kotlin.basica.core.resource.util
 
-import com.github.nayasis.basica.exception.unchecked.BaseRuntimeException
-import com.github.nayasis.basica.resource.util.VfsUtils
 import com.github.nayasis.kotlin.basica.core.klass.getValue
 import java.io.File
 import java.io.IOException
@@ -100,10 +98,10 @@ object VfsUtils {
         } catch (e: InvocationTargetException) {
             when (e.targetException) {
                 is IOException -> throw e.targetException
-                else -> throw BaseRuntimeException(e)
+                else -> e
             }
         } catch (e: Exception) {
-            throw BaseRuntimeException(e)
+            throw e
         }
     }
 

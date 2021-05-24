@@ -15,18 +15,23 @@
  */
 package com.github.nayasis.kotlin.basica.core.resource.type
 
-import com.github.nayasis.basica.file.Files
-import com.github.nayasis.basica.resource.type.UrlResource
-import com.github.nayasis.basica.resource.type.abstracts.AbstractFileResolvingResource
-import com.github.nayasis.basica.resource.type.interfaces.Resource
-import com.github.nayasis.basica.resource.util.PathModifier
-import com.github.nayasis.basica.resource.util.Resources
-import com.github.nayasis.basica.validation.Assert
-import lombok.extern.slf4j.Slf4j
+import com.github.nayasis.kotlin.basica.core.path.name
+import com.github.nayasis.kotlin.basica.core.resource.type.abstracts.AbstractFileResolvingResource
+import com.github.nayasis.kotlin.basica.core.resource.type.interfaces.Resource
+import com.github.nayasis.kotlin.basica.core.resource.util.PathModifier
+import com.github.nayasis.kotlin.basica.core.resource.util.Resources
+import com.github.nayasis.kotlin.basica.core.string.toPath
+import mu.KotlinLogging
+import java.io.File
+import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
+import java.net.MalformedURLException
 import java.net.URI
+import java.net.URISyntaxException
 import java.net.URL
+
+private val log = KotlinLogging.logger {}
 
 /**
  * [Resource] implementation for `java.net.URL` locators.
@@ -37,12 +42,11 @@ import java.net.URL
  * @since 28.12.2003
  * @see URL
  */
-@Slf4j
-class UrlResource: AbstractFileResolvingResource {
+open class UrlResource: AbstractFileResolvingResource {
     /**
      * Original URI, if available; used for URI and File access.
      */
-    private val uri: URI
+    private val uri: URI?
 
     /**
      * Original URL, used for actual access.
@@ -61,7 +65,6 @@ class UrlResource: AbstractFileResolvingResource {
      * @since 2.5
      */
     constructor(uri: URI) {
-        Assert.notNull(uri, "URI must not be null")
         this.uri = uri
         url = uri.toURL()
         cleanedUrl = getCleanedUrl(url, uri.toString())
@@ -72,7 +75,6 @@ class UrlResource: AbstractFileResolvingResource {
      * @param url a URL
      */
     constructor(url: URL) {
-        Assert.notNull(url, "URL must not be null")
         this.url = url
         cleanedUrl = getCleanedUrl(this.url, url.toString())
         uri = null
@@ -87,7 +89,6 @@ class UrlResource: AbstractFileResolvingResource {
      * @see URL.URL
      */
     constructor(path: String) {
-        Assert.notNull(path, "Path must not be null")
         uri = null
         url = URL(path)
         cleanedUrl = getCleanedUrl(url, path)
@@ -122,10 +123,8 @@ class UrlResource: AbstractFileResolvingResource {
             uri = URI(protocol, location, fragment)
             url = uri.toURL()
             cleanedUrl = getCleanedUrl(url, uri.toString())
-        } catch (ex: URISyntaxException) {
-            val exToThrow = MalformedURLException(ex.message)
-            exToThrow.initCause(ex)
-            throw exToThrow
+        } catch (e: URISyntaxException) {
+            throw MalformedURLException(e.message).apply { initCause(e) }
         }
     }
 
@@ -137,12 +136,11 @@ class UrlResource: AbstractFileResolvingResource {
      */
     private fun getCleanedUrl(originalUrl: URL, originalPath: String): URL {
         val cleanedPath = PathModifier.clean(originalPath)
-        log.trace(
-            "\n\t - original url  : {}\n\t - original path : {}\n\t - cleaned path  : {}\n",
-            originalUrl,
-            originalPath,
-            cleanedPath
-        )
+        log.trace("""
+            - original url  : $originalUrl
+            - original path : $originalPath
+            - cleaned path  : $cleanedPath
+        """.trimIndent())
         if (cleanedPath != originalPath) {
             try {
                 return URL(cleanedPath)
@@ -221,9 +219,8 @@ class UrlResource: AbstractFileResolvingResource {
      */
     @Throws(MalformedURLException::class)
     override fun createRelative(relativePath: String): Resource {
-        var relativePath = relativePath
-        if (relativePath.startsWith("/")) {
-            relativePath = relativePath.substring(1)
+        var relativePath = relativePath.let{
+            if(it.startsWith("/")) it.substring(1) else it
         }
         return UrlResource(URL(url, relativePath))
     }
@@ -233,14 +230,14 @@ class UrlResource: AbstractFileResolvingResource {
      * @see URL.getPath
      */
     override fun getFilename(): String {
-        return Files.name(cleanedUrl.path)
+        return cleanedUrl.path.toPath().name
     }
 
     /**
      * This implementation returns a description that includes the URL.
      */
     override fun getDescription(): String {
-        return "URL [" + url + "]"
+        return "URL [$url]"
     }
 
     /**

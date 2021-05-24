@@ -65,24 +65,19 @@ object Resources {
     fun getURL(resourceLocation: String): URL {
         if (resourceLocation.startsWith(URL_PREFIX_CLASSPATH)) {
             val path = resourceLocation.substring(URL_PREFIX_CLASSPATH.length)
-            val cl = Classes.classLoader
-            val url = if (cl != null) cl.getResource(path) else ClassLoader.getSystemResource(path)
-            if (url == null) {
-                val description = "class path resource [$path]"
-                throw FileNotFoundException(
-                    "${description} cannot be resolved to URL because it does not exist"
+            return Classes.classLoader.getResource(path)
+                ?: throw FileNotFoundException(
+                    "class path resource [$path] cannot be resolved to URL because it does not exist"
                 )
-            }
-            return url
         }
         return try {
             // try URL
             URL(resourceLocation)
-        } catch (ex: MalformedURLException) {
+        } catch (e: MalformedURLException) {
             // no URL -> treat as file path
             try {
                 File(resourceLocation).toURI().toURL()
-            } catch (ex2: MalformedURLException) {
+            } catch (e2: MalformedURLException) {
                 throw FileNotFoundException("Resource location [$resourceLocation] is neither a URL not a well-formed file path")
             }
         }
@@ -105,8 +100,7 @@ object Resources {
         if (resourceLocation.startsWith(URL_PREFIX_CLASSPATH)) {
             val path = resourceLocation.substring(URL_PREFIX_CLASSPATH.length)
             val description = "class path resource [$path]"
-            val cl = Classes.classLoader
-            val url = (if (cl != null) cl.getResource(path) else ClassLoader.getSystemResource(path))
+            val url = Classes.classLoader.getResource(path)
                 ?: throw FileNotFoundException(
                     "${description} cannot be resolved to absolute file path because it does not exist"
                 )

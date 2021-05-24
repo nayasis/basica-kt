@@ -79,10 +79,10 @@ internal class ReflectorTest {
     fun getFunctions() {
         var line = "-".repeat(100)
         println(line)
-        javaClass.classLoader.loadClass("com.github.nayasis.kotlin.basica.core.Validator")
+        javaClass.classLoader.loadClass("com.github.nayasis.kotlin.basica.core.validator.Validator")
             .methods.forEach { println(it) }
         println(line)
-        javaClass.classLoader.loadClass("com.github.nayasis.kotlin.basica.core.Strings")
+        javaClass.classLoader.loadClass("com.github.nayasis.kotlin.basica.core.string.Strings")
             .methods.forEach { println(it) }
         println(line)
         Reflector::class.java.methods.forEach { println(it) }

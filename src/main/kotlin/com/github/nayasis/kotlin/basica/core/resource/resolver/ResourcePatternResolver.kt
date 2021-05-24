@@ -15,8 +15,8 @@
  */
 package com.github.nayasis.kotlin.basica.core.resource.resolver
 
-import com.github.nayasis.basica.resource.loader.ResourceLoader
-import com.github.nayasis.basica.resource.type.interfaces.Resource
+import com.github.nayasis.kotlin.basica.core.resource.loader.ResourceLoader
+import com.github.nayasis.kotlin.basica.core.resource.type.interfaces.Resource
 import java.io.IOException
 
 interface ResourcePatternResolver: ResourceLoader {
@@ -31,5 +31,5 @@ interface ResourcePatternResolver: ResourceLoader {
      * @throws IOException in case of I/O errors
      */
     @Throws(IOException::class)
-    fun getResources(locationPattern: String?): Set<Resource?>?
+    fun getResources(locationPattern: String): Set<Resource>
 }

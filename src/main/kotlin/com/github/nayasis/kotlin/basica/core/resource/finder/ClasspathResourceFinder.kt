@@ -1,14 +1,21 @@
 package com.github.nayasis.kotlin.basica.core.resource.finder
 
-import com.github.nayasis.basica.base.Strings
-import com.github.nayasis.basica.resource.loader.ResourceLoader
-import com.github.nayasis.basica.resource.type.UrlResource
-import com.github.nayasis.basica.resource.type.interfaces.Resource
-import com.github.nayasis.basica.resource.util.Resources
-import lombok.extern.slf4j.Slf4j
+import com.github.nayasis.kotlin.basica.core.resource.loader.ResourceLoader
+import com.github.nayasis.kotlin.basica.core.resource.type.UrlResource
+import com.github.nayasis.kotlin.basica.core.resource.type.interfaces.Resource
+import com.github.nayasis.kotlin.basica.core.resource.util.Resources.URL_PREFIX_FILE
+import com.github.nayasis.kotlin.basica.core.resource.util.Resources.URL_PREFIX_JAR
+import com.github.nayasis.kotlin.basica.core.resource.util.Resources.URL_SEPARATOR_JAR
+import mu.KotlinLogging
+import java.io.File
+import java.io.IOException
+import java.net.MalformedURLException
 import java.net.URL
+import java.net.URLClassLoader
+import java.util.*
 
-@Slf4j
+private val log = KotlinLogging.logger {}
+
 class ClasspathResourceFinder(private val resourceLoader: ResourceLoader) {
     /**
      * Find all class location resources with the given location via the ClassLoader.
@@ -38,7 +45,7 @@ class ClasspathResourceFinder(private val resourceLoader: ResourceLoader) {
     @Throws(IOException::class)
     private fun findAllClassPathResources(path: String): Set<Resource> {
         val result: MutableSet<Resource> = LinkedHashSet(16)
-        val cl = classLoader
+        val cl = resourceLoader.getClassLoader()
         val urls: Enumeration<URL> = if (cl != null) cl.getResources(path) else ClassLoader.getSystemResources(path)
         while (urls.hasMoreElements()) {
             result.add(UrlResource(urls.nextElement()))
@@ -61,25 +68,22 @@ class ClasspathResourceFinder(private val resourceLoader: ResourceLoader) {
     protected fun addAllClassLoaderJarRoots(classLoader: ClassLoader?, result: MutableSet<Resource>) {
         if (classLoader is URLClassLoader) {
             try {
-                for (url in (classLoader as URLClassLoader?).getURLs()) {
+                for (url in (classLoader as URLClassLoader?)?.urLs ?: emptyArray()) {
                     try {
-                        val jarResource = UrlResource(Resources.URL_PREFIX_JAR + url + Resources.URL_SEPARATOR_JAR)
+                        val jarResource = UrlResource(URL_PREFIX_JAR + url + URL_SEPARATOR_JAR)
                         if (jarResource.exists()) {
                             result.add(jarResource)
                         }
                     } catch (e: MalformedURLException) {
-                        log.debug(
-                            "Cannot search for matching files underneath [{}] because it cannot be converted to a valid 'jar:' URL: {}",
-                            url, e.message
-                        )
+                        log.debug{
+                            "Cannot search for matching files underneath [$url] because it cannot be converted to a valid 'jar:' URL: ${e.message}"
+                        }
                     }
                 }
             } catch (e: Exception) {
-                log.debug(
-                    "Cannot introspect jar files since ClassLoader [{}] does not support 'getURLs()': {}",
-                    classLoader,
-                    e
-                )
+                log.debug{
+                    "Cannot introspect jar files since ClassLoader [$classLoader] does not support 'getURLs()': $e"
+                }
             }
         }
         if (classLoader === ClassLoader.getSystemClassLoader()) {
@@ -90,11 +94,9 @@ class ClasspathResourceFinder(private val resourceLoader: ResourceLoader) {
             try {
                 addAllClassLoaderJarRoots(classLoader.parent, result)
             } catch (e: Exception) {
-                log.debug(
-                    "Cannot introspect jar files in parent ClassLoader since [{}] does not support 'getParent()': {}",
-                    classLoader,
-                    e
-                )
+                log.debug{
+                    "Cannot introspect jar files in parent ClassLoader since [$classLoader] does not support 'getParent()': $e"
+                }
             }
         }
     }
@@ -108,32 +110,30 @@ class ClasspathResourceFinder(private val resourceLoader: ResourceLoader) {
     protected fun addClassPathManifestEntries(result: MutableSet<Resource>) {
         try {
             val javaClassPathProperty = System.getProperty("java.class.path")
-            for (path in Strings.split(javaClassPathProperty, File.separator.replace("\\", "\\\\"))) {
+            for (path in javaClassPathProperty.split(File.separator.replace("\\", "\\\\"))) {
                 try {
-                    var filePath: String = File(path).getAbsolutePath()
+                    var filePath: String = File(path).absolutePath
                     val prefixIndex = filePath.indexOf(':')
                     if (prefixIndex == 1) {
                         // Possibly "c:" drive prefix on Windows, to be upper-cased for proper duplicate detection
-                        filePath = Strings.capitalize(filePath)
+                        filePath = filePath.capitalize()
                     }
                     val jarResource = UrlResource(
-                        Resources.URL_PREFIX_JAR +
-                            Resources.URL_PREFIX_FILE + filePath + Resources.URL_SEPARATOR_JAR
+                        URL_PREFIX_JAR +
+                            URL_PREFIX_FILE + filePath + URL_SEPARATOR_JAR
                     )
                     // Potentially overlapping with URLClassLoader.getURLs() result above!
                     if (!result.contains(jarResource) && !hasDuplicate(filePath, result) && jarResource.exists()) {
                         result.add(jarResource)
                     }
                 } catch (e: MalformedURLException) {
-                    log.debug(
-                        "Cannot search for matching files underneath [{}] because it cannot be converted to a valid 'jar:' URL: {}",
-                        path,
-                        e.message
-                    )
+                    log.debug{
+                        "Cannot search for matching files underneath [$path] because it cannot be converted to a valid 'jar:' URL: ${e.message}"
+                    }
                 }
             }
-        } catch (ex: Exception) {
-            log.debug("Failed to evaluate 'java.class.path' manifest entries: {}", ex)
+        } catch (e: Exception) {
+            log.debug{ "Failed to evaluate 'java.class.path' manifest entries: $e" }
         }
     }
 
@@ -150,16 +150,11 @@ class ClasspathResourceFinder(private val resourceLoader: ResourceLoader) {
         val duplicatePath = if (filePath.startsWith("/")) filePath.substring(1) else "/$filePath"
         return try {
             result.contains(
-                UrlResource(
-                    Resources.URL_PREFIX_JAR + Resources.URL_PREFIX_FILE +
-                        duplicatePath + Resources.URL_SEPARATOR_JAR
-                )
+                UrlResource("${URL_PREFIX_JAR}${URL_PREFIX_FILE}${duplicatePath}${URL_SEPARATOR_JAR}")
             )
         } catch (e: MalformedURLException) {
             false
         }
     }
 
-    private val classLoader: ClassLoader
-        private get() = resourceLoader.classLoader
 }

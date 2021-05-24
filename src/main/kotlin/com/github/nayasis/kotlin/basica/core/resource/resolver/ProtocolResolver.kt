@@ -15,8 +15,8 @@
  */
 package com.github.nayasis.kotlin.basica.core.resource.resolver
 
-import com.github.nayasis.basica.resource.loader.ResourceLoader
-import com.github.nayasis.basica.resource.type.interfaces.Resource
+import com.github.nayasis.kotlin.basica.core.resource.loader.ResourceLoader
+import com.github.nayasis.kotlin.basica.core.resource.type.interfaces.Resource
 
 /**
  * A resolution strategy for protocol-specific resource handles.

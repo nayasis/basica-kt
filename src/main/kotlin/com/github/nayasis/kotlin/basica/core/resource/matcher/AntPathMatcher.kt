@@ -15,10 +15,6 @@
  */
 package com.github.nayasis.kotlin.basica.core.resource.matcher
 
-import com.github.nayasis.basica.base.Strings
-import com.github.nayasis.basica.base.Types
-import com.github.nayasis.basica.resource.matcher.PathMatcher
-import com.github.nayasis.basica.validation.Assert
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.regex.Pattern
@@ -78,7 +74,8 @@ class AntPathMatcher: PathMatcher {
     @Volatile
     private var cachePatterns: Boolean? = null
     private val tokenizedPatternCache: MutableMap<String, Array<String?>?> = ConcurrentHashMap(256)
-    val stringMatcherCache: MutableMap<String?, AntPathStringMatcher> = ConcurrentHashMap(256)
+
+    private val stringMatcherCache: MutableMap<String?, AntPathStringMatcher> = ConcurrentHashMap(256)
 
     /**
      * Create a new instance with the [.DEFAULT_PATH_SEPARATOR].
@@ -94,7 +91,6 @@ class AntPathMatcher: PathMatcher {
      * @since 4.1
      */
     constructor(pathSeparator: String) {
-        Assert.notNull(pathSeparator, "'pathSeparator' is required")
         this.pathSeparator = pathSeparator
         pathSeparatorPatternCache = PathSeparatorPatternCache(pathSeparator)
     }
@@ -352,7 +348,7 @@ class AntPathMatcher: PathMatcher {
     protected fun tokenizePattern(pattern: String): Array<String?>? {
         var tokenized: Array<String?>? = null
         val cachePatterns = cachePatterns
-        if (cachePatterns == null || cachePatterns.toBoolean()) {
+        if (cachePatterns == null || cachePatterns) {
             tokenized = tokenizedPatternCache[pattern]
         }
         if (tokenized == null) {
@@ -364,7 +360,7 @@ class AntPathMatcher: PathMatcher {
                 deactivatePatternCache()
                 return tokenized
             }
-            if (cachePatterns == null || cachePatterns.toBoolean()) {
+            if (cachePatterns == null || cachePatterns) {
                 tokenizedPatternCache[pattern] = tokenized
             }
         }
@@ -412,7 +408,7 @@ class AntPathMatcher: PathMatcher {
     protected fun getStringMatcher(pattern: String?): AntPathStringMatcher {
         var matcher: AntPathStringMatcher? = null
         val cachePatterns = cachePatterns
-        if (cachePatterns == null || cachePatterns.toBoolean()) {
+        if (cachePatterns == null || cachePatterns) {
             matcher = stringMatcherCache[pattern]
         }
         if (matcher == null) {
@@ -424,7 +420,7 @@ class AntPathMatcher: PathMatcher {
                 deactivatePatternCache()
                 return matcher
             }
-            if (cachePatterns == null || cachePatterns.toBoolean()) {
+            if (cachePatterns == null || cachePatterns) {
                 stringMatcherCache[pattern] = matcher
             }
         }
@@ -472,8 +468,9 @@ class AntPathMatcher: PathMatcher {
 
     override fun extractUriTemplateVariables(pattern: String, path: String): Map<String, String> {
         val variables: MutableMap<String, String> = LinkedHashMap()
-        val result = doMatch(pattern, path, true, variables)
-        check(result) { "Pattern \"$pattern\" is not a match for \"$path\"" }
+        doMatch(pattern, path, true, variables).let { check(it){
+            "Pattern \"$pattern\" is not a match for \"$path\""
+        }}
         return variables
     }
 
@@ -507,13 +504,13 @@ class AntPathMatcher: PathMatcher {
      * @throws IllegalArgumentException if the two patterns cannot be combined
      */
     override fun combine(pattern1: String, pattern2: String): String {
-        if (!Strings.isNotEmpty(pattern1) && !Strings.isNotEmpty(pattern2)) {
+        if ( pattern1.isEmpty() && pattern2.isEmpty() ) {
             return ""
         }
-        if (!Strings.isNotEmpty(pattern1)) {
+        if ( pattern1.isEmpty() ) {
             return pattern2
         }
-        if (!Strings.isNotEmpty(pattern2)) {
+        if ( pattern2.isEmpty() ) {
             return pattern1
         }
         val pattern1ContainsUriVar = pattern1.indexOf('{') != -1
@@ -548,6 +545,7 @@ class AntPathMatcher: PathMatcher {
         require(!(!ext1All && !ext2All)) { "Cannot combine patterns: $pattern1 vs $pattern2" }
         val ext = if (ext1All) ext2 else ext1
         return file2 + ext
+
     }
 
     private fun concat(path1: String, path2: String): String {
@@ -591,12 +589,11 @@ class AntPathMatcher: PathMatcher {
      * only one character; '{' and '}' indicate a URI template pattern. For example <tt>/users/{user}</tt>.
      */
     protected class AntPathStringMatcher @JvmOverloads constructor(pattern: String?, caseSensitive: Boolean = true) {
+
         private val pattern: Pattern
         private val variableNames: MutableList<String> = LinkedList()
         private fun quote(s: String?, start: Int, end: Int): String {
-            return if (start == end) {
-                ""
-            } else Pattern.quote(s!!.substring(start, end))
+            return if (start == end) "" else Pattern.quote(s!!.substring(start, end))
         }
 
         /**
@@ -609,10 +606,10 @@ class AntPathMatcher: PathMatcher {
                 if (uriTemplateVariables != null) {
                     // SPR-8455
                     require(variableNames.size == matcher.groupCount()) {
-                        "The number of capturing groups in the pattern segment " +
-                            pattern + " does not match the number of URI template variables it defines, " +
-                            "which can occur if capturing groups are used in a URI template regex. " +
-                            "Use non-capturing groups instead."
+                        "The number of capturing groups in the pattern segment $pattern" +
+                        " does not match the number of URI template variables it defines, " +
+                        "which can occur if capturing groups are used in a URI template regex. " +
+                        "Use non-capturing groups instead."
                     }
                     for (i in 1..matcher.groupCount()) {
                         val name = variableNames[i - 1]
@@ -627,8 +624,7 @@ class AntPathMatcher: PathMatcher {
         }
 
         companion object {
-            private val GLOB_PATTERN = Pattern.compile("\\?|\\*|\\{((?:\\{[^/]+?\\}|[^/{}]|\\\\[{}])+?)\\}")
-            private const val DEFAULT_VARIABLE_PATTERN = "(.*)"
+
         }
 
         init {
@@ -681,6 +677,7 @@ class AntPathMatcher: PathMatcher {
      *
      */
     protected class AntPatternComparator(private val path: String): Comparator<String> {
+
         /**
          * Compare two patterns to determine which should match first, i.e. which
          * is the most specific regarding the current path.
@@ -812,11 +809,7 @@ class AntPathMatcher: PathMatcher {
     }
 
     companion object {
-        /** Default path separator: "/".  */
-        const val DEFAULT_PATH_SEPARATOR = "/"
-        private const val CACHE_TURNOFF_THRESHOLD = 65536
-        private val VARIABLE_PATTERN = Pattern.compile("\\{[^/]+?\\}")
-        private val WILDCARD_CHARS = charArrayOf('*', '?', '{')
+
         private fun tokenizeToStringArray(
             str: String?, delimiters: String, trimTokens: Boolean, ignoreEmptyTokens: Boolean
         ): Array<String?> {
@@ -834,7 +827,7 @@ class AntPathMatcher: PathMatcher {
                     tokens.add(token)
                 }
             }
-            return Types.toArray(tokens, String::class.java)
+            return tokens.toTypedArray()
         }
 
         fun toStringArray(collection: Collection<String>): Array<String> {
@@ -842,3 +835,13 @@ class AntPathMatcher: PathMatcher {
         }
     }
 }
+
+private val GLOB_PATTERN = Pattern.compile("\\?|\\*|\\{((?:\\{[^/]+?\\}|[^/{}]|\\\\[{}])+?)\\}")
+private const val DEFAULT_VARIABLE_PATTERN = "(.*)"
+
+/** Default path separator: "/".  */
+const val DEFAULT_PATH_SEPARATOR = "/"
+
+private const val CACHE_TURNOFF_THRESHOLD = 65536
+private val VARIABLE_PATTERN = Pattern.compile("\\{[^/]+?\\}")
+private val WILDCARD_CHARS = charArrayOf('*', '?', '{')

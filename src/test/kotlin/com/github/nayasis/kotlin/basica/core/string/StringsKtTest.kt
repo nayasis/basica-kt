@@ -9,11 +9,11 @@ internal class StringsKtTest {
     @Test
     fun `glob test`() {
 
-        println( "glob:*.kt".glob().joinToString("\n") )
-        Assertions.assertTrue( "glob:*.kt".glob().size > 1 )
+        println( ".".glob("*.kt").joinToString("\n") )
+        Assertions.assertTrue( ".".glob("*.kt").size > 1 )
         println("----------")
-        println( "glob:./*.kt".glob().joinToString("\n") )
-        Assertions.assertTrue( "glob:./*.kt".glob().size > 1 )
+        println( "".glob("*.kt").joinToString("\n") )
+        Assertions.assertTrue( "".glob("*.kt").size > 1 )
 
     }
 

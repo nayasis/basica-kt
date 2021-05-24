@@ -1,16 +1,19 @@
 package com.github.nayasis.kotlin.basica.core.resource.finder
 
-import com.github.nayasis.basica.base.Types
-import com.github.nayasis.basica.resource.matcher.PathMatcher
-import com.github.nayasis.basica.resource.type.interfaces.Resource
-import com.github.nayasis.basica.resource.util.Resources
-import lombok.extern.slf4j.Slf4j
+import com.github.nayasis.kotlin.basica.core.resource.matcher.PathMatcher
+import com.github.nayasis.kotlin.basica.core.resource.type.interfaces.Resource
+import com.github.nayasis.kotlin.basica.core.resource.util.Resources
+import mu.KotlinLogging
+import java.io.IOException
 import java.net.JarURLConnection
 import java.net.URL
-import java.util.jar.JarEntry
+import java.util.jar.JarFile
+import java.util.zip.ZipException
 
-@Slf4j
+private val log = KotlinLogging.logger {}
+
 class JarResourceFinder(private var pathMatcher: PathMatcher) {
+
     fun setPathMatcher(pathMatcher: PathMatcher) {
         this.pathMatcher = pathMatcher
     }
@@ -26,7 +29,7 @@ class JarResourceFinder(private var pathMatcher: PathMatcher) {
      * @since 4.3
      */
     @Throws(IOException::class)
-    fun find(root: Resource, rootDir: URL, pattern: String?): Set<Resource> {
+    fun find(root: Resource, rootDir: URL, pattern: String): Set<Resource> {
         val conn = rootDir.openConnection()
         val jarFile: JarFile
         val jarFileUrl: String
@@ -62,7 +65,7 @@ class JarResourceFinder(private var pathMatcher: PathMatcher) {
                 }
                 closeJarFile = true
             } catch (ex: ZipException) {
-                log.debug("Skipping invalid jar classpath entry [{}]", urlFile)
+                log.debug{"Skipping invalid jar classpath entry [$urlFile]"}
                 return emptySet()
             }
         }
@@ -73,7 +76,7 @@ class JarResourceFinder(private var pathMatcher: PathMatcher) {
                 rootEntryPath = "$rootEntryPath/"
             }
             val result: MutableSet<Resource> = LinkedHashSet(8)
-            for (entry in Types.toList(jarFile.entries()) as List<JarEntry?>) {
+            for (entry in jarFile.entries()) {
                 val entryPath = entry!!.name
                 if (entryPath.startsWith(rootEntryPath)) {
                     val relativePath = entryPath.substring(rootEntryPath.length)

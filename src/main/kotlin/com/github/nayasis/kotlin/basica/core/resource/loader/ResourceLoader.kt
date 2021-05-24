@@ -15,7 +15,7 @@
  */
 package com.github.nayasis.kotlin.basica.core.resource.loader
 
-import com.github.nayasis.basica.resource.type.interfaces.Resource
+import com.github.nayasis.kotlin.basica.core.resource.type.interfaces.Resource
 
 interface ResourceLoader {
     /**
@@ -39,7 +39,7 @@ interface ResourceLoader {
      * @see Resource.exists
      * @see Resource.getInputStream
      */
-    fun getResource(location: String?): Resource?
+    fun getResource(location: String): Resource
 
     /**
      * Expose the ClassLoader used by this ResourceLoader.
@@ -50,5 +50,5 @@ interface ResourceLoader {
      * @return the ClassLoader
      * (only `null` if even the system ClassLoader isn't accessible)
      */
-    val classLoader: ClassLoader?
+    fun getClassLoader(): ClassLoader?
 }
