@@ -75,6 +75,7 @@ fun Field.setValue(instance: Any?, value: Any?) {
     }
 }
 
+@Suppress("UNCHECKED_CAST")
 fun <T> Field.getValue(instance: Any?): T {
     return handleField(this,instance) {
         if (isStatic) {
@@ -207,10 +208,12 @@ class Classes { companion object{
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun <T:Any> newInstance(type: Type) : T {
         return newInstance(getClass(type) as Class<T>)
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun <T:Any> newInstance(name: String) : T {
         return newInstance(getClass(name) as Class<T>)
     }
