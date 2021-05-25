@@ -16,7 +16,8 @@
 package com.github.nayasis.kotlin.basica.core.resource.util
 
 import com.github.nayasis.kotlin.basica.core.klass.Classes
-import com.github.nayasis.kotlin.basica.core.string.isUrl
+import com.github.nayasis.kotlin.basica.core.string.toUri
+import com.github.nayasis.kotlin.basica.core.url.toUri
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -57,21 +58,23 @@ object Resources {
      */
     @Throws(FileNotFoundException::class)
     fun getURL(resourceLocation: String): URL {
-        if (resourceLocation.startsWith(URL_PREFIX_CLASSPATH)) {
-            val path = resourceLocation.substring(URL_PREFIX_CLASSPATH.length)
-            return Classes.getResource(path)
-                ?: throw FileNotFoundException(
-                    "class path resource [$path] cannot be resolved to URL because it does not exist"
-                )
-        }
-        return try {
-            URL(resourceLocation)
-        } catch (e: MalformedURLException) {
-            // no URL -> treat as file path
-            try {
-                File(resourceLocation).toURI().toURL()
-            } catch (e2: MalformedURLException) {
-                throw FileNotFoundException("Resource location [$resourceLocation] is neither a URL not a well-formed file path")
+        when {
+            resourceLocation.startsWith(URL_PREFIX_CLASSPATH) -> {
+                val path = resourceLocation.substring(URL_PREFIX_CLASSPATH.length)
+                return Classes.getResource(path)
+                    ?: throw FileNotFoundException("class path resource [$path] cannot be resolved to URL because it does not exist")
+            }
+            else -> {
+                return try {
+                    URL(resourceLocation)
+                } catch (e: MalformedURLException) {
+                    // no URL -> treat as file path
+                    try {
+                        File(resourceLocation).toURI().toURL()
+                    } catch (e2: MalformedURLException) {
+                        throw FileNotFoundException("Resource location [$resourceLocation] is neither a URL not a well-formed file path")
+                    }
+                }
             }
         }
     }
@@ -90,20 +93,22 @@ object Resources {
      */
     @Throws(FileNotFoundException::class)
     fun getFile(resourceLocation: String): File {
-        if (resourceLocation.startsWith(URL_PREFIX_CLASSPATH)) {
-            val path = resourceLocation.substring(URL_PREFIX_CLASSPATH.length)
-            val description = "class path resource [$path]"
-            val url = Classes.classLoader.getResource(path)
-                ?: throw FileNotFoundException(
-                    "${description} cannot be resolved to absolute file path because it does not exist"
-                )
-            return getFile(url, description)
-        }
-        return try {
-            getFile(URL(resourceLocation))
-        } catch (ex: MalformedURLException) {
-            // no URL -> treat as file path
-            File(resourceLocation)
+        when {
+            resourceLocation.startsWith(URL_PREFIX_CLASSPATH) -> {
+                val path = resourceLocation.substring(URL_PREFIX_CLASSPATH.length)
+                val description = "class path resource [$path]"
+                val url = Classes.getResource(path)
+                    ?: throw FileNotFoundException("${description} cannot be resolved to absolute file path because it does not exist")
+                return getFile(url, description)
+            }
+            else -> {
+                return try {
+                    getFile(URL(resourceLocation))
+                } catch (ex: MalformedURLException) {
+                    // no URL -> treat as file path
+                    File(resourceLocation)
+                }
+            }
         }
     }
 
@@ -116,9 +121,7 @@ object Resources {
      * a file in the file system
      */
     @Throws(FileNotFoundException::class)
-    fun getFile(resourceUrl: URL): File {
-        return getFile(resourceUrl, "URL")
-    }
+    fun getFile(resourceUrl: URL): File = getFile(resourceUrl, "URL")
 
     /**
      * Resolve the given resource URL to a `java.io.File`,
@@ -132,16 +135,17 @@ object Resources {
      */
     @Throws(FileNotFoundException::class)
     fun getFile(resourceUrl: URL, description: String?): File {
-        if (URL_PROTOCOL_FILE != resourceUrl.protocol) {
-            throw FileNotFoundException(
-                "${description} cannot be resolved to absolute file path because it does not reside in the file system: ${resourceUrl}"
-            )
-        }
-        return try {
-            File(toURI(resourceUrl).schemeSpecificPart)
-        } catch (ex: URISyntaxException) {
-            // Fallback for URLs that are not valid URIs (should hardly ever happen).
-            File(resourceUrl.file)
+        when {
+            URL_PROTOCOL_FILE != resourceUrl.protocol ->
+                throw FileNotFoundException("${description} cannot be resolved to absolute file path because it does not reside in the file system: ${resourceUrl}")
+            else -> {
+                return try {
+                    File(resourceUrl.toUri().schemeSpecificPart)
+                } catch (ex: URISyntaxException) {
+                    // Fallback for URLs that are not valid URIs (should hardly ever happen).
+                    File(resourceUrl.file)
+                }
+            }
         }
     }
 
@@ -155,9 +159,7 @@ object Resources {
      * @since 2.5
      */
     @Throws(FileNotFoundException::class)
-    fun getFile(resourceUri: URI): File {
-        return getFile(resourceUri, "URI")
-    }
+    fun getFile(resourceUri: URI): File = getFile(resourceUri, "URI")
 
     /**
      * Resolve the given resource URI to a `java.io.File`,
@@ -172,12 +174,11 @@ object Resources {
      */
     @Throws(FileNotFoundException::class)
     fun getFile(resourceUri: URI, description: String?): File {
-        if (URL_PROTOCOL_FILE != resourceUri.scheme) {
-            throw FileNotFoundException(
-                "${description} cannot be resolved to absolute file path because it does not reside in the file system: ${resourceUri}"
-            )
+        when {
+            URL_PROTOCOL_FILE != resourceUri.scheme ->
+                throw FileNotFoundException("${description} cannot be resolved to absolute file path because it does not reside in the file system: ${resourceUri}")
+            else -> return File(resourceUri.schemeSpecificPart)
         }
-        return File(resourceUri.schemeSpecificPart)
     }
 
     /**
@@ -186,10 +187,8 @@ object Resources {
      * @param url the URL to check
      * @return whether the URL has been identified as a file system URL
      */
-    fun isFileURL(url: URL): Boolean {
-        val protocol = url.protocol
-        return URL_PROTOCOL_FILE == protocol || URL_PROTOCOL_VFSFILE == protocol || URL_PROTOCOL_VFS == protocol
-    }
+    fun isFileURL(url: URL): Boolean =
+        url.protocol in listOf(URL_PROTOCOL_FILE, URL_PROTOCOL_VFSFILE, URL_PROTOCOL_VFS)
 
     /**
      * Determine whether the given URL points to a resource in a jar file.
@@ -197,14 +196,10 @@ object Resources {
      * @param url the URL to check
      * @return whether the URL has been identified as a JAR URL
      */
-    fun isJarURL(url: URL): Boolean {
-        val protocol = url.protocol
-        return URL_PROTOCOL_JAR == protocol || URL_PROTOCOL_WAR == protocol || URL_PROTOCOL_ZIP == protocol || URL_PROTOCOL_VFSZIP == protocol || URL_PROTOCOL_WSJAR == protocol
-    }
+    fun isJarURL(url: URL): Boolean =
+        url.protocol in listOf(URL_PROTOCOL_JAR, URL_PROTOCOL_WAR, URL_PROTOCOL_ZIP, URL_PROTOCOL_VFSZIP, URL_PROTOCOL_WSJAR)
 
-    fun isVfsURL(url: URL?): Boolean {
-        return url != null && url.protocol.startsWith(URL_PROTOCOL_VFS)
-    }
+    fun isVfsURL(url: URL?): Boolean = url != null && url.protocol.startsWith(URL_PROTOCOL_VFS)
 
     /**
      * Determine whether the given URL points to a jar file itself,
@@ -213,9 +208,8 @@ object Resources {
      * @return whether the URL has been identified as a JAR file URL
      * @since 4.1
      */
-    fun isJarFileURL(url: URL?): Boolean {
-        return url != null && URL_PROTOCOL_FILE == url.protocol && url.path.toLowerCase().endsWith(FILE_EXTENSION_JAR)
-    }
+    fun isJarFileURL(url: URL?): Boolean =
+        url != null && URL_PROTOCOL_FILE == url.protocol && url.path.toLowerCase().endsWith(FILE_EXTENSION_JAR)
 
     /**
      * Extract the URL for the actual jar file from the given URL
@@ -238,7 +232,7 @@ object Resources {
                 if (!jarFile.startsWith("/")) {
                     jarFile = "/$jarFile"
                 }
-                URL(URL_PREFIX_FILE + jarFile)
+                URL("$URL_PREFIX_FILE$jarFile")
             }
         } else {
             jarUrl
@@ -278,31 +272,6 @@ object Resources {
     }
 
     /**
-     * Create a URI instance for the given URL,
-     * replacing spaces with "%20" URI encoding first.
-     * @param url the URL to convert into a URI instance
-     * @return the URI instance
-     * @throws URISyntaxException if the URL wasn't a valid URI
-     * @see URL.toURI
-     */
-    @Throws(URISyntaxException::class)
-    fun toURI(url: URL?): URI {
-        return toURI(url?.toString() ?: "")
-    }
-
-    /**
-     * Create a URI instance for the given location String,
-     * replacing spaces with "%20" URI encoding first.
-     * @param location the location String to convert into a URI instance
-     * @return the URI instance
-     * @throws URISyntaxException if the location wasn't a valid URI
-     */
-    @Throws(URISyntaxException::class)
-    fun toURI(location: String): URI {
-        return URI(location.replace(" ", "%20"))
-    }
-
-    /**
      * Set the [&quot;useCaches&quot;][URLConnection.setUseCaches] flag on the
      * given connection, preferring `false` but leaving the
      * flag at `true` for JNLP based resources.
@@ -317,7 +286,7 @@ object Resources {
     fun getJarFile(url: String): JarFile {
         return if (url.startsWith(URL_PREFIX_FILE)) {
             try {
-                JarFile(toURI(url).schemeSpecificPart)
+                JarFile(url.toUri().schemeSpecificPart)
             } catch (e: URISyntaxException) {
                 // Fallback for URLs that are not valid URIs (should hardly ever happen).
                 JarFile(url.substring(URL_PREFIX_FILE.length))

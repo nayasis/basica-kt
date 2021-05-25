@@ -12,6 +12,7 @@ import kotlin.collections.LinkedHashMap
 
 private val log = KotlinLogging.logger {}
 
+@Suppress("UNCHECKED_CAST")
 internal class ReflectorTest {
 
     @Test

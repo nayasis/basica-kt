@@ -19,6 +19,7 @@ private val JSON_EXAMPLE = """
             }
         """.trimIndent()
 
+@Suppress("UNCHECKED_CAST")
 internal class MapsKtTest {
 
     @Test

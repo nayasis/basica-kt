@@ -16,7 +16,7 @@
 package com.github.nayasis.kotlin.basica.core.resource.type.abstracts
 
 import com.github.nayasis.kotlin.basica.core.resource.type.interfaces.Resource
-import com.github.nayasis.kotlin.basica.core.resource.util.Resources
+import com.github.nayasis.kotlin.basica.core.url.toUri
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -99,7 +99,7 @@ abstract class AbstractResource: Resource {
     @Throws(IOException::class)
     override fun getURI(): URI {
         return try {
-            Resources.toURI(getURL())
+            getURL().toUri()
         } catch (e: URISyntaxException) {
             throw IOException("Invalid URI [${getURL()}]", e)
         }

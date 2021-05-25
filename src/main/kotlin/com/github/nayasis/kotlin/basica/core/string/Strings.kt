@@ -61,7 +61,7 @@ fun String.isUrl(): Boolean = try {
     false
 }
 
-fun String.toUri(): URI = URI(this)
+fun String.toUri(): URI = URI(this.replace(" ", "%20"))
 
 fun String.invariantSeparators(): String {
     return if ( File.separatorChar != '/' ) this.replace(File.separatorChar, '/') else this
