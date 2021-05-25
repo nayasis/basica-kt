@@ -230,7 +230,7 @@ class Classes { companion object{
         return url.openStream()
     }
 
-    fun getResource(path: String): URL {
+    fun getResource(path: String): URL? {
         return classLoader.getResource(path.toResourceName)
     }
 

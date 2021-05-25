@@ -46,23 +46,6 @@ const val URL_SEPARATOR_WAR    = "*/"
 object Resources {
 
     /**
-     * Return whether the given resource location is a URL:
-     * either a special "classpath" pseudo URL or a standard URL.
-     * @param resourceLocation the location String to check
-     * @return whether the location qualifies as a URL
-     * @see .URL_PREFIX_CLASSPATH
-     *
-     * @see URL
-     */
-    fun isUrl(resourceLocation: String?): Boolean {
-        return when{
-            resourceLocation.isNullOrEmpty() -> false
-            resourceLocation.startsWith(URL_PREFIX_CLASSPATH) -> true
-            else -> resourceLocation.isUrl()
-        }
-    }
-
-    /**
      * Resolve the given resource location to a `java.net.URL`.
      *
      * Does not check whether the URL actually exists; simply returns
@@ -76,7 +59,7 @@ object Resources {
     fun getURL(resourceLocation: String): URL {
         if (resourceLocation.startsWith(URL_PREFIX_CLASSPATH)) {
             val path = resourceLocation.substring(URL_PREFIX_CLASSPATH.length)
-            return Classes.classLoader.getResource(path)
+            return Classes.getResource(path)
                 ?: throw FileNotFoundException(
                     "class path resource [$path] cannot be resolved to URL because it does not exist"
                 )
@@ -117,7 +100,6 @@ object Resources {
             return getFile(url, description)
         }
         return try {
-            // try URL
             getFile(URL(resourceLocation))
         } catch (ex: MalformedURLException) {
             // no URL -> treat as file path

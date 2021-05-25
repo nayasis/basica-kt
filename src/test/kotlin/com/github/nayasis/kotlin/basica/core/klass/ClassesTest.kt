@@ -11,7 +11,7 @@ internal class ClassesTest {
     @Test
     fun `get resource`() {
 
-        val resource = Classes.getResource("")
+        val resource = Classes.getResource("-1")
 
         log.debug { "resource : $resource" }
 
