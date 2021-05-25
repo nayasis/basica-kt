@@ -33,9 +33,10 @@ import mu.KotlinLogging
 import java.io.IOException
 import java.net.URL
 
-private val log = KotlinLogging.logger {}
+val log = KotlinLogging.logger {}
 
 class PathMatchingResourceLoader: ResourcePatternResolver {
+
     private val resourceLoader: ResourceLoader = DefaultResourceLoader()
     private var pathMatcher: PathMatcher = AntPathMatcher()
     private val fileFinder = FileResourceFinder(pathMatcher)
