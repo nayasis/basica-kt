@@ -479,7 +479,7 @@ fun Path.reader(charset: Charset = Charsets.UTF_8): BufferedReader {
  */
 fun Path.writer(charset: Charset = Charsets.UTF_8, vararg options: OpenOption, bufferSize: Int = DEFAULT_BUFFER_SIZE): BufferedWriter {
     this.makeFile()
-    return outputstream(*options).writer(charset).buffered(bufferSize)
+    return outStream(*options).writer(charset).buffered(bufferSize)
 }
 
 /**
@@ -492,19 +492,19 @@ fun Path.appender(charset: Charset = Charsets.UTF_8, bufferSize: Int = DEFAULT_B
     return this.writer(charset,APPEND,bufferSize = bufferSize)
 }
 
-fun Path.inputstream(vararg options: OpenOption): InputStream {
+fun Path.inStream(vararg options: OpenOption): InputStream {
     return Files.newInputStream(this, *options)
 }
 
-fun Path.outputstream(vararg options: OpenOption): OutputStream {
+fun Path.outStream(vararg options: OpenOption): OutputStream {
     return Files.newOutputStream(this, *options)
 }
 
 fun Path.detectCharset(default: Charset = Charsets.UTF_8): Charset {
-    return this.inputstream().use { detectCharset(it,default) }
+    return this.inStream().use { detectCharset(it,default) }
 }
 
-private fun detectCharset(inputstream: InputStream, default: Charset = Charsets.UTF_8): Charset {
+fun detectCharset(inputstream: InputStream, default: Charset = Charsets.UTF_8): Charset {
 
     val buffer = ByteArray(4096)
     var detector: UniversalDetector = UniversalDetector(null)
