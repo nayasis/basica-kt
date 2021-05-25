@@ -3,9 +3,9 @@ package com.github.nayasis.kotlin.basica.core.resource.finder
 import com.github.nayasis.kotlin.basica.core.resource.loader.ResourceLoader
 import com.github.nayasis.kotlin.basica.core.resource.type.UrlResource
 import com.github.nayasis.kotlin.basica.core.resource.type.interfaces.Resource
-import com.github.nayasis.kotlin.basica.core.resource.util.Resources.URL_PREFIX_FILE
-import com.github.nayasis.kotlin.basica.core.resource.util.Resources.URL_PREFIX_JAR
-import com.github.nayasis.kotlin.basica.core.resource.util.Resources.URL_SEPARATOR_JAR
+import com.github.nayasis.kotlin.basica.core.resource.util.URL_PREFIX_FILE
+import com.github.nayasis.kotlin.basica.core.resource.util.URL_PREFIX_JAR
+import com.github.nayasis.kotlin.basica.core.resource.util.URL_SEPARATOR_JAR
 import mu.KotlinLogging
 import java.io.File
 import java.io.IOException

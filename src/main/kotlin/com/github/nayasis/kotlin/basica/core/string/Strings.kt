@@ -18,6 +18,7 @@ import java.io.File
 import java.io.InputStreamReader
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.net.MalformedURLException
 import java.net.URI
 import java.net.URL
 import java.nio.charset.StandardCharsets.ISO_8859_1
@@ -53,7 +54,18 @@ fun String.toFile(): File = File(this)
 
 fun String.toUrl(): URL = URL(this)
 
+fun String.isUrl(): Boolean = try {
+    URL(this)
+    true
+} catch (e: MalformedURLException) {
+    false
+}
+
 fun String.toUri(): URI = URI(this)
+
+fun String.invariantSeparators(): String {
+    return if ( File.separatorChar != '/' ) this.replace(File.separatorChar, '/') else this
+}
 
 fun String.glob(glob: String = "*", depth: Int = -1, includeFile: Boolean = true, includeDirectory: Boolean = true ): List<Path> {
     return this.toPath().find(glob,depth,includeFile,includeDirectory)

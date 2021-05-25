@@ -28,10 +28,9 @@ import com.github.nayasis.kotlin.basica.core.resource.resolver.ResourcePatternRe
 import com.github.nayasis.kotlin.basica.core.resource.type.UrlResource
 import com.github.nayasis.kotlin.basica.core.resource.type.interfaces.Resource
 import com.github.nayasis.kotlin.basica.core.resource.util.Resources
-import com.github.nayasis.kotlin.basica.core.resource.util.Resources.URL_PREFIX_CLASSPATH
+import com.github.nayasis.kotlin.basica.core.resource.util.URL_PREFIX_CLASSPATH
 import mu.KotlinLogging
 import java.io.IOException
-import java.net.URL
 
 val log = KotlinLogging.logger {}
 
@@ -43,20 +42,10 @@ class PathMatchingResourceLoader: ResourcePatternResolver {
     private val vfsFinder = VfsResourceFinder(pathMatcher)
     private val jarFinder = JarResourceFinder(pathMatcher)
     private val classpathFinder = ClasspathResourceFinder(resourceLoader)
+    private val equinoxInvoker = EquinoxInvoker()
 
     override fun getClassLoader(): ClassLoader? {
         return resourceLoader.getClassLoader()
-    }
-
-    /**
-     * Set PathMatcher.
-     * default is AntPathMatcher.
-     */
-    fun setPathMatcher(pathMatcher: PathMatcher) {
-        this.pathMatcher = pathMatcher
-        fileFinder.setPathMatcher(pathMatcher)
-        vfsFinder.setPathMatcher(pathMatcher)
-        jarFinder.setPathMatcher(pathMatcher)
     }
 
     override fun getResource(location: String): Resource {
@@ -65,7 +54,7 @@ class PathMatchingResourceLoader: ResourcePatternResolver {
 
     @Throws(IOException::class)
     override fun getResources(pattern: String): Set<Resource> {
-        if ( pattern.isEmpty() ) return LinkedHashSet()
+        if ( pattern.isEmpty() ) return emptySet()
         return if (isClasspath(pattern)) {
             // a class path resource (multiple resources for same name possible)
             if (pathMatcher.isPattern(pattern.substring(URL_PREFIX_CLASSPATH.length))) {
@@ -84,46 +73,36 @@ class PathMatchingResourceLoader: ResourcePatternResolver {
                 findResources(pattern)
             } else {
                 // a single resource with the given name
-                val resources: MutableSet<Resource> = LinkedHashSet()
-                resources.add(getResource(pattern))
-                resources
+                LinkedHashSet<Resource>().apply { add(getResource(pattern)) }
             }
         }
     }
 
-    private fun isClasspath(pattern: String): Boolean {
-        return pattern.startsWith(URL_PREFIX_CLASSPATH)
-    }
+    private fun isClasspath(pattern: String): Boolean = pattern.startsWith(URL_PREFIX_CLASSPATH)
 
     /**
      * find all resources matched with given pattern.
-     *
-     *
      * it could find resources in JAR, ZIP, File system.
      *
      * @param pattern    pattern to match
-     * @return    matched resources
-     * @throws IOException occurs I/O errors
+     * @return matched resources
      */
     @Throws(IOException::class)
     private fun findResources(pattern: String): Set<Resource> {
-        val ptnRoot = getRootDir(pattern)
-        val ptnRemain = pattern.substring(ptnRoot.length)
+        val root = getRootDir(pattern)
+        val remain = pattern.substring(root.length)
         val result = LinkedHashSet<Resource>(16)
-        for (resource in getResources(ptnRoot)) {
+        for (resource in getResources(root)) {
             var root = resource
-            var rootUrl: URL = root.getURL()
-            if (EquinoxInvoker.isEquinoxUrl(rootUrl)) {
-                val unwrapped = EquinoxInvoker.unwrap(rootUrl)
-                if (unwrapped != null) {
-                    rootUrl = unwrapped
-                }
+            var rootUrl = root.getURL()
+            if( equinoxInvoker.isEquinoxUrl(rootUrl) ) {
+                equinoxInvoker.unwrap(rootUrl)?.let{ rootUrl = it }
                 root = UrlResource(rootUrl)
             }
             when {
-                Resources.isVfsURL(rootUrl) -> result.addAll(vfsFinder.find(rootUrl, ptnRemain))
-                Resources.isJarURL(rootUrl) -> result.addAll(jarFinder.find(root, rootUrl, ptnRemain))
-                else -> result.addAll(fileFinder.find(root, ptnRemain))
+                Resources.isVfsURL(rootUrl) -> result.addAll(vfsFinder.find(rootUrl, remain))
+                Resources.isJarURL(rootUrl) -> result.addAll(jarFinder.find(root, rootUrl, remain))
+                else -> result.addAll(fileFinder.find(root, remain))
             }
         }
         return result
@@ -131,7 +110,6 @@ class PathMatchingResourceLoader: ResourcePatternResolver {
 
     /**
      * extract root directory for given path to determine file matching starting point.
-     *
      *
      * ex. "classpath:/WEB-INF/ *.xml" returns "classpath:/WEB-INF"
      *
@@ -143,10 +121,11 @@ class PathMatchingResourceLoader: ResourcePatternResolver {
         var rootDirEnd = path.length
 
         // climb up directory until remain path is not matched with pattern
-        while (rootDirEnd > prefixEnd && pathMatcher.isPattern(path.substring(prefixEnd, rootDirEnd))) {
+        while( rootDirEnd > prefixEnd && pathMatcher.isPattern(path.substring(prefixEnd, rootDirEnd))) {
             rootDirEnd = path.lastIndexOf('/', rootDirEnd - 2) + 1
         }
         if (rootDirEnd == 0) rootDirEnd = prefixEnd
         return path.substring(0, rootDirEnd)
     }
+
 }

@@ -3,6 +3,7 @@
 
 package com.github.nayasis.kotlin.basica.core.path
 
+import com.github.nayasis.kotlin.basica.core.string.invariantSeparators
 import com.github.nayasis.kotlin.basica.core.string.toFile
 import com.github.nayasis.kotlin.basica.core.string.toPath
 import org.mozilla.universalchardet.UniversalDetector
@@ -41,7 +42,7 @@ val Path.pathWithoutExtension: String
     get() = pathWithoutExtension().pathString
 
 val Path.invariantSeparators: String
-    get() = if ( File.separatorChar != '/' ) pathString.replace(File.separatorChar, '/') else pathString
+    get() = pathString.invariantSeparators()
 
 val Path.pathString: String
     get() {

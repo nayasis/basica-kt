@@ -18,6 +18,8 @@ package com.github.nayasis.kotlin.basica.core.resource.type.abstracts
 import com.github.nayasis.kotlin.basica.core.resource.type.VfsResource
 import com.github.nayasis.kotlin.basica.core.resource.type.interfaces.Resource
 import com.github.nayasis.kotlin.basica.core.resource.util.Resources
+import com.github.nayasis.kotlin.basica.core.resource.util.URL_PROTOCOL_FILE
+import com.github.nayasis.kotlin.basica.core.resource.util.URL_PROTOCOL_VFS
 import com.github.nayasis.kotlin.basica.core.resource.util.VfsUtils
 import java.io.File
 import java.io.FileNotFoundException
@@ -119,9 +121,9 @@ abstract class AbstractFileResolvingResource: AbstractResource() {
     override fun isFile(): Boolean {
         return try {
             val url = getURL()
-            if (url.protocol.startsWith(Resources.URL_PROTOCOL_VFS)) {
+            if (url.protocol.startsWith(URL_PROTOCOL_VFS)) {
                 VfsResourceDelegate.getResource(url).isFile()
-            } else Resources.URL_PROTOCOL_FILE == url.protocol
+            } else URL_PROTOCOL_FILE == url.protocol
         } catch (ex: IOException) {
             false
         }
@@ -134,7 +136,7 @@ abstract class AbstractFileResolvingResource: AbstractResource() {
     @Throws(IOException::class)
     override fun getFile(): File {
         val url = getURL()
-        return if (url.protocol.startsWith(Resources.URL_PROTOCOL_VFS)) {
+        return if (url.protocol.startsWith(URL_PROTOCOL_VFS)) {
             VfsResourceDelegate.getResource(url).getFile()
         } else Resources.getFile(url, getDescription())
     }
@@ -148,7 +150,7 @@ abstract class AbstractFileResolvingResource: AbstractResource() {
         val url = getURL()
         return if (Resources.isJarURL(url)) {
             val actualUrl = Resources.extractArchiveURL(url)
-            if (actualUrl.protocol.startsWith(Resources.URL_PROTOCOL_VFS)) {
+            if (actualUrl.protocol.startsWith(URL_PROTOCOL_VFS)) {
                 VfsResourceDelegate.getResource(
                     actualUrl
                 ).getFile()
@@ -166,9 +168,9 @@ abstract class AbstractFileResolvingResource: AbstractResource() {
      */
     protected fun isFile(uri: URI): Boolean {
         return try {
-            if (uri.scheme.startsWith(Resources.URL_PROTOCOL_VFS)) {
+            if (uri.scheme.startsWith(URL_PROTOCOL_VFS)) {
                 VfsResourceDelegate.getResource(uri).isFile()
-            } else Resources.URL_PROTOCOL_FILE == uri.scheme
+            } else URL_PROTOCOL_FILE == uri.scheme
         } catch (ex: IOException) {
             false
         }
@@ -180,7 +182,7 @@ abstract class AbstractFileResolvingResource: AbstractResource() {
      */
     @Throws(IOException::class)
     protected fun getFile(uri: URI): File {
-        return if (uri.scheme.startsWith(Resources.URL_PROTOCOL_VFS)) {
+        return if (uri.scheme.startsWith(URL_PROTOCOL_VFS)) {
             VfsResourceDelegate.getResource(uri).getFile()
         } else Resources.getFile(uri, getDescription())
     }
@@ -290,13 +292,9 @@ abstract class AbstractFileResolvingResource: AbstractResource() {
      */
     private object VfsResourceDelegate {
         @Throws(IOException::class)
-        fun getResource(url: URL?): Resource {
-            return VfsResource(VfsUtils.getRoot(url))
-        }
+        fun getResource(url: URL?): Resource = VfsResource(VfsUtils.getRoot(url))
 
         @Throws(IOException::class)
-        fun getResource(uri: URI?): Resource {
-            return VfsResource(VfsUtils.getRoot(uri))
-        }
+        fun getResource(uri: URI?): Resource = VfsResource(VfsUtils.getRoot(uri))
     }
 }

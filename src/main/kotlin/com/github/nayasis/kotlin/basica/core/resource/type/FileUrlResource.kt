@@ -17,6 +17,7 @@ package com.github.nayasis.kotlin.basica.core.resource.type
 
 import com.github.nayasis.kotlin.basica.core.resource.type.interfaces.Resource
 import com.github.nayasis.kotlin.basica.core.resource.util.Resources
+import com.github.nayasis.kotlin.basica.core.resource.util.URL_PROTOCOL_FILE
 import java.io.File
 import java.io.IOException
 import java.io.OutputStream
@@ -69,7 +70,7 @@ class FileUrlResource: UrlResource, WritableResource {
      * @see UrlResource.UrlResource
      * @see Resources.URL_PROTOCOL_FILE
      */
-    constructor(location: String?): super(Resources.URL_PROTOCOL_FILE, location) {}
+    constructor(location: String?): super(URL_PROTOCOL_FILE, location) {}
 
     @Throws(IOException::class)
     override fun getFile(): File {

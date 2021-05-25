@@ -4,7 +4,7 @@ import com.github.nayasis.kotlin.basica.core.path.invariantSeparators
 import com.github.nayasis.kotlin.basica.core.resource.matcher.PathMatcher
 import com.github.nayasis.kotlin.basica.core.resource.type.FileSystemResource
 import com.github.nayasis.kotlin.basica.core.resource.type.interfaces.Resource
-import com.github.nayasis.kotlin.basica.core.string.toPath
+import com.github.nayasis.kotlin.basica.core.string.invariantSeparators
 import mu.KotlinLogging
 import java.io.File
 import java.io.FileNotFoundException
@@ -13,10 +13,6 @@ import java.io.IOException
 private val log = KotlinLogging.logger {}
 
 class FileResourceFinder(private var pathMatcher: PathMatcher) {
-
-    fun setPathMatcher(pathMatcher: PathMatcher) {
-        this.pathMatcher = pathMatcher
-    }
 
     /**
      * Find all resources in the file system that match the given location pattern
@@ -61,7 +57,7 @@ class FileResourceFinder(private var pathMatcher: PathMatcher) {
         if (!pattern.startsWith("/")) {
             fullPattern += "/"
         }
-        fullPattern += pattern.toPath().invariantSeparators
+        fullPattern += pattern.invariantSeparators()
         return LinkedHashSet<File>().apply { findFiles(fullPattern,rootDir,this) }
     }
 
@@ -74,7 +70,7 @@ class FileResourceFinder(private var pathMatcher: PathMatcher) {
      * @param dir       current directory
      * @param result Set of matching File instances to add to
      */
-    protected fun findFiles(pattern: String, dir: File?, result: MutableSet<File>) {
+    private fun findFiles(pattern: String, dir: File?, result: MutableSet<File>) {
         for (content in listDirectory(dir)) {
             val currPath = content.toPath().toAbsolutePath().invariantSeparators
             if (content.isDirectory() && pathMatcher.matchStart(pattern, "$currPath/")) {

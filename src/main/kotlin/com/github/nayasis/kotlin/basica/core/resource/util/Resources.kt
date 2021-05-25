@@ -16,6 +16,7 @@
 package com.github.nayasis.kotlin.basica.core.resource.util
 
 import com.github.nayasis.kotlin.basica.core.klass.Classes
+import com.github.nayasis.kotlin.basica.core.string.isUrl
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -25,6 +26,22 @@ import java.net.URISyntaxException
 import java.net.URL
 import java.net.URLConnection
 import java.util.jar.JarFile
+
+const val URL_PREFIX_CLASSPATH = "classpath:"
+const val URL_PREFIX_FILE      = "file:"
+const val URL_PREFIX_JAR       = "jar:"
+const val URL_PREFIX_WAR       = "war:"
+const val URL_PROTOCOL_FILE    = "file"
+const val URL_PROTOCOL_JAR     = "jar"
+const val URL_PROTOCOL_WAR     = "war"
+const val URL_PROTOCOL_ZIP     = "zip"
+const val URL_PROTOCOL_WSJAR   = "wsjar"
+const val URL_PROTOCOL_VFSZIP  = "vfszip"
+const val URL_PROTOCOL_VFSFILE = "vfsfile"
+const val URL_PROTOCOL_VFS     = "vfs"
+const val FILE_EXTENSION_JAR   = ".jar"
+const val URL_SEPARATOR_JAR    = "!/"
+const val URL_SEPARATOR_WAR    = "*/"
 
 object Resources {
 
@@ -38,16 +55,10 @@ object Resources {
      * @see URL
      */
     fun isUrl(resourceLocation: String?): Boolean {
-        if (resourceLocation == null) {
-            return false
-        }
-        return if (resourceLocation.startsWith(URL_PREFIX_CLASSPATH)) {
-            true
-        } else try {
-            URL(resourceLocation)
-            true
-        } catch (ex: MalformedURLException) {
-            false
+        return when{
+            resourceLocation.isNullOrEmpty() -> false
+            resourceLocation.startsWith(URL_PREFIX_CLASSPATH) -> true
+            else -> resourceLocation.isUrl()
         }
     }
 
@@ -71,7 +82,6 @@ object Resources {
                 )
         }
         return try {
-            // try URL
             URL(resourceLocation)
         } catch (e: MalformedURLException) {
             // no URL -> treat as file path
@@ -334,21 +344,5 @@ object Resources {
             JarFile(url)
         }
     }
-
-    const val URL_PREFIX_CLASSPATH = "classpath:"
-    const val URL_PREFIX_FILE      = "file:"
-    const val URL_PREFIX_JAR       = "jar:"
-    const val URL_PREFIX_WAR       = "war:"
-    const val URL_PROTOCOL_FILE    = "file"
-    const val URL_PROTOCOL_JAR     = "jar"
-    const val URL_PROTOCOL_WAR     = "war"
-    const val URL_PROTOCOL_ZIP     = "zip"
-    const val URL_PROTOCOL_WSJAR   = "wsjar"
-    const val URL_PROTOCOL_VFSZIP  = "vfszip"
-    const val URL_PROTOCOL_VFSFILE = "vfsfile"
-    const val URL_PROTOCOL_VFS     = "vfs"
-    const val FILE_EXTENSION_JAR   = ".jar"
-    const val URL_SEPARATOR_JAR    = "!/"
-    const val URL_SEPARATOR_WAR    = "*/"
 
 }

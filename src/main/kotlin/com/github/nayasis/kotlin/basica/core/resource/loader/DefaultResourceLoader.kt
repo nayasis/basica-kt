@@ -22,6 +22,7 @@ import com.github.nayasis.kotlin.basica.core.resource.type.FileUrlResource
 import com.github.nayasis.kotlin.basica.core.resource.type.UrlResource
 import com.github.nayasis.kotlin.basica.core.resource.type.interfaces.Resource
 import com.github.nayasis.kotlin.basica.core.resource.util.Resources
+import com.github.nayasis.kotlin.basica.core.resource.util.URL_PREFIX_CLASSPATH
 import java.net.MalformedURLException
 import java.net.URL
 import java.util.concurrent.ConcurrentHashMap
@@ -122,8 +123,8 @@ class DefaultResourceLoader: ResourceLoader {
         }
         return when {
             location.startsWith("/") -> getResourceByPath(location)
-            location.startsWith(Resources.URL_PREFIX_CLASSPATH) -> {
-                ClassPathResource(location.substring(Resources.URL_PREFIX_CLASSPATH.length), getClassLoader())
+            location.startsWith(URL_PREFIX_CLASSPATH) -> {
+                ClassPathResource(location.substring(URL_PREFIX_CLASSPATH.length), getClassLoader())
             }
             else -> {
                 try {

@@ -1,8 +1,6 @@
 package com.github.nayasis.kotlin.basica.core.resource
 
-import com.github.nayasis.basica.resource.PathMatchingResourceLoader
-import com.github.nayasis.basica.resource.util.Resources
-import com.github.nayasis.basica.validation.Assert
+import com.github.nayasis.kotlin.basica.core.resource.util.Resources
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.io.IOException
@@ -24,11 +22,11 @@ internal class PathMatchingResourceLoaderTest {
         val loader = PathMatchingResourceLoader()
         val resources = loader.getResources("classpath:/META-INF/LICENSE.md")
         for (resource in resources) {
-            if (!Resources.isJarURL(resource.url)) continue
+            if (!Resources.isJarURL(resource.getURL())) continue
             hasJarUrl = true
-            log.debug("resource : {}", resource.url)
+            log.debug{"resource : ${resource.getURL()}"}
         }
-        Assert.beTrue(hasJarUrl, "there are no resources in JAR.")
+        assertTrue(hasJarUrl, "there are no resources in JAR.")
     }
 
 }

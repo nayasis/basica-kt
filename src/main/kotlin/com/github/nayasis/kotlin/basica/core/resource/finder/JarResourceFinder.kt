@@ -3,6 +3,8 @@ package com.github.nayasis.kotlin.basica.core.resource.finder
 import com.github.nayasis.kotlin.basica.core.resource.matcher.PathMatcher
 import com.github.nayasis.kotlin.basica.core.resource.type.interfaces.Resource
 import com.github.nayasis.kotlin.basica.core.resource.util.Resources
+import com.github.nayasis.kotlin.basica.core.resource.util.URL_SEPARATOR_JAR
+import com.github.nayasis.kotlin.basica.core.resource.util.URL_SEPARATOR_WAR
 import mu.KotlinLogging
 import java.io.IOException
 import java.net.JarURLConnection
@@ -13,10 +15,6 @@ import java.util.zip.ZipException
 private val log = KotlinLogging.logger {}
 
 class JarResourceFinder(private var pathMatcher: PathMatcher) {
-
-    fun setPathMatcher(pathMatcher: PathMatcher) {
-        this.pathMatcher = pathMatcher
-    }
 
     /**
      * Find all resources in jar files that match the given location pattern
@@ -51,10 +49,9 @@ class JarResourceFinder(private var pathMatcher: PathMatcher) {
             // We'll also handle paths with and without leading "file:" prefix.
             val urlFile = rootDir.file
             try {
-                var separatorIndex = urlFile.indexOf(Resources.URL_SEPARATOR_WAR)
-                if (separatorIndex == -1) {
-                    separatorIndex = urlFile.indexOf(Resources.URL_SEPARATOR_JAR)
-                }
+                var separatorIndex = urlFile.indexOf(URL_SEPARATOR_WAR)
+                if (separatorIndex == -1)
+                    separatorIndex = urlFile.indexOf(URL_SEPARATOR_JAR)
                 if (separatorIndex != -1) {
                     jarFileUrl = urlFile.substring(0, separatorIndex)
                     rootEntryPath = urlFile.substring(separatorIndex + 2) // both separators are 2 chars

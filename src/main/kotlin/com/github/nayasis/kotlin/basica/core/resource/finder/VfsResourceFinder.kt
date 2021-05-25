@@ -8,9 +8,6 @@ import java.io.IOException
 import java.net.URL
 
 class VfsResourceFinder(private var pathMatcher: PathMatcher) {
-    fun setPathMatcher(pathMatcher: PathMatcher) {
-        this.pathMatcher = pathMatcher
-    }
 
     @Throws(IOException::class)
     fun find(rootDir: URL?, pattern: String): Set<Resource> {
