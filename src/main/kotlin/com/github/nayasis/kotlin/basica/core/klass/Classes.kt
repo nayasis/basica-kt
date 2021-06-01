@@ -1,17 +1,25 @@
 package com.github.nayasis.kotlin.basica.core.klass
 
+import com.github.nayasis.kotlin.basica.core.resource.PathMatchingResourceLoader
+import com.github.nayasis.kotlin.basica.core.resource.util.URL_PREFIX_CLASSPATH
+import com.github.nayasis.kotlin.basica.core.url.toFile
+import mu.KotlinLogging
 import org.objenesis.ObjenesisStd
+import java.io.IOException
 import java.io.InputStream
 import java.lang.reflect.Array
 import java.lang.reflect.Constructor
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
+import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
 import java.net.URL
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.isSubclassOf
+
+private val log = KotlinLogging.logger {}
 
 /** Suffix for array class names: `"[]"`.  */
 private const val SUFFIX_ARRAY = "[]"
@@ -232,6 +240,92 @@ class Classes { companion object{
 
     fun getResource(path: String): URL? {
         return classLoader.getResource(path.toResourceName)
+    }
+
+    /**
+     * get generic class from another class.
+     *
+     * it only works when used in class itself.
+     *
+     * <pre>
+     * class Test<T> {
+     *   fun test() {
+     *     // it returns type of **T** exactly.
+     *     val generic = Classes.getGenericClass( this.class.java );
+     *   }
+     *   fun test2() {
+     *     val test = new Test<HashMap>();
+     *     // it returns **Object.class** only because instance has no information about Generic.
+     *     val generic = Classes.getGenericClass( test.class.java );
+     *   }
+     * }
+     * </pre>
+     *
+     * @param klass class to inspect
+     * @return generic class of klass
+     */
+    fun getGenericClass(klass: Class<*>?): Class<*>? {
+        return if (klass == null) null else try {
+            val genericSuperclass = klass.genericSuperclass
+            val types = (genericSuperclass as ParameterizedType).actualTypeArguments
+            types[0] as Class<*>
+        } catch (e: Exception) {
+            Any::class.java
+        }
+    }
+
+    /**
+     * find resources
+     *
+     * @param pattern   path matching pattern (glob expression. if not exists, add all result)
+     * <pre>
+     * ** : ignore directory variation
+     * *  : filename LIKE search
+     *
+     * 1. **.xml           : all files having "xml" extension below searchDir and it's all sub directories.
+     * 2. *.xml            : all files having "xml" extension in searchDir
+     * 3. c:\home\*\*.xml  : all files having "xml" extension below 'c:\home\' and it's just 1 depth below directories.
+     * 4. c:\home\**\*.xml : all files having "xml" extension below 'c:\home\' and it's all sub directories.
+     *
+     * 1. *  It matches zero , one or more than one characters. While matching, it will not cross directories boundaries.
+     * 2. ** It does the same as * but it crosses the directory boundaries.
+     * 3. ?  It matches only one character for the given name.
+     * 4. \  It helps to avoid characters to be interpreted as special characters.
+     * 5. [] In a set of characters, only single character is matched. If (-) hyphen is used then, it matches a range of characters. Example: [efg] matches "e","f" or "g" . [a-d] matches a range from a to d.
+     * 6. {} It helps to matches the group of sub patterns.
+     *
+     * 1. *.java when given path is java , we will get true by PathMatcher.matches(path).
+     * 2. *.* if file contains a dot, pattern will be matched.
+     * 3. *.{java,txt} If file is either java or txt, path will be matched.
+     * 4. abc.? matches a file which start with abc and it has extension with only single character.
+     * </pre>
+     * @return found resource names
+     */
+    fun findResources(vararg pattern: String): List<URL> {
+        val urls   = mutableListOf<URL>()
+        val loader = PathMatchingResourceLoader()
+        for (ptn in pattern) {
+            try {
+                loader.getResources(URL_PREFIX_CLASSPATH + ptn).forEach { urls.add(it.getURL()) }
+            } catch (e: IOException) {
+                log.error(e.message, e)
+            }
+        }
+        return urls
+    }
+
+    fun getRootLocation(klass: KClass<*>): URL {
+        return klass.java.protectionDomain.codeSource.location
+    }
+
+    fun isRunningInJar(klass: KClass<*>): Boolean {
+        return getRootLocation(klass).let {
+            return when {
+                it.protocol.matches("(?i)^(jar|war)$".toRegex()) -> true
+                it.toFile().extension.matches("(?i)^(jar|war)\$".toRegex()) -> true
+                else -> false
+            }
+        }
     }
 
 }}

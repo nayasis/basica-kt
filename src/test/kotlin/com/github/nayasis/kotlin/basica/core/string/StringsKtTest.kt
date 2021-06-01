@@ -1,8 +1,11 @@
 package com.github.nayasis.kotlin.basica.core.string
 
 import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
+import mu.KotlinLogging
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+
+private val log = KotlinLogging.logger {}
 
 internal class StringsKtTest {
 
@@ -32,6 +35,19 @@ internal class StringsKtTest {
         Assertions.assertEquals(1.2, "1.2".toNumber(Double::class))
         Assertions.assertEquals(0.0, "nayasis".toNumber(Double::class))
         Assertions.assertEquals(0L, "nayasis".toNumber(Long::class))
+    }
+
+    @Test
+    fun `bind parameter`() {
+
+        val param = """
+            { "name":"nayasis", "age":10 }
+        """.toMap()
+
+        val format = "\${name} is \${age} years old."
+
+        println( format.format(param) )
+
     }
 
 }

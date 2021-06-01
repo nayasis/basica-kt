@@ -17,6 +17,7 @@ package com.github.nayasis.kotlin.basica.core.resource.util
 
 import com.github.nayasis.kotlin.basica.core.klass.Classes
 import com.github.nayasis.kotlin.basica.core.string.toUri
+import com.github.nayasis.kotlin.basica.core.url.toFile
 import com.github.nayasis.kotlin.basica.core.url.toUri
 import java.io.File
 import java.io.FileNotFoundException
@@ -116,17 +117,6 @@ object Resources {
      * Resolve the given resource URL to a `java.io.File`,
      * i.e. to a file in the file system.
      * @param resourceUrl the resource URL to resolve
-     * @return a corresponding File object
-     * @throws FileNotFoundException if the URL cannot be resolved to
-     * a file in the file system
-     */
-    @Throws(FileNotFoundException::class)
-    fun getFile(resourceUrl: URL): File = getFile(resourceUrl, "URL")
-
-    /**
-     * Resolve the given resource URL to a `java.io.File`,
-     * i.e. to a file in the file system.
-     * @param resourceUrl the resource URL to resolve
      * @param description a description of the original resource that
      * the URL was created for (for example, a class path location)
      * @return a corresponding File object
@@ -134,32 +124,13 @@ object Resources {
      * a file in the file system
      */
     @Throws(FileNotFoundException::class)
-    fun getFile(resourceUrl: URL, description: String?): File {
+    fun getFile(resourceUrl: URL, description: String? = "URL"): File {
         when {
             URL_PROTOCOL_FILE != resourceUrl.protocol ->
                 throw FileNotFoundException("${description} cannot be resolved to absolute file path because it does not reside in the file system: ${resourceUrl}")
-            else -> {
-                return try {
-                    File(resourceUrl.toUri().schemeSpecificPart)
-                } catch (ex: URISyntaxException) {
-                    // Fallback for URLs that are not valid URIs (should hardly ever happen).
-                    File(resourceUrl.file)
-                }
-            }
+            else -> return resourceUrl.toFile()
         }
     }
-
-    /**
-     * Resolve the given resource URI to a `java.io.File`,
-     * i.e. to a file in the file system.
-     * @param resourceUri the resource URI to resolve
-     * @return a corresponding File object
-     * @throws FileNotFoundException if the URL cannot be resolved to
-     * a file in the file system
-     * @since 2.5
-     */
-    @Throws(FileNotFoundException::class)
-    fun getFile(resourceUri: URI): File = getFile(resourceUri, "URI")
 
     /**
      * Resolve the given resource URI to a `java.io.File`,
@@ -173,11 +144,11 @@ object Resources {
      * @since 2.5
      */
     @Throws(FileNotFoundException::class)
-    fun getFile(resourceUri: URI, description: String?): File {
+    fun getFile(resourceUri: URI, description: String? = "URI"): File {
         when {
             URL_PROTOCOL_FILE != resourceUri.scheme ->
                 throw FileNotFoundException("${description} cannot be resolved to absolute file path because it does not reside in the file system: ${resourceUri}")
-            else -> return File(resourceUri.schemeSpecificPart)
+            else -> return resourceUri.toFile()
         }
     }
 

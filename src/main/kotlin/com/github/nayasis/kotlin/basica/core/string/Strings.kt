@@ -10,6 +10,7 @@ import com.github.nayasis.kotlin.basica.core.extention.then
 import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
 import com.github.nayasis.kotlin.basica.core.number.cast
 import com.github.nayasis.kotlin.basica.core.path.*
+import com.github.nayasis.kotlin.basica.reflection.Reflector
 import mu.KotlinLogging
 import java.io.BufferedReader
 import java.io.ByteArrayInputStream
@@ -387,4 +388,8 @@ fun <T:Number> String?.toNumber(type: KClass<T>): T {
 
 inline fun <reified T:Number> String?.toNumber(): T {
     return toNumber(T::class)
+}
+
+fun String?.toMap(): Map<String,*> {
+    return Reflector.toMap(this)
 }

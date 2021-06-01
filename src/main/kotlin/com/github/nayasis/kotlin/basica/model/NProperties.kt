@@ -31,6 +31,8 @@ class NProperties: Properties {
     }
 
     constructor(defaults: Properties?): super(defaults)
+    constructor(): super()
+
 
     @Synchronized
     fun load(inStream: InputStream?, charset: Charset = Charsets.UTF_8 ) {
@@ -38,7 +40,7 @@ class NProperties: Properties {
         inStream.bufferedReader(charset).use { super.load(it) }
     }
 
-    fun get(key: String): String? {
+    operator fun get(key: String): String? {
         return super.getProperty(key)
     }
 
@@ -46,7 +48,7 @@ class NProperties: Properties {
         return super.getProperty(key, default)
     }
 
-    fun set(key: String, value: String?) {
+    operator fun set(key: String, value: String?) {
         super.setProperty(key, value ?: "")
     }
 
