@@ -14,7 +14,14 @@ import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.lang.reflect.ParameterizedType
 import java.lang.reflect.Type
+import java.math.BigDecimal
+import java.math.BigInteger
+import java.net.URI
 import java.net.URL
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.util.*
+import java.util.regex.Pattern
 import kotlin.reflect.KClass
 import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.isSubclassOf
@@ -39,6 +46,28 @@ const val SEPARATOR_PATH = '/'
 /** The inner class separator character: `'$'`.  */
 const val SEPARATOR_INNER_CLASS = '$'
 
+private val IMMUTABLE = setOf(
+    Void::class,
+    Char::class,
+    Boolean::class,
+    Byte::class,
+    Short::class,
+    Int::class,
+    Long::class,
+    Float::class,
+    Double::class,
+    BigDecimal::class,
+    BigInteger::class,
+    LocalDate::class,
+    LocalDateTime::class,
+    String::class,
+    URI::class,
+    URL::class,
+    UUID::class,
+    Pattern::class,
+    Class::class,
+)
+
 fun Class<*>.extends( klass: Class<*> ): Boolean {
     return klass.isAssignableFrom(this)
 }
@@ -46,6 +75,15 @@ fun Class<*>.extends( klass: Class<*> ): Boolean {
 fun KClass<*>.extends(klass:KClass<*>): Boolean {
     return this.isSubclassOf(klass)
 }
+
+val KClass<*>?.isEnum: Boolean
+    get() = this?.isSubclassOf(Enum::class) ?: false
+
+val KClass<*>?.isPrimitive: Boolean
+    get() = this?.java?.isPrimitive ?: false
+
+val KClass<*>?.isImmutable: Boolean
+    get() = IMMUTABLE.contains(this)
 
 fun Class<*>.fields(declaredOnly: Boolean = false): Set<Field> {
     val fields = mutableSetOf<Field>(*declaredFields)

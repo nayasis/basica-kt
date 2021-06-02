@@ -30,8 +30,8 @@ fun <T> nvl(value: T?, other: T?, another: T ): T {
     return another
 }
 
-fun nvl(value: String?): String {
-    return value ?: ""
+fun nvl(value: Any?): String {
+    return value?.toString() ?: ""
 }
 
 fun toYn(value: Any?, emptyToY: Boolean = false): String {
