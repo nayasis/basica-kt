@@ -32,7 +32,7 @@ fun <T> T?.ifNotEmpty( fn: (T) -> T? ): T? {
 }
 
 fun <T> T?.ifNull( fn: () -> T ): T {
-    return if(this == null) fn() else this!!
+    return this ?: fn()
 }
 
 fun <T> T?.ifNotNull( fn: (T) -> T? ): T? {
