@@ -99,7 +99,7 @@ fun String?.isDate(format: String): Boolean {
 fun String?.isDate(): Boolean = isDate("")
 
 fun String?.dpadStart(length: Int, padChar: Char = ' ' ): String {
-    val repeat = length - this.dlength()
+    val repeat = length - this.displayLength
     return when {
         repeat > 0 -> {
             var sb = StringBuilder()
@@ -113,7 +113,7 @@ fun String?.dpadStart(length: Int, padChar: Char = ' ' ): String {
 }
 
 fun String?.dpadEnd(length: Int, padChar: Char = ' ' ): String {
-    val repeat = length - this.dlength()
+    val repeat = length - this.displayLength
     return when {
         repeat > 0 -> {
             var sb = StringBuilder()
@@ -127,24 +127,24 @@ fun String?.dpadEnd(length: Int, padChar: Char = ' ' ): String {
 }
 
 /**
- * get display length applying character's font width. <br>
+ * get display length applying character's font width.
  *
- * if character is CJK, font width can be 0.5 or 2. <br>
+ * if character is CJK, font width can be 0.5 or 2.
  * this method calculate total display length of string value.
  *
  * Full-Width of CJK characters can be set by {@link Characters#fullwidth}.
  *
  * @return total display length
  */
-fun String?.dlength(): Int {
-    if( this == null ) return 0
-    if( ! Characters.isFontWidthModified() ) return this.length
-    var length: Double = 0.0
-    for( c in this ) {
-        length += c.fontwidth()
+val String?.displayLength : Int
+    get() {
+        if( this == null ) return 0
+        if( ! Characters.isFontWidthModified() ) return this.length
+        var length = 0.0
+        for( c in this )
+            length += c.fontwidth()
+        return round(length).toInt()
     }
-    return round(length).toInt()
-}
 
 fun String?.toCamel(): String {
     if( this.isNullOrEmpty() ) return ""
