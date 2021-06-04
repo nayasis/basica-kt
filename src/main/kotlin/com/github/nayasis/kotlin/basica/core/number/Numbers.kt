@@ -2,6 +2,7 @@ package com.github.nayasis.kotlin.basica.core.number
 
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.text.DecimalFormat
 import kotlin.reflect.KClass
 
 @Suppress("UNCHECKED_CAST")
@@ -22,4 +23,8 @@ fun <T:Number> Number.cast(type: KClass<T>): T {
 
 inline fun <reified T:Number> Number.cast(): T {
     return cast(T::class)
+}
+
+fun Number.format(fractionDigits: Int): String {
+    return DecimalFormat().apply { maximumFractionDigits = fractionDigits }.format(this)
 }
