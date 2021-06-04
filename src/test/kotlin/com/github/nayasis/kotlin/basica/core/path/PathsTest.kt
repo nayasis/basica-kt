@@ -38,7 +38,10 @@ internal class PathsTest {
 
     @Test
     fun glob() {
-        "c:\\NIDE\\workspace\\ByteMatrix\\crawler\\".toPath().find("*",0) {
+
+        val homeDir = userHome().invariantSeparators
+
+        homeDir.toPath().find("*",0) {
             log.debug { it }
         }
     }
