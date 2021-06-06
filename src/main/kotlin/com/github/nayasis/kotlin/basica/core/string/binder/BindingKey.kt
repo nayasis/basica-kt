@@ -14,11 +14,10 @@ class BindingKey {
                     format = this[2]
                 }
             }
+        }
 
-            if( name.isEmpty() ) {
-                name = FORMAT_INDEX.format(index)
-            }
-
+        if( name.isEmpty() ) {
+            name = FORMAT_INDEX.format(index)
         }
 
     }
