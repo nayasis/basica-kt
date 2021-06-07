@@ -101,8 +101,9 @@ class DefaultResourceLoader: ResourceLoader {
      * @return the cache [Map], shared at the `ResourceLoader` level
      * @since 5.0
      */
+    @Suppress("UNCHECKED_CAST")
     fun <T> getResourceCache(valueType: Class<T>): Map<Resource, T> {
-        return resourceCaches.computeIfAbsent(valueType) { key: Class<*>? -> ConcurrentHashMap<Resource, Any?>() } as Map<Resource, T>
+        return resourceCaches.computeIfAbsent(valueType) { _ -> ConcurrentHashMap<Resource, Any?>() } as Map<Resource, T>
     }
 
     /**

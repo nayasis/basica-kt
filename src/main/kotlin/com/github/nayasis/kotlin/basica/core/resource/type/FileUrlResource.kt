@@ -106,9 +106,9 @@ class FileUrlResource: UrlResource, WritableResource {
 
     @Throws(MalformedURLException::class)
     override fun createRelative(relativePath: String): Resource {
-        var relativePath = relativePath.let{
+        val path = relativePath.let{
             if(it.startsWith("/")) it.substring(1) else it
         }
-        return FileUrlResource(URL(getURL(), relativePath))
+        return FileUrlResource(URL(getURL(), path))
     }
 }

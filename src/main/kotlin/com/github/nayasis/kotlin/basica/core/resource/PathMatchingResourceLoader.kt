@@ -89,20 +89,20 @@ class PathMatchingResourceLoader: ResourcePatternResolver {
      */
     @Throws(IOException::class)
     private fun findResources(pattern: String): Set<Resource> {
-        val root = getRootDir(pattern)
-        val remain = pattern.substring(root.length)
+        val rootDir = getRootDir(pattern)
+        val remain = pattern.substring(rootDir.length)
         val result = LinkedHashSet<Resource>(16)
-        for (resource in getResources(root)) {
-            var root = resource
-            var rootUrl = root.getURL()
+        for (resource in getResources(rootDir)) {
+            var rootResource = resource
+            var rootUrl = rootResource.getURL()
             if( equinoxInvoker.isEquinoxUrl(rootUrl) ) {
                 equinoxInvoker.unwrap(rootUrl)?.let{ rootUrl = it }
-                root = UrlResource(rootUrl)
+                rootResource = UrlResource(rootUrl)
             }
             when {
                 Resources.isVfsURL(rootUrl) -> result.addAll(vfsFinder.find(rootUrl, remain))
-                Resources.isJarURL(rootUrl) -> result.addAll(jarFinder.find(root, rootUrl, remain))
-                else -> result.addAll(fileFinder.find(root, remain))
+                Resources.isJarURL(rootUrl) -> result.addAll(jarFinder.find(rootResource, rootUrl, remain))
+                else -> result.addAll(fileFinder.find(rootResource, remain))
             }
         }
         return result

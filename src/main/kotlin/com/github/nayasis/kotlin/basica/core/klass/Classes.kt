@@ -136,7 +136,7 @@ val Field.isStatic: Boolean
     get() = Modifier.isStatic(this.modifiers)
 
 private fun handleField( field: Field, instance: Any?, fn: () -> Any?) {
-    val accessible = field.isAccessible
+    val accessible = field.canAccess(instance)
     if( ! accessible )
         field.isAccessible = true
     try {
@@ -358,7 +358,7 @@ class Classes { companion object{
 
     fun isRunningInJar(klass: KClass<*>): Boolean {
         return getRootLocation(klass).let {
-            return when {
+            when {
                 it.protocol.matches("(?i)^(jar|war)$".toRegex()) -> true
                 it.toFile().extension.matches("(?i)^(jar|war)\$".toRegex()) -> true
                 else -> false

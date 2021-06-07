@@ -188,7 +188,7 @@ object VfsUtils {
     @Throws(IOException::class)
     fun visit(resource: Any?, visitor: InvocationHandler?) {
         val visitorProxy = Proxy.newProxyInstance(
-            VIRTUAL_FILE_VISITOR_INTERFACE!!.classLoader, arrayOf<Class<*>?>(VIRTUAL_FILE_VISITOR_INTERFACE), visitor
+            VIRTUAL_FILE_VISITOR_INTERFACE.classLoader, arrayOf<Class<*>?>(VIRTUAL_FILE_VISITOR_INTERFACE), visitor
         )
         invokeMethod(VIRTUAL_FILE_METHOD_VISIT, resource, visitorProxy)
     }

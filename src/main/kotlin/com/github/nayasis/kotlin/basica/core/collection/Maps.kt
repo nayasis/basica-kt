@@ -26,7 +26,7 @@ fun <V> Map<*,*>.get(expression: MvelExpression? ): V? {
     }
 }
 
-fun <V> Map<*,*>.getOrElse(expression: MvelExpression?): V? = get(expression) ?: null
+fun <V> Map<*,*>.getOrElse(expression: MvelExpression?): V? = get(expression)
 
 fun <V> Map<*,*>.getOrDefault(expression: MvelExpression?, default: V): V = get(expression) ?: default
 
