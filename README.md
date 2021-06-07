@@ -4,8 +4,6 @@ basic kotlin utility
 
 ## Dependency
 
-Currently, only snapshot version is available.
-
 ### maven
 
 1. add repository in **pom.xml**.
@@ -25,7 +23,7 @@ Currently, only snapshot version is available.
 <dependency>
   <groupId>com.github.nayasis</groupId>
   <artifactId>basica-kt</artifactId>
-  <version>0.0.1</version>
+  <version>0.1.0</version>
 </dependency>
 ```
 
@@ -43,6 +41,6 @@ repositories {
 
 ```kotlin
 dependencies {
-  implementation( "com.github.nayasis:basica-kt:0.0.1-SNAPSHOT" ){ isChanging = true }
+  implementation( "com.github.nayasis:basica-kt:0.1.0" )
 }
 ```
