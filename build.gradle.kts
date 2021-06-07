@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
 	kotlin("jvm") version "1.4.32"
+	`maven-publish`
 	kotlin("plugin.allopen") version "1.4.20"
 	kotlin("plugin.noarg") version "1.4.20"
 	kotlin("plugin.serialization") version "1.4.32"
