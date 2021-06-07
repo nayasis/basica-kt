@@ -16,7 +16,7 @@
     </if>
   </if>
   <if test="#{id} = 2">
-  AND     dataset_id < 2.1
+  AND     dataset_id &lt; 2.1
     <if test="#{id} > 3">
     AND   dataset_id > 2.2
     </if>
