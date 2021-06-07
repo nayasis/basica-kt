@@ -2,7 +2,6 @@
 
 package com.github.nayasis.kotlin.basica.core.string
 
-import com.github.nayasis.basica.model.Messages
 import com.github.nayasis.kotlin.basica.core.character.Characters
 import com.github.nayasis.kotlin.basica.core.character.fontwidth
 import com.github.nayasis.kotlin.basica.core.character.isCJK
@@ -11,6 +10,7 @@ import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
 import com.github.nayasis.kotlin.basica.core.number.cast
 import com.github.nayasis.kotlin.basica.core.path.*
 import com.github.nayasis.kotlin.basica.core.string.format.Formatter
+import com.github.nayasis.kotlin.basica.model.Messages
 import com.github.nayasis.kotlin.basica.reflection.Reflector
 import mu.KotlinLogging
 import java.io.BufferedReader
@@ -40,7 +40,7 @@ private val REGEX_CAMEL = "(_[a-zA-Z])".toPattern()
 private val REGEX_SNAKE = "([A-Z])".toPattern()
 private val FORMATTER   = Formatter()
 
-fun String.message(locale: Locale? = null): String = Messages.get(locale, this)
+fun String.message(locale: Locale? = null): String = Messages[locale, this]
 
 fun String.toPath(): Path = Path(this)
 
@@ -150,7 +150,7 @@ val String?.displayLength : Int
 
 fun String?.toCamel(): String {
     if( this.isNullOrEmpty() ) return ""
-    var sb = StringBuilder()
+    var sb = StringBuffer()
     val matcher = REGEX_CAMEL.matcher(this.toLowerCase())
     while(matcher.find()) {
         var r = matcher.group().substring(1)
@@ -162,7 +162,7 @@ fun String?.toCamel(): String {
 
 fun String?.toSnake(): String {
     if( this.isNullOrEmpty() ) return ""
-    var sb = StringBuilder()
+    var sb = StringBuffer()
     val matcher = REGEX_SNAKE.matcher(this.toLowerCase())
     while(matcher.find()) {
         if(matcher.start() == 0) continue
@@ -197,7 +197,7 @@ fun String?.escape(): String {
 
 fun String?.unescape(): String {
     if(this.isNullOrEmpty()) return ""
-    var sb = StringBuilder()
+    var sb = StringBuffer()
     val matcher = "\\\\(b|t|n|f|r|\\\"|\\\'|\\\\)|([u|U][0-9a-fA-F]{4})".toPattern().matcher(this)
     while(matcher.find()) {
         val unescaped: String? = if (matcher.start(1) >= 0) {
@@ -247,7 +247,7 @@ fun String?.compress(): String {
         GZIPOutputStream(out).use { gzip ->
             gzip.write(this.toByteArray())
             gzip.close()
-            return out.toString(ISO_8859_1)
+            return out.toString(ISO_8859_1.name())
         }
     }
 }

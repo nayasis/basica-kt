@@ -52,7 +52,7 @@ class Header(
 
     fun add(key: Any, rowindex: Int) {
         if( rowindex < 0 )
-            throw IndexOutOfBoundsException(rowindex)
+            throw IndexOutOfBoundsException("$rowindex")
         add(key)
         keys[key]!!.add(rowindex)
         grid.printer = null

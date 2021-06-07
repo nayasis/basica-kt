@@ -1,6 +1,5 @@
 package com.github.nayasis.kotlin.basica.exception
 
-import com.github.nayasis.basica.exception.helper.ProxyThrowables
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.util.*

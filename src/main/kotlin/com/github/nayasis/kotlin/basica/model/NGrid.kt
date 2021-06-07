@@ -35,7 +35,7 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
 
     fun setRow( index: Int, value: Any? ) {
         if( index < 0 )
-            throw IndexOutOfBoundsException(index)
+            throw IndexOutOfBoundsException("$index")
         when (value) {
             null -> body[index] = HashMap()
             is Map<*,*> -> setMap(index, value)
