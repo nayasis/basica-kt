@@ -82,3 +82,9 @@ tasks.withType<KotlinCompile> {
 		jvmTarget = "1.8"
 	}
 }
+//
+//buildscript {
+//	dependencies {
+//		classpath("com.android.tools.build:gradle:3.4.0")
+//	}
+//}
