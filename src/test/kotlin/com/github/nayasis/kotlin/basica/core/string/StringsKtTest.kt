@@ -1,9 +1,11 @@
 package com.github.nayasis.kotlin.basica.core.string
 
+import com.github.nayasis.basica.base.Strings
 import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
 import mu.KotlinLogging
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import java.util.*
 
 private val log = KotlinLogging.logger {}
 
@@ -47,6 +49,23 @@ internal class StringsKtTest {
         val format = "\${name} is \${age} years old."
 
         println( format.format(param) )
+
+    }
+
+    @Test
+    fun `capture patterns`() {
+
+        val captured = "jdbc:sqlite:./target/test-classes/localDb/#{Merong}#{Nayasis}SimpleLauncherHelloWorld.db"
+            .capture("#\\{(.+?)\\}".toPattern())
+
+        Assertions.assertEquals(2, captured.size)
+        Assertions.assertEquals(listOf("Merong", "Nayasis"), captured)
+
+        val refids = "< Ref id=\"refOrigin2\" />"
+            .capture("(?i)< *?ref +?id *?= *?['\"](.*?)['\"] *?\\/>".toPattern())
+
+        Assertions.assertEquals("[refOrigin2]", refids.toString())
+
 
     }
 

@@ -10,6 +10,7 @@ import com.github.nayasis.kotlin.basica.core.extention.then
 import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
 import com.github.nayasis.kotlin.basica.core.number.cast
 import com.github.nayasis.kotlin.basica.core.path.*
+import com.github.nayasis.kotlin.basica.core.string.format.Formatter
 import com.github.nayasis.kotlin.basica.reflection.Reflector
 import mu.KotlinLogging
 import java.io.BufferedReader
@@ -37,6 +38,7 @@ private val log = KotlinLogging.logger {}
 
 private val REGEX_CAMEL = "(_[a-zA-Z])".toPattern()
 private val REGEX_SNAKE = "([A-Z])".toPattern()
+private val FORMATTER   = Formatter()
 
 fun nvl(value: Any?): String = value?.toString() ?: ""
 
@@ -394,4 +396,27 @@ inline fun <reified T:Number> String?.toNumber(): T {
 
 fun String?.toMap(): Map<String,*> {
     return Reflector.toMap(this)
+}
+
+/**
+ * return formatted string
+ *
+ * | markup       | description                 | usage                                                                                   |
+ * | :---         | :---                        | :---                                                                                    |
+ * | {}           | index based                 | "{}st, {}nd".bind(1, 2) -> "1st, 2nd"                                                   |
+ * | {:format}    | index based with format     | "{}st, [{:%3d}]nd".bind(1, 2) -> "1st, [  2]nd"                                         |
+ * | {key}        | parameter based             | "{name}:{age}".bind(mapOf<String,Any>("name" to "abc", "age" to 10)) -> "abc:10"        |
+ * | {key:format} | parameter based with format | "{name}:{age:%3d}".bind(mapOf<String,Any>("name" to "abc", "age" to 10)) -> "abc:   10" |
+ *
+ *
+ * @receiver template
+ * @param parameter binding parameter
+ * @param modifyKorean if true modify first outer character of parameter binding markup by rule of korean.
+ * @return formatted string
+ */
+fun String?.bind(vararg parameter: Any?, modifyKorean: Boolean = true): String {
+    return when {
+        this.isNullOrEmpty() -> ""
+        else -> FORMATTER.bindSimple(this, *parameter, modifyKorean)
+    }
 }
