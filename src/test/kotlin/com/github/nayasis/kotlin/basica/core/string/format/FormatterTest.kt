@@ -7,7 +7,7 @@ import java.io.File
 
 internal class FormatterTest {
 
-    val binder = Formatter()
+    private val binder = Formatter()
 
     @Test
     fun changeHangulJosa() {

@@ -417,6 +417,6 @@ fun String?.toMap(): Map<String,*> {
 fun String?.bind(vararg parameter: Any?, modifyKorean: Boolean = true): String {
     return when {
         this.isNullOrEmpty() -> ""
-        else -> FORMATTER.bindSimple(this, *parameter, modifyKorean)
+        else -> FORMATTER.bindSimple(this, *parameter, modifyKorean = modifyKorean)
     }
 }

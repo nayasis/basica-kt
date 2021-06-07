@@ -2,12 +2,16 @@ package com.github.nayasis.kotlin.basica.model
 
 import com.github.nayasis.kotlin.basica.core.extention.ifEmpty
 import com.github.nayasis.kotlin.basica.core.klass.Classes
+import com.github.nayasis.kotlin.basica.core.path.toUrl
+import com.github.nayasis.kotlin.basica.core.string.bind
 import com.github.nayasis.kotlin.basica.core.string.extractLowers
 import com.github.nayasis.kotlin.basica.core.string.extractUppers
 import com.github.nayasis.kotlin.basica.core.string.toUrl
 import com.github.nayasis.kotlin.basica.core.url.toFile
+import java.io.File
 import java.io.IOException
 import java.net.URL
+import java.nio.file.Path
 import java.util.*
 
 private val NULL_LOCALE = Locale("", "")
@@ -41,11 +45,10 @@ class Messages { companion object {
      *
      * @param locale    locale
      * @param code      message code
-     * @param param     binding parameter replaced with '{}'
      * @return message corresponding to code
      */
-    operator fun get(locale: Locale?, code: String, vararg param: Any?): String? {
-        return getMessage(code, locale)?.format(*param)
+    operator fun get(locale: Locale?, code: String): String {
+        return getMessage(code, locale) ?: ""
     }
 
     /**
@@ -71,11 +74,10 @@ class Messages { companion object {
      * </pre>
      *
      * @param code      message code
-     * @param param     binding parameter replaced with '{}'
      * @return message corresponding to code
      */
-    operator fun get(code: String, vararg param: Any?): String? {
-        return get(Locale.getDefault(), code, *param)
+    operator fun get(code: String): String {
+        return get(Locale.getDefault(), code)
     }
 
     /**
@@ -110,6 +112,7 @@ class Messages { companion object {
      * @param locale    locale
      * @return message corresponding to code
      */
+    @Suppress("NAME_SHADOWING")
     private fun getMessage(code: String, locale: Locale?): String? {
         var locale    = locale.ifEmpty { Locale.getDefault() }
         val cd        = code.trim().also { if(it.isEmpty()|| pool.isEmpty) return it }
@@ -138,11 +141,9 @@ class Messages { companion object {
     }
 
     /**
-     *
      * load message file to memory
      *
      * @param file message file or resource path
-     * @throws UncheckedIOException  if I/O exception occurs.
      */
     @Throws(IOException::class)
     fun loadFromFile(file: String?) {
@@ -151,11 +152,31 @@ class Messages { companion object {
     }
 
     /**
+     * load message file to memory
      *
+     * @param file message file or resource path
+     */
+    @Throws(IOException::class)
+    fun loadFromFile(file: Path?) {
+        if( file == null ) return
+        loadFromURL(file.toUrl())
+    }
+
+    /**
+     * load message file to memory
+     *
+     * @param file message file or resource path
+     */
+    @Throws(IOException::class)
+    fun loadFromFile(file: File?) {
+        if( file == null ) return
+        loadFromURL(file.toUrl())
+    }
+
+    /**
      * load message file to memory
      *
      * @param url URL path of message resource
-     * @throws UncheckedIOException  if I/O exception occurs.
      */
     @Throws(IOException::class)
     fun loadFromURL(url: URL) {

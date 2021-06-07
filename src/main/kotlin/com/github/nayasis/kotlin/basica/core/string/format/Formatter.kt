@@ -95,7 +95,7 @@ class Formatter {
         buffer.append(source.substring(cursor))
 
         return if( pattern.escapeRemover != null) {
-            pattern.escapeRemover!!(buffer.toString())
+            pattern.escapeRemover(buffer.toString())
         } else {
             buffer.toString()
         }
@@ -138,7 +138,7 @@ class Formatter {
 
 data class ExtractPattern(
     val pattern: Pattern,
-    val escapeRemover: (origin: String) -> String = {""},
+    val escapeRemover: (origin: String) -> String = {origin -> origin},
     val escapeDetector: (origin: String, matchIndex: Int) -> Boolean = { _,_ -> false},
 )
 

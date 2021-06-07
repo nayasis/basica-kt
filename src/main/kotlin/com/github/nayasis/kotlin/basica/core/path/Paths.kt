@@ -459,7 +459,8 @@ fun userHome(): Path = System.getProperty("user.home").toPath()
 
 fun rootPath(): Path = Paths.get("").toAbsolutePath()
 
-fun KClass<*>.rootPath(): Path = this.java.protectionDomain.codeSource.location.file.toFile().toPath()
+val KClass<*>.rootPath: Path
+    get() = this.java.protectionDomain.codeSource.location.file.toFile().toPath()
 
 /**
  * Returns a new [BufferedReader] for reading the content of this file.
