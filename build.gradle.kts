@@ -47,7 +47,7 @@ repositories {
 dependencies {
 
 	// temporary
-	implementation( "com.github.nayasis:basica:0.3.6" )
+//	implementation( "com.github.nayasis:basica:0.3.6" )
 
 	implementation("org.mvel:mvel2:2.4.12.Final")
 	implementation("com.googlecode.juniversalchardet:juniversalchardet:1.0.3")
