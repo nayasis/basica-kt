@@ -40,8 +40,6 @@ private val REGEX_CAMEL = "(_[a-zA-Z])".toPattern()
 private val REGEX_SNAKE = "([A-Z])".toPattern()
 private val FORMATTER   = Formatter()
 
-fun nvl(value: Any?): String = value?.toString() ?: ""
-
 fun String.message(locale: Locale? = null): String = Messages.get(locale, this)
 
 fun String.toPath(): Path = Path(this)

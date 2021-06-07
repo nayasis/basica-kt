@@ -19,6 +19,21 @@ fun isEmpty(value: Any?): Boolean {
 
 fun isNotEmpty(value: Any?): Boolean = ! isEmpty(value)
 
+fun <T> nvl(value: T?, other: T ): T {
+    if( isNotEmpty(value) ) return value!!
+    return other
+}
+
+fun <T> nvl(value: T?, other: T?, another: T ): T {
+    if (isNotEmpty(value)) return value!!
+    if (isNotEmpty(other)) return other!!
+    return another
+}
+
+fun nvl(value: Any?): String {
+    return value?.toString() ?: ""
+}
+
 fun toYn(value: Any?, emptyToY: Boolean = false): String {
     if( isEmpty(value) )
         return if(emptyToY) "Y" else "N"
