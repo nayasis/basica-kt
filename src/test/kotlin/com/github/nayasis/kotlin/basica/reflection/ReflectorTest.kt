@@ -1,15 +1,18 @@
 package com.github.nayasis.kotlin.basica.reflection
 
-import com.github.nayasis.kotlin.basica.core.toJson
-import com.github.nayasis.kotlin.basica.core.toLocalDateTime
-import com.github.nayasis.kotlin.basica.core.toStr
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import com.github.nayasis.kotlin.basica.core.collection.toJson
+import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
+import com.github.nayasis.kotlin.basica.core.localdate.toStr
+import mu.KotlinLogging
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 import java.util.*
 import kotlin.collections.LinkedHashMap
 
+private val log = KotlinLogging.logger {}
+
+@Suppress("UNCHECKED_CAST")
 internal class ReflectorTest {
 
     @Test
@@ -21,13 +24,13 @@ internal class ReflectorTest {
         println( Reflector.toJson(map1) )
 
         val map2 = Reflector.toMap(map1)
-        println( map2 )
+            println(map2)
         var map3 = Reflector.toMap(json)
-        println( map3 )
+            println(map3)
         val map4: Map<String,Any?> = Reflector.toMap(map1)
-        println( map4 )
+            println(map4)
         var obj1 = Reflector.toObject<Dummy>(json)
-        print(obj1)
+            println(obj1)
 
         assertEquals( "2021-03-26T15:16:31.154", obj1.C.toStr() )
 
@@ -73,16 +76,17 @@ internal class ReflectorTest {
     }
 
     @Test
+    @Suppress("UNCHECKED_CAST")
     fun getFunctions() {
         var line = "-".repeat(100)
         println(line)
-        javaClass.classLoader.loadClass("com.github.nayasis.kotlin.basica.core.Validator")
+        javaClass.classLoader.loadClass("com.github.nayasis.kotlin.basica.core.validator.Validator")
             .methods.forEach { println(it) }
         println(line)
-        javaClass.classLoader.loadClass("com.github.nayasis.kotlin.basica.core.Strings")
+        javaClass.classLoader.loadClass("com.github.nayasis.kotlin.basica.core.string.Strings")
             .methods.forEach { println(it) }
         println(line)
-        Reflector.javaClass.methods.forEach { println(it) }
+        Reflector::class.java.methods.forEach { println(it) }
         println(line)
     }
 
@@ -104,6 +108,90 @@ internal class ReflectorTest {
 
     }
 
+    @Test
+    fun isJson() {
+        assertFalse( Reflector.isJson(null) )
+        assertFalse( Reflector.isJson("") )
+        assertTrue( Reflector.isJson("{}") )
+        assertTrue( Reflector.isJson("""
+            {
+              "a": "merong",
+              "b": [1,2,3,4],
+              "c": "20170304"
+            }            
+        """.trimIndent()) )
+        assertFalse( Reflector.isJson("{c}") )
+    }
+
+    @Test
+    fun mergeMap() {
+
+        val map1 = mapOf(1 to 1, 2 to 2)
+        val map2 = mapOf(3 to 3, 4 to 4)
+        val merged = Reflector.merge(map1,map2)
+
+        log.debug { merged }
+
+        for( i in 1..4 )
+            assertEquals(i, merged[i])
+
+    }
+
+    @Test
+    fun mergeList() {
+
+        val list1 = listOf(0,1,2,3)
+        val list2 = arrayOf(5,6,7,8,4)
+        val merged = Reflector.merge(list1,list2)
+
+        log.debug { merged.joinToString() }
+
+        for( i in 0..4 )
+            assertEquals(i, merged[i])
+
+    }
+
+    @Test
+    fun mergeMapAndList() {
+
+        val map1 = mapOf(1 to 1, 2 to 2, 5 to mapOf("name" to "nayasis"))
+        val map2 = mapOf(3 to 3, 4 to 4, 5 to listOf(
+            mapOf("age" to 45),
+            mapOf("name" to "jake", "age" to 11)
+        ))
+
+        val merged = Reflector.merge(map1,map2)
+
+        log.debug { merged }
+
+        for( i in 1..4 )
+            assertEquals(i, merged[i])
+
+        val e5 = merged[5] as List<Map<String,Any>>
+
+        assertEquals( "nayasis" , e5[0]["name"] )
+        assertEquals( 45        , e5[0]["age"]  )
+        assertEquals( "jake"    , e5[1]["name"] )
+        assertEquals( 11        , e5[1]["age"]  )
+
+    }
+
+    @Test
+    fun mergeBean() {
+
+        val p1 = Person("nayasis")
+        val p2 = Person(age = 14, address = "sungnam")
+
+        val merged = Reflector.merge(p2,p1)
+
+        log.debug { merged }
+
+        assertEquals( "nayasis", merged.name )
+        assertEquals( 14, merged.age )
+        assertEquals( "sungnam", merged.address )
+
+    }
+
 }
 
 data class Dummy(
@@ -114,8 +202,8 @@ data class Dummy(
 )
 
 data class Person(
-    val name: String,
-    val age: Int,
-    val address: String,
-    val etc: String?
+    val name: String?    = null,
+    val age: Int?        = null,
+    val address: String? = null,
+    val etc: String?     = null
 )

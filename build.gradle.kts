@@ -52,6 +52,7 @@ dependencies {
 	implementation("com.googlecode.juniversalchardet:juniversalchardet:1.0.3")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.12.+")
 	implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.2")
+	implementation("org.objenesis:objenesis:3.2")
 
 	"supportImplementation"("ch.qos.logback:logback-classic:1.2.3")
 
@@ -60,6 +61,8 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 	implementation( "io.github.microutils:kotlin-logging:1.8.3" )
 	implementation("au.com.console:kassava:2.1.0")
+
+//	implementation("org.apache.commons:commons-math3:3.6.1")
 
 	testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.1")
 	testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
@@ -75,8 +78,7 @@ tasks.withType<KotlinCompile> {
 	kotlinOptions {
 		useIR = true
 		freeCompilerArgs = listOf(
-			"-Xjsr305=strict",
-			"-Xuse-experimental=kotlinx.serialization.ExperimentalSerializationApi"
+			"-Xjsr305=strict"
 		)
 		jvmTarget = "1.8"
 	}

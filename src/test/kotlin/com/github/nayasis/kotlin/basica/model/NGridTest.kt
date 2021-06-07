@@ -2,7 +2,7 @@ package com.github.nayasis.kotlin.basica.model
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.github.nayasis.kotlin.basica.annotation.NoArg
-import com.github.nayasis.kotlin.basica.core.Characters
+import com.github.nayasis.kotlin.basica.core.character.Characters
 import mu.KotlinLogging
 import org.junit.jupiter.api.Test
 
@@ -96,15 +96,15 @@ internal class NGridTest {
         grid.addData("val", mapOf("name" to "nayasis", "age" to 40))
         grid.addData("val", mapOf("name" to "jake", "age" to 11))
 
-        val rs1 = grid.toListFromColumn("key", String::class)
+        val rs1 = grid.toListFrom("key", String::class)
                 log.debug { rs1 }
-        val rs2 = grid.toListFromColumn("value", Person::class)
+        val rs2 = grid.toListFrom("value", Person::class)
                 log.debug { rs2 }
-        val rs3 = grid.toListFromColumn("value", object:TypeReference<List<Person>>(){})
+        val rs3 = grid.toListFrom("value", object:TypeReference<List<Person>>(){})
                 log.debug { rs3 }
-        val rs4 = grid.toListFromColumn("val", Person::class)
+        val rs4 = grid.toListFrom("val", Person::class)
                 log.debug { rs4 }
-        val rs5 = grid.toListFromColumn("key", Double::class)
+        val rs5 = grid.toListFrom("key", Double::class)
                 log.debug { rs5 }
 
         log.debug { "\n${grid.toString(showIndexColumn = true)}" }

@@ -1,10 +1,14 @@
 package com.github.nayasis.kotlin.basica.model
 
-import com.github.nayasis.kotlin.basica.core.dpadEnd
-import com.github.nayasis.kotlin.basica.core.dpadStart
-import com.github.nayasis.kotlin.basica.core.fontwidth
-import com.github.nayasis.kotlin.basica.core.repeat
-import kotlin.math.*
+import com.github.nayasis.kotlin.basica.core.character.fontwidth
+import com.github.nayasis.kotlin.basica.core.character.repeat
+import com.github.nayasis.kotlin.basica.core.string.dpadEnd
+import com.github.nayasis.kotlin.basica.core.string.dpadStart
+import kotlin.math.ceil
+import kotlin.math.log10
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.round
 
 private const val INDEX_COLUMN_NAME = "index"
 private const val NO_DATA = "NO DATA"

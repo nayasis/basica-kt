@@ -10,9 +10,22 @@ import java.io.Serializable
 class MvelHandler { companion object {
 
     val ctx = ParserContext().apply{
-        addPackageImport("com.github.nayasis.kotlin.basica.core")
+
+        val base = "com.github.nayasis.kotlin.basica.core"
+
+        addPackageImport("$base.character")
+        addPackageImport("$base.collection")
+        addPackageImport("$base.extention")
+        addPackageImport("$base.klass")
+        addPackageImport("$base.localdate")
+        addPackageImport("$base.math")
+        addPackageImport("$base.number")
+        addPackageImport("$base.path")
+        addPackageImport("$base.resource")
+        addPackageImport("$base.string")
+        addPackageImport("$base.validator")
         addImport(Reflector::class.java)
-        classLoader.loadClass("com.github.nayasis.kotlin.basica.core.Validator").methods.forEach {
+        classLoader.loadClass("$base.validator.Validator").methods.forEach {
             if( it.name == "nvl" ) {
                 addImport( it.name, it )
             }
@@ -37,6 +50,7 @@ class MvelHandler { companion object {
      * @param <T>           return type
      * @return execution result
     </T> */
+    @Suppress("UNCHECKED_CAST")
     fun <T:Any> run(expression: Serializable?, param: Any?): T? = MVEL.executeExpression(expression, param) as T
 
     /**

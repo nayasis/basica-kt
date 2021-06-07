@@ -7,8 +7,8 @@ import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.SerializerProvider
-import com.github.nayasis.kotlin.basica.core.toDate
-import com.github.nayasis.kotlin.basica.core.toStr
+import com.github.nayasis.kotlin.basica.core.localdate.toDate
+import com.github.nayasis.kotlin.basica.core.localdate.toStr
 import java.util.*
 
 class DateSerializer: JsonSerializer<Date>() {
