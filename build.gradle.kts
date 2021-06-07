@@ -63,8 +63,6 @@ dependencies {
 	implementation( "io.github.microutils:kotlin-logging:1.8.3" )
 	implementation("au.com.console:kassava:2.1.0")
 
-//	implementation("org.apache.commons:commons-math3:3.6.1")
-
 	testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.1")
 	testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
 	testImplementation("org.junit.jupiter:junit-jupiter-engine:5.7.1")
