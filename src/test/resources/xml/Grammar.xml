@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mapper xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="urn:nybatis.mapper:1.2" xsi:schemaLocation="urn:nybatis.mapper:1.2 http://nybatis.github.io/schema/nybatis-mapper.xsd">
+<mapper xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
   <sql id="select" fetch="50">
     SELECT *
@@ -282,8 +282,7 @@
       AND age = 'TEENAGE'
     </if>
 
-    <!-- you can use '<' instead '&lt;' -->
-    <elseif test="40 <= #{age} and #{age} <= 50">
+    <elseif test="40 &lt;= #{age} and #{age} &lt;= 50">
       AND age = 'RATHER OLD'
     </elseif>
 
