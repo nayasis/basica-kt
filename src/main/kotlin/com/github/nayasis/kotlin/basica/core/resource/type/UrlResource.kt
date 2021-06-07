@@ -219,10 +219,10 @@ open class UrlResource: AbstractFileResolvingResource {
      */
     @Throws(MalformedURLException::class)
     override fun createRelative(relativePath: String): Resource {
-        var relativePath = relativePath.let{
+        val path = relativePath.let{
             if(it.startsWith("/")) it.substring(1) else it
         }
-        return UrlResource(URL(url, relativePath))
+        return UrlResource(URL(url, path))
     }
 
     /**

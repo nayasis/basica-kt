@@ -2,7 +2,7 @@
 
 package com.github.nayasis.kotlin.basica.core.validator
 
-import com.github.nayasis.basica.model.NList
+import com.github.nayasis.kotlin.basica.model.NGrid
 import java.io.InputStream
 
 fun isEmpty(value: Any?): Boolean {
@@ -11,13 +11,28 @@ fun isEmpty(value: Any?): Boolean {
         is CharSequence -> value.isEmpty()
         is Collection<*> -> value.isEmpty()
         is Array<*> -> value.isEmpty()
-        is NList -> value.size() == 0
+        is NGrid -> value.size() == 0
         is InputStream -> value.available() == 0
         else -> false
     }
 }
 
 fun isNotEmpty(value: Any?): Boolean = ! isEmpty(value)
+
+fun <T> nvl(value: T?, other: T ): T {
+    if( isNotEmpty(value) ) return value!!
+    return other
+}
+
+fun <T> nvl(value: T?, other: T?, another: T ): T {
+    if (isNotEmpty(value)) return value!!
+    if (isNotEmpty(other)) return other!!
+    return another
+}
+
+fun nvl(value: Any?): String {
+    return value?.toString() ?: ""
+}
 
 fun toYn(value: Any?, emptyToY: Boolean = false): String {
     if( isEmpty(value) )

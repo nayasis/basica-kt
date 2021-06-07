@@ -112,7 +112,7 @@ fun Class<*>.constructors(): Set<Constructor<*>> {
 }
 
 fun Field.setValue(instance: Any?, value: Any?) {
-    handleField(this,instance) {
+    handleField(this) {
         if( isStatic ) {
             set(null, value)
         } else {
@@ -123,7 +123,7 @@ fun Field.setValue(instance: Any?, value: Any?) {
 
 @Suppress("UNCHECKED_CAST")
 fun <T> Field.getValue(instance: Any?): T {
-    return handleField(this,instance) {
+    return handleField(this) {
         if (isStatic) {
             get(null) as T
         } else {
@@ -135,7 +135,7 @@ fun <T> Field.getValue(instance: Any?): T {
 val Field.isStatic: Boolean
     get() = Modifier.isStatic(this.modifiers)
 
-private fun handleField( field: Field, instance: Any?, fn: () -> Any?) {
+private fun handleField( field: Field, fn: () -> Any?) {
     val accessible = field.isAccessible
     if( ! accessible )
         field.isAccessible = true
@@ -358,7 +358,7 @@ class Classes { companion object{
 
     fun isRunningInJar(klass: KClass<*>): Boolean {
         return getRootLocation(klass).let {
-            return when {
+            when {
                 it.protocol.matches("(?i)^(jar|war)$".toRegex()) -> true
                 it.toFile().extension.matches("(?i)^(jar|war)\$".toRegex()) -> true
                 else -> false

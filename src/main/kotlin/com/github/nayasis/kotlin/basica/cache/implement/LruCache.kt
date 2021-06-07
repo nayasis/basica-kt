@@ -73,7 +73,7 @@ open class LruCache<K,V>: Cache<K,V> {
     }
 
     override fun getOrElse(key: K): V? {
-        return get(key) ?: null
+        return get(key)
     }
 
     override fun getOrDefault(key: K, default: V): V {

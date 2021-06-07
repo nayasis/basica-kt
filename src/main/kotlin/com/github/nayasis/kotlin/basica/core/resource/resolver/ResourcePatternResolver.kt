@@ -26,10 +26,10 @@ interface ResourcePatternResolver: ResourceLoader {
      * Overlapping resource entries that point to the same physical
      * resource should be avoided, as far as possible. The result should
      * have set semantics.
-     * @param locationPattern the location pattern to resolve
+     * @param pattern the location pattern to resolve
      * @return the corresponding Resource objects
      * @throws IOException in case of I/O errors
      */
     @Throws(IOException::class)
-    fun getResources(locationPattern: String): Set<Resource>
+    fun getResources(pattern: String): Set<Resource>
 }

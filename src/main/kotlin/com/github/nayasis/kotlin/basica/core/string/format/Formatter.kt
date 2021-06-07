@@ -3,7 +3,7 @@ package com.github.nayasis.kotlin.basica.core.string.format
 import com.github.nayasis.kotlin.basica.core.character.hasHangulJongsung
 import com.github.nayasis.kotlin.basica.core.character.isKorean
 import com.github.nayasis.kotlin.basica.core.klass.isImmutable
-import com.github.nayasis.kotlin.basica.core.string.nvl
+import com.github.nayasis.kotlin.basica.core.validator.nvl
 import com.github.nayasis.kotlin.basica.reflection.Reflector
 import java.util.regex.Pattern
 
@@ -38,7 +38,7 @@ class Formatter {
      */
     fun bindSimple(format: String, vararg parameter: Any?, modifyKorean: Boolean = true): String {
 
-        return bind(pattern=PATTERN_BASIC, format=format, parameter=*parameter, binder={ key: BindingKey, param: Map<String, *> ->
+        return bind(pattern=PATTERN_BASIC, format=format, binder={ key: BindingKey, param: Map<String, *> ->
 
             val value = param[key.name]
             val exist = param.containsKey(key.name)
@@ -49,12 +49,11 @@ class Formatter {
                 key.format.format(value)
             }
 
-        }, modifyKorean=modifyKorean)
+        }, modifyKorean=modifyKorean, parameter=parameter, )
 
     }
 
-    fun bind(pattern: ExtractPattern, format: String, vararg parameter: Any?,
-                 binder: (key: BindingKey, param: Map<String,*>) -> String?, modifyKorean: Boolean): String {
+    fun bind(pattern: ExtractPattern, format: String, binder: (key: BindingKey, param: Map<String,*>) -> String?, modifyKorean: Boolean, vararg parameter: Any?,): String {
 
         val source  = format.also { if(it.isEmpty()) return it }
         val matcher = pattern.pattern.matcher(source)
@@ -94,11 +93,7 @@ class Formatter {
 
         buffer.append(source.substring(cursor))
 
-        return if( pattern.escapeRemover != null) {
-            pattern.escapeRemover(buffer.toString())
-        } else {
-            buffer.toString()
-        }
+        return pattern.escapeRemover(buffer.toString())
 
     }
 
