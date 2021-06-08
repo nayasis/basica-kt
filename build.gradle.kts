@@ -1,7 +1,6 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-//	`maven-publish`
 	`maven`
 	kotlin("jvm") version "1.4.32"
 	kotlin("plugin.allopen") version "1.4.20"
@@ -47,9 +46,6 @@ repositories {
 
 dependencies {
 
-	// temporary
-//	implementation( "com.github.nayasis:basica:0.3.6" )
-
 	implementation("org.mvel:mvel2:2.4.12.Final")
 	implementation("com.googlecode.juniversalchardet:juniversalchardet:1.0.3")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.12.+")
@@ -64,6 +60,7 @@ dependencies {
 	implementation( "io.github.microutils:kotlin-logging:1.8.3" )
 	implementation("au.com.console:kassava:2.1.0")
 
+	// test
 	testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.1")
 	testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
 	testImplementation("org.junit.jupiter:junit-jupiter-engine:5.7.1")
@@ -83,9 +80,3 @@ tasks.withType<KotlinCompile> {
 		jvmTarget = "1.8"
 	}
 }
-//
-//buildscript {
-//	dependencies {
-//		classpath("com.android.tools.build:gradle:3.4.0")
-//	}
-//}
