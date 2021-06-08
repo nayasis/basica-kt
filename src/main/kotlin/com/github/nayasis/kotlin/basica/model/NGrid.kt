@@ -25,9 +25,18 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
     internal var printer: NGridPrinter? = null
 
     constructor()
-    constructor( grid: NGrid ) {
+    constructor(grid: NGrid) {
         header.init(grid.header)
         body.putAll(grid.body)
+    }
+    constructor(collection: Collection<*>) {
+        for( row in collection )
+            addRow(row)
+    }
+    constructor(array: Array<*>) {
+        for( row in array ) {
+            addRow(row)
+        }
     }
 
     fun header(): NGridHeader = header
