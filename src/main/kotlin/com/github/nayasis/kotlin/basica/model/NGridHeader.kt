@@ -3,6 +3,8 @@ package com.github.nayasis.kotlin.basica.model
 import java.io.Serializable
 import java.util.*
 import kotlin.collections.HashMap
+import kotlin.reflect.KClass
+import kotlin.reflect.full.memberProperties
 
 interface NGridHeader: Serializable, Cloneable {
 
@@ -48,6 +50,16 @@ class Header(
             indexes[nextCol()] = key
             grid.printer = null
         }
+    }
+
+    fun addAll(header: KClass<*>?) {
+        if( header == null ) return
+        header.memberProperties.forEach { add(it.name) }
+    }
+
+    fun addAll(header: Set<Any>?) {
+        if( header == null ) return
+        header.forEach { add(it) }
     }
 
     fun add(key: Any, rowindex: Int) {

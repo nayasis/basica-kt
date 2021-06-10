@@ -1,6 +1,5 @@
 package com.github.nayasis.kotlin.basica.core.string
 
-import com.github.nayasis.basica.base.Strings
 import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
 import mu.KotlinLogging
 import org.junit.jupiter.api.Assertions
@@ -65,7 +64,6 @@ internal class StringsKtTest {
             .capture("(?i)< *?ref +?id *?= *?['\"](.*?)['\"] *?\\/>".toPattern())
 
         Assertions.assertEquals("[refOrigin2]", refids.toString())
-
 
     }
 
