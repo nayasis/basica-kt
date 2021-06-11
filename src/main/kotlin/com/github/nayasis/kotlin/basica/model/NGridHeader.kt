@@ -9,6 +9,8 @@ import kotlin.reflect.full.memberProperties
 interface NGridHeader: Serializable, Cloneable {
 
     fun add(key: Any)
+    fun addAll(header: KClass<*>?)
+    fun addAll(header: Set<Any>?)
     fun keys(): List<Any>
     fun aliases(): List<String>
     fun size(key: Any): Int
@@ -52,12 +54,12 @@ class Header(
         }
     }
 
-    fun addAll(header: KClass<*>?) {
+    override fun addAll(header: KClass<*>?) {
         if( header == null ) return
         header.memberProperties.forEach { add(it.name) }
     }
 
-    fun addAll(header: Set<Any>?) {
+    override fun addAll(header: Set<Any>?) {
         if( header == null ) return
         header.forEach { add(it) }
     }
