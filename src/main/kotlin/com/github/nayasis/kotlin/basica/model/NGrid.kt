@@ -6,8 +6,6 @@ import com.github.nayasis.kotlin.basica.core.string.toNumber
 import com.github.nayasis.kotlin.basica.reflection.Reflector
 import java.io.Serializable
 import java.util.*
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
 import kotlin.reflect.KClass
 import kotlin.reflect.cast
 import kotlin.reflect.full.isSubclassOf
@@ -24,10 +22,28 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
 
     internal var printer: NGridPrinter? = null
 
-    constructor()
-    constructor( grid: NGrid ) {
+    constructor(header: KClass<*>? = null) {
+        this.header.addAll(header)
+    }
+
+    constructor(grid: NGrid) {
         header.init(grid.header)
         body.putAll(grid.body)
+    }
+
+    constructor(collection: Collection<*>, header: KClass<*>? = null) {
+        if( collection.isEmpty())
+            this.header.addAll(header)
+        for( row in collection )
+            addRow(row)
+    }
+
+    constructor(array: Array<*>, header: KClass<*>? = null) {
+        if( array.isEmpty())
+            this.header.addAll(header)
+        for( row in array ) {
+            addRow(row)
+        }
     }
 
     fun header(): NGridHeader = header
