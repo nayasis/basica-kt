@@ -176,19 +176,19 @@ fun LocalDate.atEndOfDay(): LocalDateTime {
     return LocalDateTime.of(this, LocalTime.MAX)
 }
 
-fun LocalDateTime.toStr(format: String = ""): String {
+fun LocalDateTime.toFormat(format: String = ""): String {
     return this.format( printFormat(format, ISO_LOCAL_DATE_TIME) )
 }
 
-fun LocalDate.toStr(format: String = ""): String {
+fun LocalDate.toFormat(format: String = ""): String {
     return this.format( printFormat(format, ISO_LOCAL_DATE) )
 }
 
-fun Date.toStr(format: String = "", zoneId: ZoneId = ZoneId.systemDefault()): String {
+fun Date.toFormat(format: String = "", zoneId: ZoneId = ZoneId.systemDefault()): String {
     return this.toLocalDateTime(zoneId).format( printFormat(format, ISO_LOCAL_DATE_TIME) )
 }
 
-fun SqlDate.toStr(format: String = ""): String {
+fun SqlDate.toFormat(format: String = ""): String {
     return this.toLocalDate().format( printFormat(format, ISO_LOCAL_DATE_TIME) )
 }
 
