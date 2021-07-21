@@ -34,6 +34,7 @@ fun nvl(value: Any?): String {
     return value?.toString() ?: ""
 }
 
+@JvmOverloads
 fun toYn(value: Any?, emptyToY: Boolean = false): String {
     if( isEmpty(value) )
         return if(emptyToY) "Y" else "N"
@@ -49,8 +50,7 @@ fun toYn(value: Any?, emptyToY: Boolean = false): String {
     }
 }
 
-fun toYn(value: Any?): String = toYn(value,false)
-
+@JvmOverloads
 fun toBoolean(value: Any?, emptyToTrue: Boolean = false): Boolean {
     if( isEmpty(value) )
         return emptyToTrue
@@ -58,5 +58,3 @@ fun toBoolean(value: Any?, emptyToTrue: Boolean = false): Boolean {
         return value
     return "Y" == toYn(value)
 }
-
-fun toBoolean(value: Any?): Boolean = toBoolean(value,false)

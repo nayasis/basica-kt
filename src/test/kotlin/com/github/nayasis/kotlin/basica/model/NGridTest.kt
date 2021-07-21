@@ -87,6 +87,22 @@ internal class NGridTest {
     }
 
     @Test
+    fun `print empty with header`() {
+
+        val grid = NGrid(Person::class)
+
+        log.debug { "\n${grid}" }
+
+        assertEquals("""
+            +---+----+
+            |age|name|
+            +---+----+
+            +---+----+            
+        """.trimIndent().trim(), grid.toString())
+
+    }
+
+    @Test
     fun toListFromColumn() {
 
         val grid = NGrid()

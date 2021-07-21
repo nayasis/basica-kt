@@ -1,11 +1,10 @@
 package com.github.nayasis.kotlin.basica.core.string
 
-import com.github.nayasis.basica.base.Strings
 import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
 import mu.KotlinLogging
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import java.util.*
+import java.io.Serializable
 
 private val log = KotlinLogging.logger {}
 
@@ -66,7 +65,29 @@ internal class StringsKtTest {
 
         Assertions.assertEquals("[refOrigin2]", refids.toString())
 
+    }
+
+    @Test
+    fun `encode & decode`() {
+
+        val dummy = Dummy("nayasis", 45 )
+
+        val text = dummy.encodeBase64()
+
+        log.debug { text }
+
+        val decoded = text.decodeBase64<Dummy>()!!
+
+        log.debug { decoded }
+
+        Assertions.assertEquals( dummy.name, decoded.name )
+        Assertions.assertEquals( dummy.age, decoded.age )
 
     }
 
 }
+
+data class Dummy(
+    val name: String,
+    val age: Int,
+): Serializable

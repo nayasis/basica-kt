@@ -38,7 +38,6 @@ class Formatter {
      * @return formatted string
      */
     fun bindSimple(format: String, vararg parameter: Any?, modifyKorean: Boolean = true): String {
-
         return bind(pattern=PATTERN_BASIC, format=format, binder={ key: BindingKey, param: Map<String, *> ->
 
             val value = param[key.name]
@@ -51,7 +50,6 @@ class Formatter {
             }
 
         }, modifyKorean=modifyKorean, parameter=parameter, )
-
     }
 
     fun bind(pattern: ExtractPattern, format: String, binder: (key: BindingKey, param: Map<String,*>) -> String?, modifyKorean: Boolean, vararg parameter: Any?,): String {
