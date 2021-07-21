@@ -9,13 +9,14 @@ import java.util.regex.Pattern
 
 const val FORMAT_INDEX = "_{{%d}}"
 
-private val ESCAPE_REMOVER  = { origin: String -> origin.replace("{{", "{").replace("}}".toRegex(), "}") }
-private val ESCAPE_DETECTOR = { origin: String, matchIndex: Int -> when {
+val ESCAPE_REMOVER  = { origin: String -> origin.replace("{{", "{").replace("}}".toRegex(), "}") }
+val ESCAPE_DETECTOR = { origin: String, matchIndex: Int -> when {
     matchIndex <= 0 -> false
     origin[matchIndex-1] != '{' -> false
     matchIndex >= 2 && origin[matchIndex-2] == '{' -> false
     else -> true
 }}
+
 private val PATTERN_BASIC = ExtractPattern("\\{([^\\s{}]*?)}".toPattern(), ESCAPE_REMOVER, ESCAPE_DETECTOR)
 
 class Formatter {
