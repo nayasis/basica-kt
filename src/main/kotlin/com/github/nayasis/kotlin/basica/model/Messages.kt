@@ -8,6 +8,7 @@ import com.github.nayasis.kotlin.basica.core.string.extractLowers
 import com.github.nayasis.kotlin.basica.core.string.extractUppers
 import com.github.nayasis.kotlin.basica.core.string.toUrl
 import com.github.nayasis.kotlin.basica.core.url.toFile
+import com.github.nayasis.kotlin.basica.core.validator.nvl
 import java.io.File
 import java.io.IOException
 import java.net.URL
@@ -47,7 +48,7 @@ class Messages { companion object {
      * @param code      message code
      * @return message corresponding to code
      */
-    operator fun get(locale: Locale?, code: String): String {
+    operator fun get(locale: Locale?, code: String?): String {
         return getMessage(code, locale) ?: ""
     }
 
@@ -76,7 +77,7 @@ class Messages { companion object {
      * @param code      message code
      * @return message corresponding to code
      */
-    operator fun get(code: String): String {
+    operator fun get(code: String?): String {
         return get(Locale.getDefault(), code)
     }
 
@@ -87,8 +88,8 @@ class Messages { companion object {
      * @param code      message code
      * @param message   message
      */
-    operator fun set(locale: Locale?, code: String, message: Any?) {
-        val cd = code.trim()
+    operator fun set(locale: Locale?, code: String?, message: Any?) {
+        val cd = nvl(code).trim()
         if( ! pool.containsKey(cd) )
             pool[cd] = Hashtable<Locale, String>()
         val messages = pool[cd]!!
@@ -101,7 +102,7 @@ class Messages { companion object {
      * @param code      message code
      * @param message   message
      */
-    operator fun set(code: String, message: Any?) {
+    operator fun set(code: String?, message: Any?) {
         set(null, code, message)
     }
 
@@ -113,9 +114,9 @@ class Messages { companion object {
      * @return message corresponding to code
      */
     @Suppress("NAME_SHADOWING")
-    private fun getMessage(code: String, locale: Locale?): String? {
+    private fun getMessage(code: String?, locale: Locale?): String? {
         var locale    = locale.ifEmpty { Locale.getDefault() }
-        val cd        = code.trim().also { if(it.isEmpty()|| pool.isEmpty) return it }
+        val cd        = nvl(code).trim().also { if(it.isEmpty()|| pool.isEmpty) return it }
         val messages  = pool[code].also { if(it.isNullOrEmpty()) return cd }!!
         var localeKey = locale
         if ( !messages.containsKey(localeKey) ) {

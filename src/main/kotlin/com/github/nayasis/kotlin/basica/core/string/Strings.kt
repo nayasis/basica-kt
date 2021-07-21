@@ -18,6 +18,8 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.InputStreamReader
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.net.MalformedURLException
@@ -73,10 +75,6 @@ fun String.invariantSeparators(): String {
 fun String.glob(glob: String = "*", depth: Int = -1, includeFile: Boolean = true, includeDirectory: Boolean = true ): List<Path> {
     return this.toPath().find(glob,depth,includeFile,includeDirectory)
 }
-
-fun String.decodeBase64(): ByteArray = Base64.getDecoder().decode(this)
-
-fun ByteArray.encodeBase64(): String = Base64.getMimeEncoder().encodeToString(this)
 
 fun String.found(pattern: Pattern?): Boolean {
     return pattern?.matcher(this)?.find() ?: false
@@ -416,5 +414,34 @@ fun String?.bind(vararg parameter: Any?, modifyKorean: Boolean = true): String {
     return when {
         this.isNullOrEmpty() -> ""
         else -> FORMATTER.bindSimple(this, *parameter, modifyKorean = modifyKorean)
+    }
+}
+
+/**
+ * encode object to text
+ *
+  * @return encoded text
+ */
+fun Any?.encodeBase64(): String {
+    ByteArrayOutputStream().use {
+        ObjectOutputStream(it).use { outstream ->
+            outstream.writeObject(this)
+        }
+        return Base64.getEncoder().encodeToString(it.toByteArray())
+    }
+}
+
+/**
+ * decode text to object
+ *
+ * @return decoded object
+ */
+inline fun <reified T> String?.decodeBase64(): T? {
+    if( this == null ) return null
+    val bytes = Base64.getDecoder().decode(this)
+    ByteArrayInputStream(bytes).use {
+        ObjectInputStream(it).use { instream ->
+            return instream.readObject() as T?
+        }
     }
 }
