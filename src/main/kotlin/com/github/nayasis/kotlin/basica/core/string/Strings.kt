@@ -32,6 +32,7 @@ import java.util.regex.Matcher
 import java.util.regex.Pattern
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
+import kotlin.collections.ArrayList
 import kotlin.math.min
 import kotlin.math.round
 import kotlin.reflect.KClass
@@ -234,6 +235,16 @@ fun String?.toSingleEnter(): String =
 fun String?.extractDigit(): String = if( this.isNullOrEmpty() ) "" else this.replace( "[^0-9]".toRegex(), "" )
 fun String?.extractUppers(): String = if( this.isNullOrEmpty() ) "" else this.replace( "[^A-Z]".toRegex(), "" )
 fun String?.extractLowers(): String = if( this.isNullOrEmpty() ) "" else this.replace( "[^a-z]".toRegex(), "" )
+
+
+fun String?.tokenize(delimiter: String, returnDelimiter: Boolean = false): List<String> {
+    if( this.isNullOrEmpty() ) return emptyList()
+    val tokens = ArrayList<String>()
+    StringTokenizer(this, delimiter, returnDelimiter).let {
+        while( it.hasMoreTokens() ) tokens.add(it.nextToken())
+    }
+    return tokens
+}
 
 /**
  * compress text
