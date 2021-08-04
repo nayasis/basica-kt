@@ -77,12 +77,12 @@ fun String.glob(glob: String = "*", depth: Int = -1, includeFile: Boolean = true
     return this.toPath().find(glob,depth,includeFile,includeDirectory)
 }
 
-fun String.found(pattern: Pattern?): Boolean {
+fun String.find(pattern: Pattern?): Boolean {
     return pattern?.matcher(this)?.find() ?: false
 }
 
-fun String.found(pattern: Regex): Boolean {
-    return found( pattern.toPattern() )
+fun String.find(pattern: Regex): Boolean {
+    return this.find( pattern.toPattern() )
 }
 
 fun String?.isDate(format: String): Boolean {
