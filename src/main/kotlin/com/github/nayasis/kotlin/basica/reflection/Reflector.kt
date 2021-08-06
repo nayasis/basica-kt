@@ -24,6 +24,7 @@ import com.fasterxml.jackson.module.kotlin.kotlinModule
 import com.github.nayasis.kotlin.basica.core.validator.isEmpty
 import com.github.nayasis.kotlin.basica.reflection.serializer.DateDeserializer
 import com.github.nayasis.kotlin.basica.reflection.serializer.DateSerializer
+import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl
 import java.beans.Transient
 import java.io.File
 import java.io.InputStream
@@ -32,7 +33,6 @@ import java.net.URL
 import java.util.*
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
-
 
 @Suppress("DuplicatedCode")
 class Reflector { companion object {
@@ -121,8 +121,8 @@ class Reflector { companion object {
         val mapper    = mapper(ignoreNull)
         val typeref   = jacksonTypeRef<T>()
         return when (src) {
-            null            -> mapper.readValue(emptyJson(typeref.type::class), typeref)
-            is CharSequence -> mapper.readValue(src.toString().let { it.ifEmpty { emptyJson(typeref.type::class) } }, typeref)
+            null            -> mapper.readValue(emptyJson(typeref), typeref)
+            is CharSequence -> mapper.readValue(src.toString().ifEmpty{emptyJson(typeref)}, typeref)
             is File         -> mapper.readValue(src, typeref)
             is URL          -> mapper.readValue(src, typeref)
             is Reader       -> mapper.readValue(src, typeref)
@@ -251,5 +251,10 @@ class Reflector { companion object {
 
 }}
 
-fun emptyJson(klass: KClass<*>): String =
-    if( klass.isSubclassOf(Collection::class) || klass.isSubclassOf(Array::class)) "[]" else "{}"
+private fun emptyJson(typeref: TypeReference<*>): String {
+    val klass = (typeref.type as ParameterizedTypeImpl).rawType.kotlin
+    return emptyJson(klass)
+}
+
+private fun emptyJson(klass: KClass<*>): String =
+    if( klass.isSubclassOf(Collection::class) || klass.isSubclassOf(Array::class) ) "[]" else "{}"

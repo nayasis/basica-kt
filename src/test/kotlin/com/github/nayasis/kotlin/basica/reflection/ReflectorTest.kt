@@ -192,6 +192,16 @@ internal class ReflectorTest {
 
     }
 
+    @Test
+    fun empty() {
+        assertEquals( emptySet<String>(), Reflector.toObject<Set<String>>("") )
+        assertEquals( emptySet<String>(), Reflector.toObject<Set<String>>(null) )
+        assertEquals( emptyMap<String,String>(), Reflector.toObject<Map<String,String>>("") )
+        assertEquals( emptyMap<String,String>(), Reflector.toObject<Map<String,String>>(null) )
+        assertEquals( emptyList<String>(), Reflector.toObject<List<String>>("") )
+        assertEquals( emptyList<String>(), Reflector.toObject<List<String>>(null) )
+    }
+
 }
 
 data class Dummy(
