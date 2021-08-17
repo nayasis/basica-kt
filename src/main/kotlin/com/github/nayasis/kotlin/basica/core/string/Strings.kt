@@ -226,6 +226,23 @@ private fun unescapeChar(escaped: String): String? {
     }
 }
 
+/**
+ * add \ character before Regular Expression Keywords ([](){}.*+?$^|#\)
+ *
+ * @return escaped pattern string
+ */
+fun String?.escapeRegex(): String {
+    if( this == null ) return ""
+    val buf = StringBuilder()
+    val chars = "[](){}.*+?\$^|#\\".toCharArray()
+    for( c in this ) {
+        if( c in chars )
+            buf.append('\\')
+        buf.append(c)
+    }
+    return buf.toString()
+}
+
 fun String?.toSingleSpace(includeLineBreaker:Boolean = false): String =
     if (this.isNullOrEmpty()) "" else this.replace(((includeLineBreaker) then "[ \t]+" ?: "[ \t\n\r]+").toRegex(), " ").trim()
 
