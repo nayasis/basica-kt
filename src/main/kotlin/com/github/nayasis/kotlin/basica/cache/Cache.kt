@@ -22,7 +22,9 @@ interface Cache<K,V> {
 
     operator fun get(key: K): V?
 
-    fun getOrElse(key: K): V?
+    fun getOrPut(key: K, defaultValue: () -> V): V
+
+    fun getOrElse(key: K, defaultValue: () -> V): V
 
     fun getOrDefault(key: K, default: V): V
 
