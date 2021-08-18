@@ -74,7 +74,7 @@ fun String.invariantSeparators(): String {
 }
 
 fun String?.glob(glob: String = "*", depth: Int = -1, includeFile: Boolean = true, includeDirectory: Boolean = true ): List<Path> {
-    if(this.isNullOrEmpty()) return emptyList()
+    if(this == null) return emptyList()
     return this.toPath().find(glob,depth,includeFile,includeDirectory)
 }
 
