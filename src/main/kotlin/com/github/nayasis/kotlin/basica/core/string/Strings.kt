@@ -73,16 +73,19 @@ fun String.invariantSeparators(): String {
     return if ( File.separatorChar != '/' ) this.replace(File.separatorChar, '/') else this
 }
 
-fun String.glob(glob: String = "*", depth: Int = -1, includeFile: Boolean = true, includeDirectory: Boolean = true ): List<Path> {
+fun String?.glob(glob: String = "*", depth: Int = -1, includeFile: Boolean = true, includeDirectory: Boolean = true ): List<Path> {
+    if(this.isNullOrEmpty()) return emptyList()
     return this.toPath().find(glob,depth,includeFile,includeDirectory)
 }
 
-fun String.find(pattern: Pattern?): Boolean {
+fun String?.find(pattern: Pattern?): Boolean {
+    if(this.isNullOrEmpty()) return false
     return pattern?.matcher(this)?.find() ?: false
 }
 
-fun String.find(pattern: Regex): Boolean {
-    return this.find( pattern.toPattern() )
+fun String?.find(pattern: Regex?): Boolean {
+    if(this.isNullOrEmpty()) return false
+    return this.find( pattern?.toPattern() )
 }
 
 fun String?.isDate(format: String): Boolean {
