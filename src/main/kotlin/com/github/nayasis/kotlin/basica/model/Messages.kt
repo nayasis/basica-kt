@@ -133,7 +133,6 @@ class Messages { companion object {
      * load message file to memory
      *
      * @param resourcePath message file or resource path
-     * @throws UncheckedIOException  if I/O exception occurs.
      */
     @Throws(IOException::class)
     fun loadFromResource(resourcePath: String?) {
