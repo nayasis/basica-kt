@@ -6,6 +6,7 @@ import mu.KotlinLogging
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.util.*
+import kotlin.collections.HashMap
 
 private val log = KotlinLogging.logger {}
 
@@ -114,6 +115,20 @@ internal class MapsKtTest {
         assertEquals( 45        , e5[0]["age"]  )
         assertEquals( "jake"    , e5[1]["name"] )
         assertEquals( 11        , e5[1]["age"]  )
+
+    }
+
+    @Test
+    fun getOrPut() {
+
+        val map = HashMap<Int,Int?>()
+
+        map.getOrPut(1) { -1}
+        map.getOrPut(2) {null}
+
+        assertEquals( 2, map.keys.size)
+        assertEquals(-1, map[1])
+        assertEquals(null, map[2])
 
     }
 
