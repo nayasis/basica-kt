@@ -15,13 +15,6 @@ inline fun <reified T> Map<*,*>.toObject(ignoreNull: Boolean = true): T = Reflec
 fun Map<*,*>.merge(other: Map<*,*>?, skipEmpty: Boolean = true): Map<*,*> = Merger().merge(other,this, skipEmpty)
 
 @Suppress("UNCHECKED_CAST")
-fun <K,V> MutableMap<K,V>.getOrPut(key: K, default:(key: K) -> V): V {
-    if( !this.containsKey(key) )
-        this[key] = default(key)
-    return get(key) as V
-}
-
-@Suppress("UNCHECKED_CAST")
 fun <V> Map<*,*>.get(expression: MvelExpression? ): V? {
     return when(expression) {
         null -> null

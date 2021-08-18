@@ -118,20 +118,6 @@ internal class MapsKtTest {
 
     }
 
-    @Test
-    fun getOrPut() {
-
-        val map = HashMap<Int,Int?>()
-
-        map.getOrPut(1) { -1}
-        map.getOrPut(2) {null}
-
-        assertEquals( 2, map.keys.size)
-        assertEquals(-1, map[1])
-        assertEquals(null, map[2])
-
-    }
-
 }
 
 data class Dummy(
