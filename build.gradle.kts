@@ -58,7 +58,7 @@ dependencies {
 	// kotlin
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-	implementation( "io.github.microutils:kotlin-logging:1.8.3" )
+	implementation("io.github.microutils:kotlin-logging:2.0.10")
 	implementation("au.com.console:kassava:2.1.0")
 
 	// test
