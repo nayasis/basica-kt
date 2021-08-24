@@ -21,6 +21,14 @@ class FieldProperty<R, T: Any?>(
 
 }
 
+fun Any?.isEmpty(): Boolean {
+    return isEmpty(this)
+}
+
+fun Any?.isNotEmpty(): Boolean {
+    return isNotEmpty(this)
+}
+
 infix fun <T> Boolean.then( param: T? ): T? = if(this) param else null
 
 fun <T> T?.ifEmpty( fn: () -> T ): T {
