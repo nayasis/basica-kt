@@ -12,7 +12,8 @@ class Command {
     var outputReader: ((String) -> Unit)? = null
     var errorReader: ((String) -> Unit)? = null
 
-    constructor(cli: String? = null) {
+    constructor(cli: String? = null, workingDirectory: String? = null) {
+        this.workingDirectory = workingDirectory
         parse(cli)
     }
 
