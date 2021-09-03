@@ -12,8 +12,9 @@ class Command {
     var outputReader: ((String) -> Unit)? = null
     var errorReader: ((String) -> Unit)? = null
 
-    constructor(cli: String? = null, workingDirectory: String? = null) {
+    constructor(cli: String? = null, workingDirectory: String? = null, environment: Map<String,String> = HashMap()) {
         this.workingDirectory = workingDirectory
+        this.environment.putAll(environment)
         parse(cli)
     }
 
