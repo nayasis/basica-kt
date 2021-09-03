@@ -19,7 +19,7 @@ private val log = KotlinLogging.logger {}
 class CommandExecutor {
 
     var process: Process? = null
-    var onProcessFail: ((Throwable)->Unit)? = null
+    var onProcessFailed: ((Throwable)->Unit)? = null
 
     private var output: ProcessOutputThread? = null
     private var error: ProcessOutputThread? = null
@@ -62,7 +62,7 @@ class CommandExecutor {
         try {
             process = builder.start()
         } catch (e: Throwable) {
-            onProcessFail?.let{it(e)}
+            onProcessFailed?.let{it(e)}
             throw e
         }
 
@@ -206,7 +206,7 @@ class CommandExecutor {
                 }
             }
         } catch (e: Throwable) {
-            onProcessFail?.let { it(e) }
+            onProcessFailed?.let { it(e) }
             return exitValue.also { destroy() }
         } finally {
             process!!.destroyForcibly()
