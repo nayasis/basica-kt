@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test
 import java.lang.Thread.sleep
 import kotlin.concurrent.thread
 
-@Disabled("exclude by platform dependency")
+//@Disabled("exclude by platform dependency")
 internal class CommandExecutorTest {
 
     @Test
@@ -95,13 +95,14 @@ internal class CommandExecutorTest {
 
 
     @Test
-    fun buildCso() {
+    fun buildChd() {
 
         val cd = "d:/download/test/chd"
         val command = "${cd}/chdman.exe createcd -f -i ${cd}/disc.cue -o ${cd}/disc.chd"
 
         thread(true) {
-            CommandExecutor().runOnSystemOut(command).waitFor()
+            CommandExecutor().run(command,{txt -> print(txt)},{txt -> print(txt)}).waitFor()
+//            CommandExecutor().runOnSystemOut(command).waitFor()
         }
 
         sleep(10_000)
