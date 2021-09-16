@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test
 import java.lang.Thread.sleep
 import kotlin.concurrent.thread
 
-//@Disabled("exclude by platform dependency")
+@Disabled("exclude by platform dependency")
 internal class CommandExecutorTest {
 
     @Test

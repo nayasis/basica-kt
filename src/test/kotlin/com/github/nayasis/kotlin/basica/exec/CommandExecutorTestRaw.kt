@@ -10,7 +10,7 @@ fun main(arg: Array<String>) {
     CommandExecutorTestRaw().buildChd()
 }
 
-//@Disabled("exclude by platform dependency")
+@Disabled("exclude by platform dependency")
 class CommandExecutorTestRaw {
 
     @Test
