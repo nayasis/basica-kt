@@ -48,7 +48,7 @@ class CommandExecutor {
      */
     fun run(command: Command, outputReader: ((String) -> Unit)? = {}, errorReader: ((String) -> Unit)? = {}): CommandExecutor {
 
-        if(isAlive)
+        if(alive)
             throw IllegalAccessException("process is running.")
         if(command.isEmpty())
             throw InvalidParameterException("command is empty.")
@@ -173,7 +173,7 @@ class CommandExecutor {
     /**
      * process is alive or not
      */
-    val isAlive: Boolean
+    val alive: Boolean
         get() = when {
             process?.isAlive == true -> true
             output?.isAlive == true -> true
@@ -184,8 +184,8 @@ class CommandExecutor {
     /**
      * process termination code
      */
-    val exitValue: Int?
-        get() = process?.exitValue()
+    var exitValue: Int? = null
+        private set
 
     /**
      * wait until process is closed.
@@ -195,7 +195,7 @@ class CommandExecutor {
      */
     fun waitFor(timeout: Long = -1): Int? {
 
-        if(!isAlive) return null
+        if(!alive) return null
 
         try {
             process?.let {
@@ -204,35 +204,39 @@ class CommandExecutor {
                 } else {
                     it.waitFor(timeout,TimeUnit.MILLISECONDS)
                 }
+                exitValue = it.exitValue()
             }
         } catch (e: Throwable) {
             onProcessFailed?.let { it(e) }
-            destroy()
-            return exitValue
+            return destroy()
         }
 
-        latch?.let {
-            if(timeout < 0) {
-                it.await()
-            } else {
-                it.await(timeout,TimeUnit.MILLISECONDS)
+        try {
+            latch?.let {
+                if(timeout < 0) {
+                    it.await()
+                } else {
+                    it.await(timeout,TimeUnit.MILLISECONDS)
+                }
             }
+        } finally {
+            return destroy()
         }
-
-        destroy()
-        return exitValue
 
     }
 
     /**
      * terminate process forcibly.
+     * @return	process termination code ( 0 : success )
      */
-    fun destroy() {
-        runCatching { process?.destroyForcibly(); process = null }
-        runCatching { output?.interrupt(); output = null }
-        runCatching { error?.interrupt(); error = null }
-        runCatching { inputPipe?.close(); inputPipe = null }
+    fun destroy(): Int? {
+        exitValue = process?.exitValue()
+        runCatching { process?.destroyForcibly() }; process = null
+        runCatching { output?.interrupt() }; output = null
+        runCatching { error?.interrupt() }; error = null
+        runCatching { inputPipe?.close() }; inputPipe = null
         latch = null
+        return exitValue
     }
 
     /**
