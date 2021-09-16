@@ -207,9 +207,8 @@ class CommandExecutor {
             }
         } catch (e: Throwable) {
             onProcessFailed?.let { it(e) }
-            return exitValue.also { destroy() }
-        } finally {
-            process!!.destroyForcibly()
+            destroy()
+            return exitValue
         }
 
         latch?.let {
@@ -220,6 +219,7 @@ class CommandExecutor {
             }
         }
 
+        destroy()
         return exitValue
 
     }
