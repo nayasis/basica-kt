@@ -46,7 +46,7 @@ class CommandExecutor {
      * @param outputReader  output stream line reader
      * @param errorReader   error stream line reader
      */
-    fun run(command: Command, outputReader: ((String) -> Unit)? = null, errorReader: ((String) -> Unit)? = null): CommandExecutor {
+    fun run(command: Command, outputReader: ((String) -> Unit)? = {}, errorReader: ((String) -> Unit)? = {}): CommandExecutor {
 
         if(isAlive)
             throw IllegalAccessException("process is running.")
@@ -125,7 +125,7 @@ class CommandExecutor {
      * @param outputReader  output stream line reader
      * @param errorReader   error stream line reader
      */
-    fun run(command: String, outputReader: ((String) -> Unit)? = null, errorReader: ((String) -> Unit)? = null): CommandExecutor {
+    fun run(command: String, outputReader: ((String) -> Unit)? = {}, errorReader: ((String) -> Unit)? = {}): CommandExecutor {
         return run(Command(command),outputReader,errorReader)
     }
 
