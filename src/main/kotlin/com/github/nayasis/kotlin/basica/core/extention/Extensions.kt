@@ -29,21 +29,21 @@ fun Any?.isNotEmpty(): Boolean {
     return isNotEmpty(this)
 }
 
-infix fun <T> Boolean.then( param: T? ): T? = if(this) param else null
+infix fun <T> Boolean.then(param: T?): T? = if(this) param else null
 
-fun <T> T?.ifEmpty( fn: () -> T ): T {
+fun <T> T?.ifEmpty(fn: () -> T): T {
     return if(isEmpty(this) ) fn() else this!!
 }
 
-fun <T> T?.ifNull( fn: () -> T ): T {
+fun <T> T?.ifNull(fn: () -> T): T {
     return this ?: fn()
 }
 
-fun <T> T?.ifNotEmpty( fn: (T) -> Unit ) {
+fun <T> T?.ifNotEmpty(fn: (T) -> Unit) {
     if(isNotEmpty(this) ) fn(this!!)
 }
 
-fun <T> T?.ifNotNull( fn: (T) -> Unit ) {
+fun <T> T?.ifNotNull(fn: (T) -> Unit) {
     if(this != null) fn(this)
 }
 

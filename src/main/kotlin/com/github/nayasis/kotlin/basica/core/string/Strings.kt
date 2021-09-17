@@ -476,3 +476,11 @@ inline fun <reified T> String?.decodeBase64(): T? {
         }
     }
 }
+
+fun String?.ifBlank(fn:() -> String): String {
+    return if(this.isNullOrBlank()) fn() else this
+}
+
+fun String?.ifNotBlank(fn: (String) -> Unit) {
+    if(!this.isNullOrBlank()) fn(this)
+}
