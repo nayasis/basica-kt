@@ -17,6 +17,7 @@ class NThreadLocal { companion object {
             }
         }
 
+    @Suppress("UNCHECKED_CAST")
     operator fun <T> get(key: String): T? = threadLocal[key] as T?
 
     operator fun set(key: String, value: Any?) {
