@@ -2,19 +2,12 @@
 
 package com.github.nayasis.kotlin.basica.core.localdate
 
-import java.time.Instant
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
-import java.time.MonthDay
-import java.time.Year
-import java.time.YearMonth
-import java.time.ZoneId
-import java.time.ZonedDateTime
+import java.time.*
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
 import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME
 import java.time.temporal.ChronoField
+import java.time.temporal.Temporal
 import java.util.*
 import kotlin.math.min
 import java.sql.Date as SqlDate
@@ -109,151 +102,103 @@ private fun printFormat(format: String, default: DateTimeFormatter): DateTimeFor
 
 fun String.toLocalDateTime(): LocalDateTime = toLocalDateTime("",false)
 
-fun String.toLocalDateTime(format: DateTimeFormatter): LocalDateTime {
-    return LocalDateTime.parse(this, format)
-}
+fun String.toLocalDateTime(format: DateTimeFormatter): LocalDateTime = LocalDateTime.parse(this, format)
 
-fun String.toLocalDate(format: String = ""): LocalDate {
-    return this.toLocalDateTime(format).toLocalDate()
-}
+fun String.toLocalDate(format: String = ""): LocalDate = this.toLocalDateTime(format).toLocalDate()
 
-fun String.toLocalDate(format: DateTimeFormatter): LocalDate {
-    return this.toLocalDateTime(format).toLocalDate()
-}
+fun String.toLocalDate(format: DateTimeFormatter): LocalDate = this.toLocalDateTime(format).toLocalDate()
 
-fun String.toZonedDateTime(format: String = "", zoneId: ZoneId = ZoneId.systemDefault()): ZonedDateTime {
-    return ZonedDateTime.of( this.toLocalDateTime(format), zoneId )
-}
+fun String.toZonedDateTime(format: String = "", zoneId: ZoneId = ZoneId.systemDefault()): ZonedDateTime =
+    ZonedDateTime.of( this.toLocalDateTime(format), zoneId )
 
-fun String.toZonedDateTime(format: DateTimeFormatter, zoneId: ZoneId = ZoneId.systemDefault()): ZonedDateTime {
-    return ZonedDateTime.of( this.toLocalDateTime(format), zoneId )
-}
+fun String.toZonedDateTime(format: DateTimeFormatter, zoneId: ZoneId = ZoneId.systemDefault()): ZonedDateTime =
+    ZonedDateTime.of( this.toLocalDateTime(format), zoneId )
 
-fun String.toDate(format: String = "", zoneId: ZoneId = ZoneId.systemDefault()): Date {
-    return Date.from( this.toZonedDateTime(format,zoneId).toInstant() )
-}
+fun String.toDate(format: String = "", zoneId: ZoneId = ZoneId.systemDefault()): Date =
+    Date.from( this.toZonedDateTime(format,zoneId).toInstant() )
 
-fun String.toDate(format: DateTimeFormatter, zoneId: ZoneId = ZoneId.systemDefault()): Date {
-    return Date.from( this.toZonedDateTime(format,zoneId).toInstant() )
-}
+fun String.toDate(format: DateTimeFormatter, zoneId: ZoneId = ZoneId.systemDefault()): Date =
+    Date.from( this.toZonedDateTime(format,zoneId).toInstant() )
 
-fun String.toSqlDate(format: String = ""): java.sql.Date {
-    return java.sql.Date.valueOf(this.toLocalDate(format))
-}
+fun String.toSqlDate(format: String = ""): java.sql.Date =
+    java.sql.Date.valueOf(this.toLocalDate(format))
 
-fun String.toSqlDate(format: DateTimeFormatter): java.sql.Date {
-    return java.sql.Date.valueOf(this.toLocalDate(format))
-}
+fun String.toSqlDate(format: DateTimeFormatter): java.sql.Date =
+    java.sql.Date.valueOf(this.toLocalDate(format))
 
-fun LocalDateTime.atStartOfMonth(): LocalDateTime {
-    return this.withDayOfMonth(1)
-}
+fun LocalDateTime.atStartOfMonth(): LocalDateTime = this.withDayOfMonth(1)
 
-fun LocalDateTime.atEndOfMonth(): LocalDateTime {
-    return this.withDayOfMonth(this.toLocalDate().lengthOfMonth())
-}
+fun LocalDateTime.atEndOfMonth(): LocalDateTime = this.withDayOfMonth(this.toLocalDate().lengthOfMonth())
 
-fun LocalDate.atStartOfMonth(): LocalDate {
-    this.atStartOfDay()
-    return this.withDayOfMonth(1)
-}
+fun LocalDate.atStartOfMonth(): LocalDate = this.withDayOfMonth(1)
 
-fun LocalDate.atEndOfMonth(): LocalDate {
-    return this.withDayOfMonth(this.lengthOfMonth())
-}
+fun LocalDate.atEndOfMonth(): LocalDate = this.withDayOfMonth(this.lengthOfMonth())
 
-fun LocalDateTime.atStartOfDay(): LocalDateTime {
-    return this.with(ChronoField.NANO_OF_DAY, LocalTime.MIN.toNanoOfDay())
-}
+fun LocalDateTime.atStartOfDay(): LocalDateTime =
+    this.with(ChronoField.NANO_OF_DAY, LocalTime.MIN.toNanoOfDay())
 
-fun LocalDateTime.atEndOfDay(): LocalDateTime {
-    return this.with(ChronoField.NANO_OF_DAY, LocalTime.MAX.toNanoOfDay())
-}
+fun LocalDateTime.atEndOfDay(): LocalDateTime =
+    this.with(ChronoField.NANO_OF_DAY, LocalTime.MAX.toNanoOfDay())
 
 // [LocalDate.atStartOfDay()] is already exists.
 
-fun LocalDate.atEndOfDay(): LocalDateTime {
-    return LocalDateTime.of(this, LocalTime.MAX)
-}
+fun LocalDate.atEndOfDay(): LocalDateTime = LocalDateTime.of(this, LocalTime.MAX)
 
-fun LocalDateTime.toFormat(format: String = ""): String {
-    return this.format( printFormat(format, ISO_LOCAL_DATE_TIME) )
-}
+fun LocalDateTime.toFormat(format: String = ""): String =
+    this.format( printFormat(format, ISO_LOCAL_DATE_TIME) )
 
-fun LocalDate.toFormat(format: String = ""): String {
-    return this.format( printFormat(format, ISO_LOCAL_DATE) )
-}
+fun LocalDate.toFormat(format: String = ""): String =
+    this.format( printFormat(format, ISO_LOCAL_DATE) )
 
-fun Date.toFormat(format: String = "", zoneId: ZoneId = ZoneId.systemDefault()): String {
-    return this.toLocalDateTime(zoneId).format( printFormat(format, ISO_LOCAL_DATE_TIME) )
-}
+fun Date.toFormat(format: String = "", zoneId: ZoneId = ZoneId.systemDefault()): String =
+    this.toLocalDateTime(zoneId).format( printFormat(format, ISO_LOCAL_DATE_TIME) )
 
-fun SqlDate.toFormat(format: String = ""): String {
-    return this.toLocalDate().format( printFormat(format, ISO_LOCAL_DATE_TIME) )
-}
+fun SqlDate.toFormat(format: String = ""): String =
+    this.toLocalDate().format( printFormat(format, ISO_LOCAL_DATE_TIME) )
 
 // [LocalDateTime -> LocalDate] is already exists.
 
-fun LocalDateTime.toDate(zoneId: ZoneId = ZoneId.systemDefault()): Date {
-    return Date.from( this.toZonedDateTime(zoneId).toInstant() )
-}
+fun LocalDateTime.toDate(zoneId: ZoneId = ZoneId.systemDefault()): Date =
+    Date.from( this.toZonedDateTime(zoneId).toInstant() )
 
-fun LocalDateTime.toZonedDateTime(zoneId: ZoneId = ZoneId.systemDefault()): ZonedDateTime {
-    return this.atZone(zoneId)
-}
+fun LocalDateTime.toZonedDateTime(zoneId: ZoneId = ZoneId.systemDefault()): ZonedDateTime =
+    this.atZone(zoneId)
 
-fun LocalDateTime.toSqlDate(): SqlDate {
-    return SqlDate.valueOf(this.toLocalDate())
-}
+fun LocalDateTime.toSqlDate(): SqlDate = SqlDate.valueOf(this.toLocalDate())
 
-fun LocalDate.toDate(zoneId: ZoneId = ZoneId.systemDefault()): Date {
-    return Date.from( this.atStartOfDay(zoneId).toInstant() )
-}
+fun LocalDateTime.between(other: Temporal): Duration = Duration.between(this,other)
 
-fun LocalDate.toLocalDateTime(): LocalDateTime {
-    return this.atStartOfDay()
-}
+fun LocalDate.toDate(zoneId: ZoneId = ZoneId.systemDefault()): Date =
+    Date.from( this.atStartOfDay(zoneId).toInstant() )
 
-fun LocalDate.toZonedDateTime(zoneId: ZoneId = ZoneId.systemDefault()): ZonedDateTime {
-    return this.atStartOfDay(zoneId)
-}
+fun LocalDate.toLocalDateTime(): LocalDateTime = this.atStartOfDay()
 
-fun LocalDate.toSqlDate(): SqlDate {
-    return SqlDate.valueOf(this)
-}
+fun LocalDate.toZonedDateTime(zoneId: ZoneId = ZoneId.systemDefault()): ZonedDateTime =
+    this.atStartOfDay(zoneId)
 
-fun Date.toLocalDateTime(zoneId: ZoneId = ZoneId.systemDefault()): LocalDateTime {
-    return this.toZonedDateTime(zoneId).toLocalDateTime()
-}
+fun LocalDate.toSqlDate(): SqlDate = SqlDate.valueOf(this)
 
-fun Date.toLocalDate(zoneId: ZoneId = ZoneId.systemDefault()): LocalDate {
-    return this.toZonedDateTime(zoneId).toLocalDate()
-}
+fun LocalDate.between(other: Temporal): Duration = Duration.between(this,other)
 
-fun Date.toZonedDateTime(zoneId: ZoneId = ZoneId.systemDefault()): ZonedDateTime {
-    return ZonedDateTime.ofInstant(this.toInstant(),zoneId)
-}
+fun Date.toLocalDateTime(zoneId: ZoneId = ZoneId.systemDefault()): LocalDateTime =
+    this.toZonedDateTime(zoneId).toLocalDateTime()
 
-fun Date.toSqlDate(zoneId: ZoneId = ZoneId.systemDefault()): SqlDate {
-    return SqlDate.valueOf(this.toLocalDate(zoneId))
-}
+fun Date.toLocalDate(zoneId: ZoneId = ZoneId.systemDefault()): LocalDate =
+    this.toZonedDateTime(zoneId).toLocalDate()
 
-fun LocalDateTime.toLong(): Long {
-    return this.toZonedDateTime().toInstant().toEpochMilli()
-}
+fun Date.toZonedDateTime(zoneId: ZoneId = ZoneId.systemDefault()): ZonedDateTime =
+    ZonedDateTime.ofInstant(this.toInstant(),zoneId)
 
-fun LocalDate.toLong(): Long {
-    return this.toLocalDateTime().toLong()
-}
+fun Date.toSqlDate(zoneId: ZoneId = ZoneId.systemDefault()): SqlDate =
+    SqlDate.valueOf(this.toLocalDate(zoneId))
 
-fun Long.toZonedDateTime(zoneId: ZoneId = ZoneId.systemDefault()): ZonedDateTime {
-    return Instant.ofEpochMilli(this).atZone(zoneId)
-}
+fun LocalDateTime.toLong(): Long = this.toZonedDateTime().toInstant().toEpochMilli()
 
-fun Long.toLocalDateTime(): LocalDateTime {
-    return this.toZonedDateTime().toLocalDateTime()
-}
+fun LocalDate.toLong(): Long = this.toLocalDateTime().toLong()
 
-fun Long.toLocalDate(): LocalDate {
-    return this.toLocalDateTime().toLocalDate()
-}
+fun Long.toZonedDateTime(zoneId: ZoneId = ZoneId.systemDefault()): ZonedDateTime =
+    Instant.ofEpochMilli(this).atZone(zoneId)
+
+fun Long.toLocalDateTime(): LocalDateTime = this.toZonedDateTime().toLocalDateTime()
+
+fun Long.toLocalDate(): LocalDate = this.toLocalDateTime().toLocalDate()
