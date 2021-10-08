@@ -70,7 +70,7 @@ fun String.isUrl(): Boolean = try {
 fun String.toUri(): URI = URI(this.replace(" ", "%20"))
 
 fun String.invariantSeparators(): String {
-    return if ( File.separatorChar != '/' ) this.replace(File.separatorChar, '/') else this
+    return if ( FOLDER_SEPARATOR != '/' ) this.replace(FOLDER_SEPARATOR, '/') else this
 }
 
 fun String?.glob(glob: String = "*", depth: Int = -1, includeFile: Boolean = true, includeDirectory: Boolean = true ): List<Path> {
