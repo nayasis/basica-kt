@@ -109,4 +109,10 @@ internal class CommandExecutorTest {
 
     }
 
+    @Test
+    fun runNetworkExe() {
+        val cmd = Command("\\\\NAS2\\emul\\_tool\\3DS\\decrypter\\3ds_decrypt_v4.exe", "\\\\NAS2\\emul\\_tool\\3DS\\decrypter")
+        CommandExecutor().run(cmd) { println(it) }
+    }
+
 }
