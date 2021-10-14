@@ -35,27 +35,38 @@ class Command {
         }
 
         val curr = StringBuilder()
-        var inQuote = NONE
+
+        fun StringBuilder.appendCommand(): Boolean {
+            if(isNotEmpty()) {
+                command.add(toString())
+                clear()
+            }
+            return true
+        }
+
+        var status = NONE
 
         for( token in cli.tokenize("${SINGLE}${DOUBLE}${SPACE.joinToString("")}", true) ) {
-            if( inQuote != NONE || token !in SPACE)
-                curr.append(token)
-            when(inQuote) {
-                SINGLE -> if(token == "\'") inQuote = NONE
-                DOUBLE -> if(token == "\"") inQuote = NONE
-                NONE -> {
+            val skip = when {
+                ( status == SINGLE && token == SINGLE ) ||
+                ( status == DOUBLE && token == DOUBLE ) -> {
+                    status = NONE
+                    curr.appendCommand()
+                }
+                status == NONE -> {
                     when (token) {
-                        SINGLE -> inQuote = SINGLE
-                        DOUBLE -> inQuote = DOUBLE
+                        SINGLE -> { status = SINGLE; true } // start single-quote mode
+                        DOUBLE -> { status = DOUBLE; true } // start double-quote mode
                         in SPACE -> {
-                            if(curr.isNotEmpty()) {
-                                command.add(curr.toString())
-                                curr.clear()
-                            }
+                            curr.appendCommand()
                         }
+                        else -> false
                     }
                 }
+                else -> false
             }
+            if(!skip)
+                curr.append(token)
         }
 
         if(curr.isNotEmpty())
