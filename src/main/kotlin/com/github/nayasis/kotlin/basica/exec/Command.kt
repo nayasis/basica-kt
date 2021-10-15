@@ -15,22 +15,21 @@ class Command {
     constructor(cli: String? = null, workingDirectory: String? = null, environment: Map<String,String> = HashMap()) {
         this.workingDirectory = workingDirectory
         this.environment.putAll(environment)
-        parse(cli)
+        this.command.clear()
+        append(cli)
     }
 
     fun isEmpty(): Boolean = command.isEmpty()
 
     @Suppress("MemberVisibilityCanBePrivate")
-    fun parse(cli: String?) {
+    fun append(command: String?): Command {
 
-        if(cli.isNullOrEmpty()) return
-
-        command.clear()
+        if(command.isNullOrEmpty()) return this
 
         runCatching {
-            if(cli.toPath().isFile()) {
-                command.add(cli)
-                return
+            if(command.toPath().isFile()) {
+                this.command.add(command)
+                return this
             }
         }
 
@@ -38,7 +37,7 @@ class Command {
 
         fun StringBuilder.appendCommand(): Boolean {
             if(isNotEmpty()) {
-                command.add(toString())
+                this@Command.command.add(toString())
                 clear()
             }
             return true
@@ -46,7 +45,7 @@ class Command {
 
         var status = NONE
 
-        for( token in cli.tokenize("${SINGLE}${DOUBLE}${SPACE.joinToString("")}", true) ) {
+        for( token in command.tokenize("${SINGLE}${DOUBLE}${SPACE.joinToString("")}", true) ) {
             if( status != NONE || token !in SPACE)
                 buf.append(token)
             when(status) {
@@ -65,6 +64,8 @@ class Command {
         }
 
         buf.appendCommand()
+
+        return this
 
     }
 

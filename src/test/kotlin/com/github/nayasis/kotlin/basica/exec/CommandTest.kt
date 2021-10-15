@@ -39,4 +39,14 @@ internal class CommandTest {
         assertEquals("\"oh ' no!\"",cli.command[2])
     }
 
+    @Test
+    fun append() {
+
+        val cli = Command("run")
+        cli.append("'merong.txt'")
+
+        assertEquals("run 'merong.txt'", cli.toString() )
+
+    }
+
 }
