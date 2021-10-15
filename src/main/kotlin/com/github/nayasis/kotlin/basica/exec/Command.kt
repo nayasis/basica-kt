@@ -34,7 +34,7 @@ class Command {
             }
         }
 
-        val curr = StringBuilder()
+        val buf = StringBuilder()
 
         fun StringBuilder.appendCommand(): Boolean {
             if(isNotEmpty()) {
@@ -47,30 +47,24 @@ class Command {
         var status = NONE
 
         for( token in cli.tokenize("${SINGLE}${DOUBLE}${SPACE.joinToString("")}", true) ) {
-            val skip = when {
-                ( status == SINGLE && token == SINGLE ) ||
-                ( status == DOUBLE && token == DOUBLE ) -> {
-                    status = NONE
-                    curr.appendCommand()
-                }
-                status == NONE -> {
+            if( status != NONE || token !in SPACE)
+                buf.append(token)
+            when(status) {
+                SINGLE -> if(token == SINGLE) status = NONE
+                DOUBLE -> if(token == DOUBLE) status = NONE
+                NONE -> {
                     when (token) {
-                        SINGLE -> { status = SINGLE; true } // start single-quote mode
-                        DOUBLE -> { status = DOUBLE; true } // start double-quote mode
+                        SINGLE -> status = SINGLE
+                        DOUBLE -> status = DOUBLE
                         in SPACE -> {
-                            curr.appendCommand()
+                            buf.appendCommand()
                         }
-                        else -> false
                     }
                 }
-                else -> false
             }
-            if(!skip)
-                curr.append(token)
         }
 
-        if(curr.isNotEmpty())
-            command.add(curr.toString())
+        buf.appendCommand()
 
     }
 
