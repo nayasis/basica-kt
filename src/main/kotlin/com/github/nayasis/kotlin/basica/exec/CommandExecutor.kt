@@ -1,5 +1,6 @@
 package com.github.nayasis.kotlin.basica.exec
 
+import com.github.nayasis.kotlin.basica.core.extention.ifNotEmpty
 import com.github.nayasis.kotlin.basica.core.extention.isNotEmpty
 import com.github.nayasis.kotlin.basica.core.string.toFile
 import com.github.nayasis.kotlin.basica.etc.Platforms
@@ -55,8 +56,7 @@ class CommandExecutor {
 
         val builder = ProcessBuilder(command.command).apply {
             environment().putAll(command.environment)
-            if(command.workingDirectory.isNotEmpty())
-                directory(command.workingDirectory!!.toFile())
+            command.workingDirectory?.toFile().ifNotEmpty { if(it.exists()) directory(it) }
         }
 
         try {
