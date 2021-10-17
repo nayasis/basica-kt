@@ -1,5 +1,6 @@
 package com.github.nayasis.kotlin.basica.exec
 
+import com.github.nayasis.kotlin.basica.core.extention.isNotEmpty
 import com.github.nayasis.kotlin.basica.core.path.isFile
 import com.github.nayasis.kotlin.basica.core.string.toPath
 import com.github.nayasis.kotlin.basica.core.string.tokenize
@@ -16,13 +17,18 @@ class Command {
         this.workingDirectory = workingDirectory
         this.environment.putAll(environment)
         this.command.clear()
-        append(cli)
+        appendParsing(cli)
     }
 
     fun isEmpty(): Boolean = command.isEmpty()
 
-    @Suppress("MemberVisibilityCanBePrivate")
     fun append(command: String?): Command {
+        if(command.isNotEmpty())
+            this.command.add(command!!)
+        return this
+    }
+
+    fun appendParsing(command: String?): Command {
 
         if(command.isNullOrEmpty()) return this
 
