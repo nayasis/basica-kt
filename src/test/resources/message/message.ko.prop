@@ -13,3 +13,4 @@ err.rule.invalidRegexp                  = 정규식 패턴이 아닙니다. ( �
 err.test.connectDbms                    = DBMS 연결테스트에 실패하였습니다.
 err.test.ruleScript                     = Script 실행에 실패하였습니다.\n\n{}
 err.dnd.newData                         = 새로 추가된 데이터는 순서 조정을 할 수 없습니다.
+message\ with\ space                    = 띄어쓰기가 포함된 메세지

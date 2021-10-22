@@ -1,3 +1,5 @@
+@file:Suppress("MemberVisibilityCanBePrivate")
+
 package com.github.nayasis.kotlin.basica.model
 
 import com.github.nayasis.kotlin.basica.core.extention.ifEmpty
@@ -22,31 +24,13 @@ private val NULL_LOCALE = Locale("", "")
  */
 class Messages { companion object {
 
-    private var pool = Hashtable<String,Hashtable<Locale, String>>()
+    private val pool = Hashtable<String,Hashtable<Locale, String>>()
 
     /**
      * get message corresponding code
      *
-     * '{}' in message are replaced with binding parameters.
-     *
-     * if message code "com.0001" is "%s는 사람입니다.", then
-     *
-     *  Messages.get( "com.0001", "정화종" ); → "정화종은 사람입니다."
-     *  Messages.get( "com.0001", "ABC"    ); → "ABC는 사람입니다."
-    </pre> *
-     *
-     *  1.
-     * <pre>
-     * if message code is not defined, return code itself.
-     *
-     * if "merong" is just code and not defined, then
-     *
-     * Messages.get( "merong" ); → "merong"
-     * </pre>
-     *
      * @param locale    locale
      * @param code      message code
-     * @return message corresponding to code
      */
     operator fun get(locale: Locale?, code: String?): String {
         return getMessage(code, locale) ?: ""
@@ -55,27 +39,7 @@ class Messages { companion object {
     /**
      * get default locale's message corresponding to code.
      *
-     *  1.
-     * <pre>
-     * '{}' in message are replaced with binding parameters.
-     *
-     * if message code "com.0001" is "{}는 사람입니다.", then
-     *
-     * Messages.get( "com.0001", "정화종" ); → "정화종은 사람입니다."
-     * Messages.get( "com.0001", "ABC"    ); → "ABC는 사람입니다."
-    </pre> *
-     *
-     *  1.
-     * <pre>
-     * if message code is not defined, return code itself.
-     *
-     * if "merong" is just code and not defined, then
-     *
-     * Messages.get( "merong" ); → "merong"
-     * </pre>
-     *
      * @param code      message code
-     * @return message corresponding to code
      */
     operator fun get(code: String?): String {
         return get(Locale.getDefault(), code)
@@ -129,13 +93,10 @@ class Messages { companion object {
     }
 
     /**
-     *
      * load message file to memory
      *
      * @param resourcePath message file or resource path
-     * @throws UncheckedIOException  if I/O exception occurs.
      */
-    @Throws(IOException::class)
     fun loadFromResource(resourcePath: String?) {
         if( resourcePath.isNullOrEmpty() ) return
         Classes.findResources(resourcePath).forEach{ loadFromURL(it) }
@@ -146,7 +107,6 @@ class Messages { companion object {
      *
      * @param file message file or resource path
      */
-    @Throws(IOException::class)
     fun loadFromFile(file: String?) {
         if( file.isNullOrEmpty() ) return
         loadFromURL(file.toUrl())
@@ -157,7 +117,6 @@ class Messages { companion object {
      *
      * @param file message file or resource path
      */
-    @Throws(IOException::class)
     fun loadFromFile(file: Path?) {
         if( file == null ) return
         loadFromURL(file.toUrl())
@@ -168,7 +127,6 @@ class Messages { companion object {
      *
      * @param file message file or resource path
      */
-    @Throws(IOException::class)
     fun loadFromFile(file: File?) {
         if( file == null ) return
         loadFromURL(file.toUrl())
@@ -179,7 +137,6 @@ class Messages { companion object {
      *
      * @param url URL path of message resource
      */
-    @Throws(IOException::class)
     fun loadFromURL(url: URL) {
         val locale = getLocaleFrom(url)
         val properties = NProperties(url)
@@ -191,6 +148,9 @@ class Messages { companion object {
         }
     }
 
+    /**
+     * clear  message pool
+     */
     fun clear() = pool.clear()
 
     private fun getLocaleFrom(url: URL): Locale {

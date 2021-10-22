@@ -4,7 +4,7 @@ import com.github.nayasis.kotlin.basica.cache.Cache
 
 open class LruCache<K,V>: Cache<K,V> {
 
-    protected lateinit var map: HashMap<K,V?>
+    protected lateinit var map: HashMap<K,V>
     private val creationTimes = HashMap<K,Long>()
 
     var flushMiliseconds = Int.MAX_VALUE
@@ -18,7 +18,7 @@ open class LruCache<K,V>: Cache<K,V> {
     }
 
     override fun setCapacity(capacity: Int) {
-        map = object: LinkedHashMap<K,V?>(capacity, .75f, true) {
+        map = object: LinkedHashMap<K,V>(capacity, .75f, true) {
             override fun removeEldestEntry(eldest: Map.Entry<K,V?>): Boolean {
                 return size > capacity
             }
@@ -62,6 +62,12 @@ open class LruCache<K,V>: Cache<K,V> {
         return value
     }
 
+    @Suppress("UNCHECKED_CAST")
+    override fun getOrPut(key: K, defaultValue: () -> V): V {
+        flush(key)
+        return map.getOrPut(key,defaultValue)
+    }
+
     override fun get(key: K): V? {
         flush(key)
         return if( map.containsKey(key) ) {
@@ -72,8 +78,8 @@ open class LruCache<K,V>: Cache<K,V> {
         }
     }
 
-    override fun getOrElse(key: K): V? {
-        return get(key)
+    override fun getOrElse(key: K, defaultValue: () -> V): V {
+        return getOrElse(key,defaultValue)
     }
 
     override fun getOrDefault(key: K, default: V): V {
@@ -95,12 +101,11 @@ open class LruCache<K,V>: Cache<K,V> {
     override fun putAll(map: Map<K,V>) =
         map.forEach { (k, v) -> put(k,v) }
 
+    @Suppress("UNCHECKED_CAST")
     override fun putAll(cache: Cache<K,V>) =
         cache.keySet().forEach {
-            map[it] = cache[it]
+            map[it] = cache[it] as V
             resetAccessTime(it)
         }
-
-
 
 }

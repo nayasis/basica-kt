@@ -21,22 +21,30 @@ class FieldProperty<R, T: Any?>(
 
 }
 
-infix fun <T> Boolean.then( param: T? ): T? = if(this) param else null
+fun Any?.isEmpty(): Boolean {
+    return isEmpty(this)
+}
 
-fun <T> T?.ifEmpty( fn: () -> T ): T {
+fun Any?.isNotEmpty(): Boolean {
+    return isNotEmpty(this)
+}
+
+infix fun <T> Boolean.then(param: T?): T? = if(this) param else null
+
+fun <T> T?.ifEmpty(fn: () -> T): T {
     return if(isEmpty(this) ) fn() else this!!
 }
 
-fun <T> T?.ifNotEmpty( fn: (T) -> T? ): T? {
-    return if(isNotEmpty(this) ) fn(this!!) else this
-}
-
-fun <T> T?.ifNull( fn: () -> T ): T {
+fun <T> T?.ifNull(fn: () -> T): T {
     return this ?: fn()
 }
 
-fun <T> T?.ifNotNull( fn: (T) -> T? ): T? {
-    return if(this != null) fn(this) else this
+fun <T> T?.ifNotEmpty(fn: (T) -> Unit) {
+    if(isNotEmpty(this) ) fn(this!!)
+}
+
+fun <T> T?.ifNotNull(fn: (T) -> Unit) {
+    if(this != null) fn(this)
 }
 
 inline fun <T> Iterable<T>.sumByLong(selector: (T) -> Long): Long {

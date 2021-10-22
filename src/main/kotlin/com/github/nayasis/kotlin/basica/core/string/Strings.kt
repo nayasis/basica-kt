@@ -32,6 +32,7 @@ import java.util.regex.Matcher
 import java.util.regex.Pattern
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
+import kotlin.collections.ArrayList
 import kotlin.math.min
 import kotlin.math.round
 import kotlin.reflect.KClass
@@ -69,19 +70,22 @@ fun String.isUrl(): Boolean = try {
 fun String.toUri(): URI = URI(this.replace(" ", "%20"))
 
 fun String.invariantSeparators(): String {
-    return if ( File.separatorChar != '/' ) this.replace(File.separatorChar, '/') else this
+    return if ( FOLDER_SEPARATOR != '/' ) this.replace(FOLDER_SEPARATOR, '/') else this
 }
 
-fun String.glob(glob: String = "*", depth: Int = -1, includeFile: Boolean = true, includeDirectory: Boolean = true ): List<Path> {
+fun String?.glob(glob: String = "*", depth: Int = -1, includeFile: Boolean = true, includeDirectory: Boolean = true ): List<Path> {
+    if(this == null) return emptyList()
     return this.toPath().find(glob,depth,includeFile,includeDirectory)
 }
 
-fun String.found(pattern: Pattern?): Boolean {
+fun String?.find(pattern: Pattern?): Boolean {
+    if(this.isNullOrEmpty()) return false
     return pattern?.matcher(this)?.find() ?: false
 }
 
-fun String.found(pattern: Regex): Boolean {
-    return found( pattern.toPattern() )
+fun String?.find(pattern: Regex?): Boolean {
+    if(this.isNullOrEmpty()) return false
+    return this.find( pattern?.toPattern() )
 }
 
 fun String?.isDate(format: String): Boolean {
@@ -225,6 +229,23 @@ private fun unescapeChar(escaped: String): String? {
     }
 }
 
+/**
+ * add \ character before Regular Expression Keywords ([](){}.*+?$^|#\)
+ *
+ * @return escaped pattern string
+ */
+fun String?.escapeRegex(): String {
+    if( this == null ) return ""
+    val buf = StringBuilder()
+    val chars = "[](){}.*+?\$^|#\\".toCharArray()
+    for( c in this ) {
+        if( c in chars )
+            buf.append('\\')
+        buf.append(c)
+    }
+    return buf.toString()
+}
+
 fun String?.toSingleSpace(includeLineBreaker:Boolean = false): String =
     if (this.isNullOrEmpty()) "" else this.replace(((includeLineBreaker) then "[ \t]+" ?: "[ \t\n\r]+").toRegex(), " ").trim()
 
@@ -234,6 +255,16 @@ fun String?.toSingleEnter(): String =
 fun String?.extractDigit(): String = if( this.isNullOrEmpty() ) "" else this.replace( "[^0-9]".toRegex(), "" )
 fun String?.extractUppers(): String = if( this.isNullOrEmpty() ) "" else this.replace( "[^A-Z]".toRegex(), "" )
 fun String?.extractLowers(): String = if( this.isNullOrEmpty() ) "" else this.replace( "[^a-z]".toRegex(), "" )
+
+
+fun String?.tokenize(delimiter: String, returnDelimiter: Boolean = false): List<String> {
+    if( this.isNullOrEmpty() ) return emptyList()
+    val tokens = ArrayList<String>()
+    StringTokenizer(this, delimiter, returnDelimiter).let {
+        while( it.hasMoreTokens() ) tokens.add(it.nextToken())
+    }
+    return tokens
+}
 
 /**
  * compress text
@@ -444,4 +475,12 @@ inline fun <reified T> String?.decodeBase64(): T? {
             return instream.readObject() as T?
         }
     }
+}
+
+fun String?.ifBlank(fn:() -> String): String {
+    return if(this.isNullOrBlank()) fn() else this
+}
+
+fun String?.ifNotBlank(fn: (String) -> Unit) {
+    if(!this.isNullOrBlank()) fn(this)
 }

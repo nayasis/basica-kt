@@ -2,7 +2,7 @@ package com.github.nayasis.kotlin.basica.core.string
 
 import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
 import mu.KotlinLogging
-import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.io.Serializable
 
@@ -14,10 +14,10 @@ internal class StringsKtTest {
     fun `glob test`() {
 
         println( ".".glob("*.kt").joinToString("\n") )
-        Assertions.assertTrue( ".".glob("*.kt").size > 1 )
+        assertTrue( ".".glob("*.kt").size > 1 )
         println("----------")
         println( "".glob("*.kt").joinToString("\n") )
-        Assertions.assertTrue( "".glob("*.kt").size > 1 )
+        assertTrue( "".glob("*.kt").size > 1 )
 
     }
 
@@ -26,16 +26,16 @@ internal class StringsKtTest {
 
         "2021-01-01".toLocalDateTime()
 
-        Assertions.assertTrue( "2021-01-01".isDate() )
-        Assertions.assertFalse( "2021-01-33".isDate() )
+        assertTrue( "2021-01-01".isDate() )
+        assertFalse( "2021-01-33".isDate() )
     }
 
     @Test
     fun toNumber() {
-        Assertions.assertEquals(1, "1".toNumber())
-        Assertions.assertEquals(1.2, "1.2".toNumber(Double::class))
-        Assertions.assertEquals(0.0, "nayasis".toNumber(Double::class))
-        Assertions.assertEquals(0L, "nayasis".toNumber(Long::class))
+        assertEquals(1, "1".toNumber())
+        assertEquals(1.2, "1.2".toNumber(Double::class))
+        assertEquals(0.0, "nayasis".toNumber(Double::class))
+        assertEquals(0L, "nayasis".toNumber(Long::class))
     }
 
     @Test
@@ -57,13 +57,13 @@ internal class StringsKtTest {
         val captured = "jdbc:sqlite:./target/test-classes/localDb/#{Merong}#{Nayasis}SimpleLauncherHelloWorld.db"
             .capture("#\\{(.+?)\\}".toPattern())
 
-        Assertions.assertEquals(2, captured.size)
-        Assertions.assertEquals(listOf("Merong", "Nayasis"), captured)
+        assertEquals(2, captured.size)
+        assertEquals(listOf("Merong", "Nayasis"), captured)
 
         val refids = "< Ref id=\"refOrigin2\" />"
             .capture("(?i)< *?ref +?id *?= *?['\"](.*?)['\"] *?\\/>".toPattern())
 
-        Assertions.assertEquals("[refOrigin2]", refids.toString())
+        assertEquals("[refOrigin2]", refids.toString())
 
     }
 
@@ -80,8 +80,24 @@ internal class StringsKtTest {
 
         log.debug { decoded }
 
-        Assertions.assertEquals( dummy.name, decoded.name )
-        Assertions.assertEquals( dummy.age, decoded.age )
+        assertEquals( dummy.name, decoded.name )
+        assertEquals( dummy.age, decoded.age )
+
+    }
+
+    @Test
+    fun `split and tokenize`() {
+
+        val txt = """
+            A
+            B
+
+            C
+            D
+        """.trimIndent()
+
+        assertEquals("A,B,,C,D", txt.split("\n").joinToString(","))
+        assertEquals("A,B,C,D", txt.tokenize("\n").joinToString(","))
 
     }
 

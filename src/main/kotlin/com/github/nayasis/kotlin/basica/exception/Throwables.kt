@@ -27,3 +27,12 @@ fun Throwable.toString(pattern: Regex? = null): String {
     }
     return stackTraceToString()
 }
+
+val Throwable.rootCause
+    get(): Throwable {
+        var cause = this
+        while( cause.cause != null ) {
+            cause = cause.cause!!
+        }
+        return cause
+    }

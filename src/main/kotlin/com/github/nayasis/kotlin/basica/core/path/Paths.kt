@@ -26,8 +26,10 @@ import kotlin.io.path.inputStream
 import kotlin.reflect.KClass
 import kotlin.streams.toList
 
-const val FOLDER_SEPARATOR = "/"
-const val FOLDER_SEPARATOR_WINDOWS = "\\"
+const val FOLDER_SEPARATOR_UNIX    = '/'
+const val FOLDER_SEPARATOR_WINDOWS = '\\'
+
+val FOLDER_SEPARATOR = File.separatorChar
 
 val Path.name: String
     get() = fileName?.toString().orEmpty()
@@ -47,7 +49,7 @@ val Path.invariantSeparators: String
 val Path.pathString: String
     get() {
         return toString().let{
-            if( it.length > 1 && it.last() == File.separatorChar ) {
+            if( it.length > 1 && it.last() in listOf(FOLDER_SEPARATOR_UNIX, FOLDER_SEPARATOR_WINDOWS) ) {
                 it.substring(0, it.length - 1)
             } else {
                 it

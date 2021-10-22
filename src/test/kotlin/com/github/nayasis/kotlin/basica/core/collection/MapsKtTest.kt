@@ -6,6 +6,7 @@ import mu.KotlinLogging
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.util.*
+import kotlin.collections.HashMap
 
 private val log = KotlinLogging.logger {}
 
