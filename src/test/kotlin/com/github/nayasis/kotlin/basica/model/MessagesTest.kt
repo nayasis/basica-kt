@@ -3,6 +3,7 @@ package com.github.nayasis.kotlin.basica.model
 import com.github.nayasis.kotlin.basica.core.path.div
 import com.github.nayasis.kotlin.basica.core.path.rootPath
 import com.github.nayasis.kotlin.basica.core.string.bind
+import com.github.nayasis.kotlin.basica.core.string.message
 import mu.KotlinLogging
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -31,7 +32,7 @@ internal class MessagesTest {
     }
 
     @Test
-    fun `load from resourcefile`() {
+    fun `load from resource`() {
 
         Messages.loadFromResource("/message/**.prop")
 
@@ -48,6 +49,15 @@ internal class MessagesTest {
 
         assertEquals("정화수는 누구입니다.", Messages["test"].bind("정화수"))
         assertEquals("정화종은 누구입니다.", Messages["test"].bind("정화종"))
+
+    }
+
+    @Test
+    fun `code having space`() {
+
+        Messages.loadFromResource("message/*")
+
+        assertEquals("띄어쓰기가 포함된 메세지", "message with space".message())
 
     }
 
