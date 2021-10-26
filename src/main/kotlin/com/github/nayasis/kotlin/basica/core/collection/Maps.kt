@@ -1,6 +1,7 @@
 package com.github.nayasis.kotlin.basica.core.collection
 
 import com.github.nayasis.kotlin.basica.expression.MvelExpression
+import com.github.nayasis.kotlin.basica.model.NGrid
 import com.github.nayasis.kotlin.basica.reflection.Merger
 import com.github.nayasis.kotlin.basica.reflection.Reflector
 
@@ -30,4 +31,15 @@ fun <V> Map<*,*>.getOrElse(expression: MvelExpression?): V? = get(expression)
 
 fun <V> Map<*,*>.getOrDefault(expression: MvelExpression?, default: V): V = get(expression) ?: default
 
-fun <V> Map<*,*>.getByExpr(mvelExpression: String?, default: V? = null ): V? = getOrElse(MvelExpression(mvelExpression)) ?: default
+fun <V> Map<*,*>.getByExpr(mvelExpression: String?, default: V? = null): V? = getOrElse(MvelExpression(mvelExpression)) ?: default
+
+fun Map<*,*>.toString(showType: Boolean, rowcount:Int = 500): String {
+    val grid = NGrid()
+    forEach { (key,value) ->
+        grid.addData("key", key)
+        if(showType)
+            grid.addData("type",value?.let{it::class.simpleName})
+        grid.addData("value", value)
+    }
+    return grid.toString(showHeader=false, rowcount=rowcount)
+}
