@@ -10,7 +10,7 @@ class Platforms { companion object {
     )
 
     /** Java Virtual Machine architect  */
-    val jvm = System.getProperty("sun.arch.data.model")
+    val jvm = System.getProperty("sun.arch.data.model",System.getProperty("com.ibm.vm.bitmode"))
 
     /** is WINDOWS O/S  */
     val isWindows = os.name.contains("win")
