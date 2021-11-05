@@ -1,12 +1,12 @@
 package com.github.nayasis.kotlin.basica.core.collection
 
 import com.github.nayasis.kotlin.basica.core.localdate.toDate
+import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
 import com.github.nayasis.kotlin.basica.reflection.Reflector
 import mu.KotlinLogging
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.util.*
-import kotlin.collections.HashMap
 
 private val log = KotlinLogging.logger {}
 
@@ -116,6 +116,27 @@ internal class MapsKtTest {
         assertEquals( "jake"    , e5[1]["name"] )
         assertEquals( 11        , e5[1]["age"]  )
 
+    }
+
+    @Test
+    fun `grid string`() {
+        val map = mapOf(4 to 772425, "age" to 45, "name" to "jake", "birth" to "2021-10-16 23:10".toLocalDateTime())
+        assertEquals("""
+            +-----+-------------+----------------+
+            |    4|Int          |          772425|
+            |age  |Int          |              45|
+            |name |String       |jake            |
+            |birth|LocalDateTime|2021-10-16T23:10|
+            +-----+-------------+----------------+
+        """.trimIndent(), map.toString(true))
+        assertEquals("""
+            +-----+----------------+
+            |    4|          772425|
+            |age  |              45|
+            |name |jake            |
+            |birth|2021-10-16T23:10|
+            +-----+----------------+
+        """.trimIndent(), map.toString(false))
     }
 
 }

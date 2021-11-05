@@ -1,7 +1,7 @@
 package com.github.nayasis.kotlin.basica.model
 
 import com.github.nayasis.kotlin.basica.core.path.detectCharset
-import com.github.nayasis.kotlin.basica.core.path.inStream
+import com.github.nayasis.kotlin.basica.core.path.inputStream
 import com.github.nayasis.kotlin.basica.core.string.toPath
 import com.github.nayasis.kotlin.basica.core.url.detectCharset
 import com.github.nayasis.kotlin.basica.core.url.inStream
@@ -15,15 +15,15 @@ import java.util.*
 class NProperties: Properties {
 
     constructor(resourcePath: String, charset: Charset = resourcePath.toPath().detectCharset()) {
-        load(resourcePath.toPath().inStream(), charset)
+        load(resourcePath.toPath().inputStream(), charset)
     }
 
     constructor(file: File, charset: Charset = file.toPath().detectCharset()) {
-        load(file.toPath().inStream(), charset)
+        load(file.toPath().inputStream(), charset)
     }
 
     constructor(path: Path, charset: Charset = path.detectCharset()) {
-        load(path.inStream(), charset)
+        load(path.inputStream(), charset)
     }
 
     constructor(url: URL, charset: Charset = url.detectCharset()) {
