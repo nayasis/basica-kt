@@ -3,9 +3,11 @@
 
 package com.github.nayasis.kotlin.basica.core.path
 
+import com.github.nayasis.kotlin.basica.core.klass.Classes
 import com.github.nayasis.kotlin.basica.core.string.invariantSeparators
 import com.github.nayasis.kotlin.basica.core.string.toFile
 import com.github.nayasis.kotlin.basica.core.string.toPath
+import com.github.nayasis.kotlin.basica.core.url.toFile
 import org.mozilla.universalchardet.UniversalDetector
 import java.io.*
 import java.net.URI
@@ -461,6 +463,11 @@ fun userHome(): Path = System.getProperty("user.home").toPath()
 
 fun rootPath(): Path = Paths.get("").toAbsolutePath()
 
+fun rootPath(klass: KClass<*>): Path {
+    val location = Classes.getRootLocation(klass)
+    return location.toFile().toPath()
+}
+
 val KClass<*>.rootPath: Path
     get() = this.java.protectionDomain.codeSource.location.file.toFile().toPath()
 
@@ -482,7 +489,7 @@ fun Path.reader(charset: Charset = Charsets.UTF_8): BufferedReader {
  */
 fun Path.writer(charset: Charset = Charsets.UTF_8, vararg options: OpenOption, bufferSize: Int = DEFAULT_BUFFER_SIZE): BufferedWriter {
     this.makeFile()
-    return outStream(*options).writer(charset).buffered(bufferSize)
+    return outputStream(*options).writer(charset).buffered(bufferSize)
 }
 
 /**
@@ -495,16 +502,16 @@ fun Path.appender(charset: Charset = Charsets.UTF_8, bufferSize: Int = DEFAULT_B
     return this.writer(charset,APPEND,bufferSize = bufferSize)
 }
 
-fun Path.inStream(vararg options: OpenOption): InputStream {
+fun Path.inputStream(vararg options: OpenOption): InputStream {
     return Files.newInputStream(this, *options)
 }
 
-fun Path.outStream(vararg options: OpenOption): OutputStream {
+fun Path.outputStream(vararg options: OpenOption): OutputStream {
     return Files.newOutputStream(this, *options)
 }
 
 fun Path.detectCharset(default: Charset = Charsets.UTF_8): Charset {
-    return this.inStream().use { detectCharset(it,default) }
+    return this.inputStream().use { detectCharset(it,default) }
 }
 
 fun detectCharset(inputstream: InputStream, default: Charset = Charsets.UTF_8): Charset {
