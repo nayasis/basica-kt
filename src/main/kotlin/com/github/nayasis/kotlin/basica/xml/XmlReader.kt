@@ -3,6 +3,7 @@ package com.github.nayasis.kotlin.basica.xml
 import com.github.nayasis.kotlin.basica.core.klass.Classes
 import com.github.nayasis.kotlin.basica.core.path.inputStream
 import mu.KotlinLogging
+import org.w3c.dom.Document
 import org.w3c.dom.Element
 import org.xml.sax.InputSource
 import java.io.ByteArrayInputStream
@@ -57,5 +58,8 @@ class XmlReader {
         doc.appendChild(root)
         return root
     }
+
+    fun createDocument(ignoreDtd: Boolean = true): Document =
+        getBuilder(ignoreDtd).newDocument().apply { xmlStandalone = true }
 
 }
