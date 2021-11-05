@@ -4,20 +4,20 @@ package com.github.nayasis.kotlin.basica.xml
 
 import com.github.nayasis.kotlin.basica.core.extention.ifNull
 import com.github.nayasis.kotlin.basica.xml.NodeType.*
+import com.sun.org.apache.xml.internal.serialize.OutputFormat
+import com.sun.org.apache.xml.internal.serialize.XMLSerializer
 import org.w3c.dom.Attr
 import org.w3c.dom.Document
+import org.w3c.dom.DocumentType
 import org.w3c.dom.Element
 import org.w3c.dom.Node
 import org.w3c.dom.NodeList
+import org.w3c.dom.traversal.DocumentTraversal
+import org.w3c.dom.traversal.NodeFilter
+import org.w3c.dom.traversal.TreeWalker
 import java.io.StringWriter
-import javax.xml.XMLConstants
-import javax.xml.transform.OutputKeys
-import javax.xml.transform.TransformerFactory
-import javax.xml.transform.dom.DOMSource
-import javax.xml.transform.stream.StreamResult
 import javax.xml.xpath.XPathConstants
 import javax.xml.xpath.XPathFactory
-
 
 private val parserXpath = XPathFactory.newInstance().newXPath()
 
@@ -134,11 +134,29 @@ fun Node.attrs(): Map<String,String> {
     return map
 }
 
-fun Node.removeEmptyNodes(): Node {
-    this.findNodes("//text()[normalize-space()='']").forEach {
-        it.parentNode.removeChild(it)
+fun Node.removeEmptyTextNodes(): Node {
+
+    val walker = document.getTreeWalker(NodeFilter.SHOW_TEXT)
+    val textNodes = ArrayList<Node>()
+    while(true) {
+        val node = walker.nextNode() ?: break
+        textNodes.add(node)
     }
+
+    for(node in textNodes) {
+        if( node.textContent.trim().isNotEmpty() ) continue
+        val prev = node.previousSibling
+        val next = node.nextSibling
+        when {
+            prev == null -> node.remove()
+            next == null -> node.remove()
+            prev.isComment() || prev.isElement() -> node.remove()
+            next.isComment() || next.isElement() -> node.remove()
+        }
+    }
+
     return this
+
 }
 
 val Node.xpath: String
@@ -275,87 +293,17 @@ fun Node.toString(pretty: Boolean = true, tabSize: Int = 2): String {
 
     if( this.isEmpty() ) return ""
 
-    val factory = TransformerFactory.newInstance().apply {
-        setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "")
-        setAttribute(XMLConstants.ACCESS_EXTERNAL_STYLESHEET, "")
-        if(pretty) {
-            setAttribute("indent-number", tabSize)
-        }
+    val format = OutputFormat(document).apply {
+        lineWidth = 1000
+        indenting = pretty
+        indent = tabSize
+        standalone = true
+        omitXMLDeclaration = true
     }
 
-    val transformer = factory.newTransformer().apply {
-        setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-        if(pretty) {
-            setOutputProperty(OutputKeys.INDENT, "yes")
-        }
-        document?.doctype?.let {
-            setOutputProperty(OutputKeys.DOCTYPE_PUBLIC, it.publicId)
-            setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, it.systemId)
-        }
-    }
-
-    val out = StringWriter()
-    val streamResult = StreamResult(out)
-
-    transformer.transform(DOMSource(document), streamResult)
-    return streamResult.writer.toString()
-
-//    this.removeEmptyNodes()
-
-//    val factory = TransformerFactory.newInstance()
-//    val transformer = factory.newTransformer().apply {
-//        if( pretty ) {
-//            setOutputProperty(OutputKeys.INDENT, "yes")
-//            setOutputProperty(OutputPropertiesFactory.S_KEY_INDENT_AMOUNT, "8");
-//            setOutputProperty("{http://xml.apache.org/xslt}indent-amount", tabSize.toString())
-//        }
-//    }
-//
-//    val isDocPrint = this is Document
-//    var hasDocType = true
-//    if (isDocPrint) {
-//        val doctype = (this as Document).doctype
-//        if (doctype != null) {
-//            try {
-//                transformer.setOutputProperty(OutputKeys.DOCTYPE_PUBLIC, doctype.publicId)
-//                transformer.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, doctype.systemId)
-//            } catch (e: Exception) {
-//                hasDocType = false
-//            }
-//        } else {
-//            hasDocType = false
-//        }
-//    } else {
-//        transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes")
-//    }
-//
-//    val target = StreamResult(StringWriter())
-//
-//    transformer.transform(DOMSource(this), target)
-//
-//    var result = target.writer.toString()
-//
-//    if (!printRoot) {
-//        val rootName = this.nodeName
-//        result = result
-//            .replaceFirst("^<$rootName.*?>".toRegex(), "")
-//            .replaceFirst("</$rootName>$".toRegex(), "")
-//            .replaceFirst("^(\n|\r)*".toRegex(), "")
-//            .replaceFirst("(\n|\r)*$".toRegex(), "")
-//    }
-//
-//    if (isDocPrint) {
-//        if (!hasDocType)
-//            result = result.replaceFirst("^<\\?xml(.*?)>".toRegex(), "<?xml$1>\n")
-//    } else {
-//        if ( !printRoot && pretty ) {
-//            result = result
-//                .replaceFirst("^ {$tabSize}".toRegex(), "")
-//                .replace( "(\n|\r) {$tabSize}".toRegex(), "\n" )
-//        }
-//    }
-//
-//    return result
+    val writer = StringWriter()
+    XMLSerializer(writer,format).serialize(this)
+    return writer.toString()
 
 }
 
@@ -367,12 +315,18 @@ fun Node.toString(pretty: Boolean = true, tabSize: Int = 2): String {
  * @return self
  */
 fun Node.setDocType(publicId: String, systemId: String): Node {
-    document.doctype?.let { removeChild(it) }
+    document.doctype?.remove()
     val qualifiedName = document.documentElement.nodeName
     val newDoctype = document.implementation.createDocumentType(qualifiedName,publicId,systemId)
-    appendChild(newDoctype)
+    document.appendChild(newDoctype)
     return this
 }
 
+val Node.docType: DocumentType?
+    get() = if(this is Document) this.doctype else document.docType
+
 val Node.document: Document
     get() = if(this is Document) this else this.ownerDocument
+
+fun Node.getTreeWalker(whatToShow: Int = NodeFilter.SHOW_ALL, filter: NodeFilter? = null, entityReferenceExpansion: Boolean = false ): TreeWalker =
+    (document as DocumentTraversal).createTreeWalker(this,whatToShow,filter,entityReferenceExpansion)

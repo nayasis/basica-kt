@@ -4,9 +4,6 @@ import com.github.nayasis.kotlin.basica.core.klass.Classes
 import com.github.nayasis.kotlin.basica.core.path.inputStream
 import mu.KotlinLogging
 import org.w3c.dom.Element
-import org.w3c.dom.Node
-import org.w3c.dom.traversal.DocumentTraversal
-import org.w3c.dom.traversal.NodeFilter
 import org.xml.sax.InputSource
 import java.io.ByteArrayInputStream
 import java.io.File
@@ -42,53 +39,16 @@ class XmlReader {
     fun read(file: File, ignoreDtd: Boolean = true): Element =
         read(file.inputStream(),ignoreDtd)
 
-    fun read(xml: String, ignoreDtd: Boolean = true): Element {
-
-//        val registry = DOMImplementationRegistry.newInstance()
-//        val dom = registry.getDOMImplementation("LS") as DOMImplementationLS
-//        val builder = dom.createLSParser(DOMImplementationLS.MODE_SYNCHRONOUS, null)
-//
-//        builder.filter = XmlInputFilter()
-//
-//
-//
-//        val input = dom.createLSInput()
-//        input.stringData = xml
-//
-//        return builder.parse(input).documentElement
-
-        return read(ByteArrayInputStream(xml.toByteArray()), ignoreDtd)
-
-    }
-//        read(ByteArrayInputStream(xml.toByteArray()), ignoreDtd)
+    fun read(xml: String, ignoreDtd: Boolean = true): Element =
+        read(ByteArrayInputStream(xml.toByteArray()), ignoreDtd)
 
     fun read(url: URL, ignoreDtd: Boolean = true): Element =
         read(Classes.getResourceStream(url), ignoreDtd)
 
     fun read(inputStream: InputStream, ignoreDtd: Boolean = true): Element =
         InputStreamReader(inputStream, StandardCharsets.UTF_8.toString()).use { reader ->
-
-            val doc = getBuilder(ignoreDtd).parse(InputSource(reader)).apply { xmlStandalone = true }
-            val treeWalker = (doc as DocumentTraversal).createTreeWalker(doc, NodeFilter.SHOW_TEXT, null, false)
-            val textNodes = ArrayList<Node>()
-            while( true ) {
-                val node = treeWalker.nextNode() ?: break
-                textNodes.add(node)
-            }
-
-            for( node in textNodes ) {
-                if( node.textContent.trim().isNotEmpty() ) continue
-                val prev = node.previousSibling
-                val next = node.nextSibling
-                when {
-                    prev == null -> node.remove()
-                    next == null -> node.remove()
-                    prev.isComment() || prev.isElement() -> node.remove()
-                    next.isComment() || next.isElement() -> node.remove()
-                }
-            }
-
-            return doc.documentElement
+            return getBuilder(ignoreDtd).parse(InputSource(reader)).apply { xmlStandalone = true }
+                .documentElement
         }
 
     fun createNew(rootTagName: String, ignoreDtd: Boolean = true): Element {
@@ -97,7 +57,5 @@ class XmlReader {
         doc.appendChild(root)
         return root
     }
-
-
 
 }

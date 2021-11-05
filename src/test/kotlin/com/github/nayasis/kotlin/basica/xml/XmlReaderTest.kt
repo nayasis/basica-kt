@@ -21,12 +21,12 @@ internal class XmlReaderTest {
         val doc = XmlReader().read(path!!)
         doc.setDocType("merong","http://struts.apache.org/dtds/struts-2.0.dtd")
 
-        logger.debug{ "-------------------------------------------------------------------------------------------" }
-        logger.debug{ doc }
-        logger.debug{ "-------------------------------------------------------------------------------------------" }
-        logger.debug{ doc.toString(true) }
+        logger.debug{ "\n${doc}" }
+        logger.debug{ "\n${doc.toString(true)}" }
 
-        Assertions.assertTrue(doc.toString(true).isNotEmpty())
+        assertTrue(doc.toString(true).isNotEmpty())
+        assertEquals("merong", doc.docType?.publicId)
+        assertEquals("http://struts.apache.org/dtds/struts-2.0.dtd", doc.docType?.systemId)
 
     }
 
@@ -142,34 +142,80 @@ internal class XmlReaderTest {
     @Test
     fun `create document`() {
 
-        val body = """
-            <node>
-                merong
-            </node>
-            """.trimIndent()
+        val body = "<node>merong</node>"
 
         val doc = XmlReader().createNew("root")
+        assertEquals(0,doc.children().size)
         doc.appendFromXml(body)
-
-
-        logger.debug{ "\n${doc.toString(true)}" }
+        assertEquals(1,doc.children().size)
+        doc.appendFromXml(body)
+        assertEquals(2,doc.children().size)
+        doc.appendFromXml(body)
+        assertEquals(3,doc.children().size)
 
     }
 
     @Test
     fun `pretty print`() {
 
-//        val doc1 = XmlReader().read("<a><b><c/><d>text D</d><e value='0'/></b></a>")
-//        logger.debug { "\n${doc1.toString(true,tabSize = 2)}" }
-//        logger.debug { "\n${doc1.toString(true,tabSize = 4)}" }
-//
-//        val doc2 = XmlReader().read(sampleTreeXml)
-//        logger.debug { "\n${doc2.toString(true,tabSize = 2)}" }
-//        logger.debug { "\n${doc2.toString(true,tabSize = 4)}" }
+        val doc1 = XmlReader().read("<a><b><c/><d>text D</d><e value='0'/></b></a>")
 
+        assertEquals("""
+            <a>
+              <b>
+                <c/>
+                <d>text D</d>
+                <e value="0"/>
+              </b>
+            </a>
+        """.trimIndent(), doc1.toString(tabSize = 2).trim() )
+
+        assertEquals("""
+            <a>
+                <b>
+                    <c/>
+                    <d>text D</d>
+                    <e value="0"/>
+                </b>
+            </a>
+        """.trimIndent(), doc1.toString(tabSize = 4).trim() )
+
+        val doc2 = XmlReader().read(sampleTreeXml)
+
+        assertEquals("""
+            <root>
+              <row>
+                <col1 id="c1">Value1</col1>
+                <row>
+                  <col2 id="c2" val="val2">Value2</col2>
+                </row>
+              </row>
+              <row>
+                <col1 id="c3">Value3</col1>
+                <col2 id="c4">Value4</col2>
+              </row>
+            </root>
+        """.trimIndent(), doc2.toString(tabSize = 2).trim() )
+
+        assertEquals("""
+            <root>
+                <row>
+                    <col1 id="c1">Value1</col1>
+                    <row>
+                        <col2 id="c2" val="val2">Value2</col2>
+                    </row>
+                </row>
+                <row>
+                    <col1 id="c3">Value3</col1>
+                    <col2 id="c4">Value4</col2>
+                </row>
+            </root>
+        """.trimIndent(), doc2.toString(tabSize = 4).trim() )
+
+        // mixture format is hard to indent (text node itself is member of XML format.)
         val doc3 = XmlReader().read(sampleSqlXml)
         logger.debug { "\n${doc3.toString(true,tabSize = 2)}" }
-//        logger.debug { "\n${doc3.toString(true,tabSize = 4)}" }
+        logger.debug { "\n${doc3.toString(true,tabSize = 4)}" }
 
     }
 

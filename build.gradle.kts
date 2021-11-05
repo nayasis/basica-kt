@@ -53,8 +53,6 @@ dependencies {
 	implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.2")
 	implementation("org.objenesis:objenesis:3.2")
 
-	implementation("xerces:xercesImpl:2.12.1")
-
 	"supportImplementation"("ch.qos.logback:logback-classic:1.2.3")
 
 	// kotlin
