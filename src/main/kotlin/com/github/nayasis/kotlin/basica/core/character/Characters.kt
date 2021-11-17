@@ -72,7 +72,7 @@ class Characters { companion object {
  */
 fun Char?.disassembleHangul(): CharArray? {
     if( this == null ) return null
-    var c = this.toInt()
+    var c = this.code
     if (c < 0xAC00 || c > 0xD79F) return null
     c -= 0xAC00
     val idx3rd = c % 28
@@ -109,7 +109,7 @@ fun Char?.hasHangulJongsung(): Boolean {
  */
 fun Char?.isHalfwidth(): Boolean {
     if( this == null ) return false
-    val c = this.toInt()
+    val c = this.code
     if (c < 0x0020) return true // special character
     if (c in 0x0020..0x007F) return true // ASCII (Latin characters, symbols, punctuation,numbers)
     // FF61 ~ FF64 : Halfwidth CJK punctuation
@@ -135,7 +135,7 @@ fun Char?.fontwidth(): Double {
  * @return true if character is korean
  */
 fun Char?.isKorean(): Boolean {
-    return if (this == null) false else if (KOREAN.contains(UnicodeBlock.of(this))) true else this.toInt() in 0xFFA0..0xFFDC
+    return if (this == null) false else if (KOREAN.contains(UnicodeBlock.of(this))) true else this.code in 0xFFA0..0xFFDC
 }
 
 /**
@@ -144,7 +144,7 @@ fun Char?.isKorean(): Boolean {
  * @return true if character is japanese
  */
 fun Char?.isJapanese(): Boolean {
-    return if (this == null) false else if (JAPANESE.contains(UnicodeBlock.of(this))) true else this.toInt() in 0xFF65..0xFF9F
+    return if (this == null) false else if (JAPANESE.contains(UnicodeBlock.of(this))) true else this.code in 0xFF65..0xFF9F
 }
 
 /**
@@ -153,7 +153,7 @@ fun Char?.isJapanese(): Boolean {
  * @return true if character is chinese
  */
 fun Char?.isChinese(): Boolean {
-    return if (this == null) false else if (CHINESE.contains(UnicodeBlock.of(this))) true else this.toInt() in 0xFF65..0xFF9F
+    return if (this == null) false else if (CHINESE.contains(UnicodeBlock.of(this))) true else this.code in 0xFF65..0xFF9F
 }
 
 /**

@@ -3,7 +3,7 @@ package com.github.nayasis.kotlin.basica.etc
 class Platforms { companion object {
 
     val os = Os(
-        name = System.getProperty("os.name").toLowerCase(),
+        name = System.getProperty("os.name").lowercase(),
         architecture = System.getProperty("os.arch"),
         version = System.getProperty("os.version"),
         charset = System.getProperty("sun.jnu.encoding"),

@@ -153,10 +153,10 @@ val String?.displayLength : Int
 fun String?.toCamel(): String {
     if( this.isNullOrEmpty() ) return ""
     var sb = StringBuffer()
-    val matcher = REGEX_CAMEL.matcher(this.toLowerCase())
+    val matcher = REGEX_CAMEL.matcher(this.lowercase())
     while(matcher.find()) {
         var r = matcher.group().substring(1)
-        matcher.appendReplacement(sb, if(matcher.start() == 0) r else r.toUpperCase())
+        matcher.appendReplacement(sb, if(matcher.start() == 0) r else r.uppercase())
     }
     matcher.appendTail(sb)
     return sb.toString()
@@ -165,11 +165,11 @@ fun String?.toCamel(): String {
 fun String?.toSnake(): String {
     if( this.isNullOrEmpty() ) return ""
     var sb = StringBuffer()
-    val matcher = REGEX_SNAKE.matcher(this.toLowerCase())
+    val matcher = REGEX_SNAKE.matcher(this.lowercase())
     while(matcher.find()) {
         if(matcher.start() == 0) continue
         var r = matcher.group()
-        matcher.appendReplacement(sb, "_${r.toLowerCase()}")
+        matcher.appendReplacement(sb, "_${r.lowercase()}")
     }
     matcher.appendTail(sb)
     return sb.toString()
@@ -188,7 +188,7 @@ fun String?.escape(): String {
             '\t' -> sb.append("\\t")
             '/' -> sb.append("\\/")
             else -> if (ch in '\u0000'..'\u001F') {
-                sb.append("\\u").append( Integer.toHexString(ch.toInt()).padStart(4,'0') )
+                sb.append("\\u").append( Integer.toHexString(ch.code).padStart(4,'0') )
             } else {
                 sb.append(ch)
             }

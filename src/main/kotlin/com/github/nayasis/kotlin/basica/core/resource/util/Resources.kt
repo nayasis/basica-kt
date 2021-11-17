@@ -180,7 +180,7 @@ object Resources {
      * @since 4.1
      */
     fun isJarFileURL(url: URL?): Boolean =
-        url != null && URL_PROTOCOL_FILE == url.protocol && url.path.toLowerCase().endsWith(FILE_EXTENSION_JAR)
+        url != null && URL_PROTOCOL_FILE == url.protocol && url.path.lowercase().endsWith(FILE_EXTENSION_JAR)
 
     /**
      * Extract the URL for the actual jar file from the given URL
