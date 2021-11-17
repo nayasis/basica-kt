@@ -23,7 +23,7 @@ basic kotlin utility
 <dependency>
   <groupId>com.github.nayasis</groupId>
   <artifactId>basica-kt</artifactId>
-  <version>0.1.0</version>
+  <version>0.1.3</version>
 </dependency>
 ```
 
@@ -41,6 +41,6 @@ repositories {
 
 ```kotlin
 dependencies {
-  implementation( "com.github.nayasis:basica-kt:0.1.0" )
+  implementation( "com.github.nayasis:basica-kt:0.1.3" )
 }
 ```
