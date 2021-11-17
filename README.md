@@ -1,6 +1,7 @@
 # basica-kt
 basic kotlin utility
 
+[![](https://jitpack.io/v/nayasis/basica-kt.svg)](https://jitpack.io/#nayasis/basica-kt)
 
 ## Dependency
 
