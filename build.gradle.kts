@@ -1,7 +1,6 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-	`maven`
 	`maven-publish`
 	kotlin("jvm") version "1.4.32"
 	kotlin("plugin.allopen") version "1.4.20"
