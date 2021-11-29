@@ -22,9 +22,12 @@ class StopWatch: Serializable {
         tick(task)
     }
 
-    fun elapsedNanos(): Long = if( start == 0L ) 0L else System.nanoTime() - start
-    fun elapsedMilis(): Long = elapsedNanos() / 1_000_000
-    fun elapsedSeconds(): Double = round(elapsedNanos() / 1_000_000_000.0, 3 )
+    val elapsedNanos: Long
+        get() = if( start == 0L ) 0L else System.nanoTime() - start
+    val elapsedMillis: Long
+        get() = elapsedNanos / 1_000_000
+    val elapsedSeconds: Double
+        get() = round(elapsedNanos / 1_000_000_000.0, 3 )
 
     fun stop(): StopWatch {
         addLog()
@@ -35,7 +38,7 @@ class StopWatch: Serializable {
 
     private fun addLog() {
         if (enable && start != 0L)
-            logs.add(Log(task, elapsedMilis()))
+            logs.add(Log(task, elapsedMillis))
     }
 
     fun tick(task: String = ""): StopWatch {
