@@ -12,7 +12,7 @@ noArg {
 }
 
 group = "com.github.nayasis"
-version = "0.1.3"
+version = "0.1.4"
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 
 configurations.all {
