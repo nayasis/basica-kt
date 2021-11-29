@@ -2,6 +2,7 @@
 
 package com.github.nayasis.kotlin.basica.core.validator
 
+import com.github.nayasis.kotlin.basica.core.extention.isEmpty as isEmptyExtension /* DO NOT DELETE */
 import com.github.nayasis.kotlin.basica.model.NGrid
 import java.io.InputStream
 
@@ -10,7 +11,16 @@ fun isEmpty(value: Any?): Boolean {
         null -> true
         is CharSequence -> value.isEmpty()
         is Collection<*> -> value.isEmpty()
+        is Map<*,*> -> value.isEmpty()
         is Array<*> -> value.isEmpty()
+        is ByteArray -> value.isEmpty()
+        is CharArray -> value.isEmpty()
+        is ShortArray -> value.isEmpty()
+        is IntArray -> value.isEmpty()
+        is LongArray -> value.isEmpty()
+        is FloatArray -> value.isEmpty()
+        is DoubleArray -> value.isEmpty()
+        is BooleanArray -> value.isEmpty()
         is NGrid -> value.size() == 0
         is InputStream -> value.available() == 0
         else -> false
