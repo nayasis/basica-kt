@@ -5,6 +5,7 @@ import mu.KotlinLogging
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.io.Serializable
+import java.net.URLEncoder
 
 private val log = KotlinLogging.logger {}
 
@@ -98,6 +99,17 @@ internal class StringsKtTest {
 
         assertEquals("A,B,,C,D", txt.split("\n").joinToString(","))
         assertEquals("A,B,C,D", txt.tokenize("\n").joinToString(","))
+
+    }
+
+    @Test
+    fun `url encoding & decoding`() {
+
+        val param = "abcd =&1234원스토어韓國"
+
+        assertEquals(param, param.urlEncode().urlDecode() )
+        assertEquals(URLEncoder.encode(param,Charsets.UTF_8.name()).replace("+","%20"), param.urlEncode() )
+        assertEquals(URLEncoder.encode(param,Charsets.UTF_8.name()), param.urlEncode(legacyMode = false) )
 
     }
 

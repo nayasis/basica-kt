@@ -9,7 +9,8 @@ import com.github.nayasis.kotlin.basica.core.extention.then
 import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
 import com.github.nayasis.kotlin.basica.core.number.cast
 import com.github.nayasis.kotlin.basica.core.path.*
-import com.github.nayasis.kotlin.basica.core.string.format.Formatter
+import com.github.nayasis.kotlin.basica.core.string.Formatter
+import com.github.nayasis.kotlin.basica.core.url.URLCodec
 import com.github.nayasis.kotlin.basica.model.Messages
 import com.github.nayasis.kotlin.basica.reflection.Reflector
 import mu.KotlinLogging
@@ -25,6 +26,9 @@ import java.math.BigInteger
 import java.net.MalformedURLException
 import java.net.URI
 import java.net.URL
+import java.net.URLDecoder
+import java.net.URLEncoder
+import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets.ISO_8859_1
 import java.nio.file.Path
 import java.util.*
@@ -228,6 +232,12 @@ private fun unescapeChar(escaped: String): String? {
         else -> escaped
     }
 }
+
+fun String?.urlEncode(charset: Charset = Charsets.UTF_8, legacyMode: Boolean = true): String =
+    if( this.isNullOrEmpty() ) "" else URLCodec().encode(this,charset,legacyMode)
+
+fun String?.urlDecode(charset: Charset = Charsets.UTF_8, legacyMode: Boolean = true): String =
+    if( this.isNullOrEmpty() ) "" else URLCodec().decode(this,charset,legacyMode)
 
 /**
  * add \ character before Regular Expression Keywords ([](){}.*+?$^|#\)
