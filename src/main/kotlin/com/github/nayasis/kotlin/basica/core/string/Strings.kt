@@ -233,11 +233,28 @@ private fun unescapeChar(escaped: String): String? {
     }
 }
 
-fun String?.urlEncode(charset: Charset = Charsets.UTF_8, legacyMode: Boolean = true): String =
+fun String?.toUrlParam(charset: Charset = Charsets.UTF_8, legacyMode: Boolean = true): String =
     if( this.isNullOrEmpty() ) "" else URLCodec().encode(this,charset,legacyMode)
 
 fun String?.urlDecode(charset: Charset = Charsets.UTF_8, legacyMode: Boolean = true): String =
     if( this.isNullOrEmpty() ) "" else URLCodec().decode(this,charset,legacyMode)
+
+fun String?.toMapFromUrlParam(charset: Charset = Charsets.UTF_8 ): Map<String,String?> {
+    if(this.isNullOrEmpty()) return emptyMap()
+    return this.split("&").mapNotNull {
+        val tokens = it.split("=")
+        when {
+            tokens.isNullOrEmpty() -> null
+            tokens.size == 1 -> {
+                when {
+                    tokens[0].isNullOrEmpty() -> null
+                    else -> tokens[0].urlDecode(charset) to null
+                }
+            }
+            else -> tokens[0].urlDecode(charset) to tokens[1].urlDecode(charset)
+        }
+    }.toMap()
+}
 
 /**
  * add \ character before Regular Expression Keywords ([](){}.*+?$^|#\)
