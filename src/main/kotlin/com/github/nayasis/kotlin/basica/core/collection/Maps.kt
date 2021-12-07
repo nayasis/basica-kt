@@ -1,6 +1,6 @@
 package com.github.nayasis.kotlin.basica.core.collection
 
-import com.github.nayasis.kotlin.basica.core.string.toUrlParam
+import com.github.nayasis.kotlin.basica.core.string.urlEncode
 import com.github.nayasis.kotlin.basica.expression.MvelExpression
 import com.github.nayasis.kotlin.basica.model.NGrid
 import com.github.nayasis.kotlin.basica.reflection.Merger
@@ -47,5 +47,5 @@ fun Map<*,*>.toString(showType: Boolean, rowcount:Int = 500): String {
 }
 
 fun Map<*,*>.toUrlParam(charset: Charset = Charsets.UTF_8): String {
-    return this.map { "${it.key.toString().toUrlParam(charset)}=${it.value.toString().toUrlParam(charset)}" }.joinToString("&")
+    return this.map { "${it.key.toString().urlEncode(charset)}=${it.value.toString().urlEncode(charset)}" }.joinToString("&")
 }

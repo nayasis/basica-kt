@@ -233,7 +233,7 @@ private fun unescapeChar(escaped: String): String? {
     }
 }
 
-fun String?.toUrlParam(charset: Charset = Charsets.UTF_8, legacyMode: Boolean = true): String =
+fun String?.urlEncode(charset: Charset = Charsets.UTF_8, legacyMode: Boolean = true): String =
     if( this.isNullOrEmpty() ) "" else URLCodec().encode(this,charset,legacyMode)
 
 fun String?.urlDecode(charset: Charset = Charsets.UTF_8, legacyMode: Boolean = true): String =

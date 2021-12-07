@@ -108,9 +108,9 @@ internal class StringsKtTest {
 
         val param = "abcd =&1234원스토어韓國"
 
-        assertEquals(param, param.toUrlParam().urlDecode() )
-        assertEquals(URLEncoder.encode(param,Charsets.UTF_8.name()).replace("+","%20"), param.toUrlParam() )
-        assertEquals(URLEncoder.encode(param,Charsets.UTF_8.name()), param.toUrlParam(legacyMode = false) )
+        assertEquals(param, param.urlEncode().urlDecode() )
+        assertEquals(URLEncoder.encode(param,Charsets.UTF_8.name()).replace("+","%20"), param.urlEncode() )
+        assertEquals(URLEncoder.encode(param,Charsets.UTF_8.name()), param.urlEncode(legacyMode = false) )
 
     }
 
