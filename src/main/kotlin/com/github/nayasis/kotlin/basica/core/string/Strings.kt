@@ -9,7 +9,6 @@ import com.github.nayasis.kotlin.basica.core.extention.then
 import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
 import com.github.nayasis.kotlin.basica.core.number.cast
 import com.github.nayasis.kotlin.basica.core.path.*
-import com.github.nayasis.kotlin.basica.core.string.Formatter
 import com.github.nayasis.kotlin.basica.core.url.URLCodec
 import com.github.nayasis.kotlin.basica.model.Messages
 import com.github.nayasis.kotlin.basica.reflection.Reflector
@@ -26,8 +25,6 @@ import java.math.BigInteger
 import java.net.MalformedURLException
 import java.net.URI
 import java.net.URL
-import java.net.URLDecoder
-import java.net.URLEncoder
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets.ISO_8859_1
 import java.nio.file.Path
@@ -341,6 +338,25 @@ fun String?.capture(pattern: Pattern): List<String> {
     while(matcher.find()) {
         for( i in 1..matcher.groupCount() )
             captures.add(matcher.group(i))
+    }
+    return captures
+}
+
+/**
+ * extract only captured pattern(wrapped by (..) in regular expression)
+ *
+ * @param regex regular expression
+ * @return captured string
+ */
+fun String?.capture(regex: Regex): List<String> {
+    val captures = ArrayList<String>()
+    if( this.isNullOrEmpty() ) return captures
+    var matcher = regex.find(this)
+    while(matcher != null) {
+        for( i in 1 until matcher.groups.size) {
+            captures.add(matcher.groups[i]!!.value)
+        }
+        matcher = matcher.next()
     }
     return captures
 }

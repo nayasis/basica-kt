@@ -54,13 +54,29 @@ internal class StringsKtTest {
     }
 
     @Test
+    fun `capture regex`() {
+
+        val captured = "jdbc:sqlite:./target/test-classes/localDb/#{Merong_babo}#{Nayasis_babo}SimpleLauncherHelloWorld.db"
+            .capture("#\\{(.+?)_(.+?)}".toRegex())
+
+        assertEquals(4, captured.size)
+        assertEquals(listOf("Merong", "babo", "Nayasis", "babo"), captured)
+
+        val refids = "< Ref id=\"refOrigin2\" />"
+            .capture("(?i)< *?ref +?id *?= *?['\"](.*?)['\"] *?\\/>".toRegex())
+
+        assertEquals("[refOrigin2]", refids.toString())
+
+    }
+
+    @Test
     fun `capture patterns`() {
 
-        val captured = "jdbc:sqlite:./target/test-classes/localDb/#{Merong}#{Nayasis}SimpleLauncherHelloWorld.db"
-            .capture("#\\{(.+?)\\}".toPattern())
+        val captured = "jdbc:sqlite:./target/test-classes/localDb/#{Merong_babo}#{Nayasis_babo}SimpleLauncherHelloWorld.db"
+            .capture("#\\{(.+?)_(.+?)}".toPattern())
 
-        assertEquals(2, captured.size)
-        assertEquals(listOf("Merong", "Nayasis"), captured)
+        assertEquals(4, captured.size)
+        assertEquals(listOf("Merong", "babo", "Nayasis", "babo"), captured)
 
         val refids = "< Ref id=\"refOrigin2\" />"
             .capture("(?i)< *?ref +?id *?= *?['\"](.*?)['\"] *?\\/>".toPattern())
