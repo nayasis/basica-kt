@@ -1,4 +1,4 @@
-package com.github.nayasis.kotlin.basica.core.string.format
+package com.github.nayasis.kotlin.basica.core.string
 
 import com.github.nayasis.kotlin.basica.core.character.hasHangulJongsung
 import com.github.nayasis.kotlin.basica.core.character.isKorean

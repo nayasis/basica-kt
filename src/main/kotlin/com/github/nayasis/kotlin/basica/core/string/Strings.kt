@@ -9,7 +9,7 @@ import com.github.nayasis.kotlin.basica.core.extention.then
 import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
 import com.github.nayasis.kotlin.basica.core.number.cast
 import com.github.nayasis.kotlin.basica.core.path.*
-import com.github.nayasis.kotlin.basica.core.string.format.Formatter
+import com.github.nayasis.kotlin.basica.core.url.URLCodec
 import com.github.nayasis.kotlin.basica.model.Messages
 import com.github.nayasis.kotlin.basica.reflection.Reflector
 import mu.KotlinLogging
@@ -25,6 +25,7 @@ import java.math.BigInteger
 import java.net.MalformedURLException
 import java.net.URI
 import java.net.URL
+import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets.ISO_8859_1
 import java.nio.file.Path
 import java.util.*
@@ -229,6 +230,29 @@ private fun unescapeChar(escaped: String): String? {
     }
 }
 
+fun String?.urlEncode(charset: Charset = Charsets.UTF_8, legacyMode: Boolean = true): String =
+    if( this.isNullOrEmpty() ) "" else URLCodec().encode(this,charset,legacyMode)
+
+fun String?.urlDecode(charset: Charset = Charsets.UTF_8, legacyMode: Boolean = true): String =
+    if( this.isNullOrEmpty() ) "" else URLCodec().decode(this,charset,legacyMode)
+
+fun String?.toMapFromUrlParam(charset: Charset = Charsets.UTF_8 ): Map<String,String?> {
+    if(this.isNullOrEmpty()) return emptyMap()
+    return this.split("&").mapNotNull {
+        val tokens = it.split("=")
+        when {
+            tokens.isNullOrEmpty() -> null
+            tokens.size == 1 -> {
+                when {
+                    tokens[0].isNullOrEmpty() -> null
+                    else -> tokens[0].urlDecode(charset) to null
+                }
+            }
+            else -> tokens[0].urlDecode(charset) to tokens[1].urlDecode(charset)
+        }
+    }.toMap()
+}
+
 /**
  * add \ character before Regular Expression Keywords ([](){}.*+?$^|#\)
  *
@@ -314,6 +338,25 @@ fun String?.capture(pattern: Pattern): List<String> {
     while(matcher.find()) {
         for( i in 1..matcher.groupCount() )
             captures.add(matcher.group(i))
+    }
+    return captures
+}
+
+/**
+ * extract only captured pattern(wrapped by (..) in regular expression)
+ *
+ * @param regex regular expression
+ * @return captured string
+ */
+fun String?.capture(regex: Regex): List<String> {
+    val captures = ArrayList<String>()
+    if( this.isNullOrEmpty() ) return captures
+    var matcher = regex.find(this)
+    while(matcher != null) {
+        for( i in 1 until matcher.groups.size) {
+            captures.add(matcher.groups[i]!!.value)
+        }
+        matcher = matcher.next()
     }
     return captures
 }

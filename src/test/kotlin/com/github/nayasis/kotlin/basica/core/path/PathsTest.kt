@@ -282,6 +282,23 @@ internal class PathsTest {
 
     }
 
+    @Test
+    fun last() {
+
+        rootPath().let {
+            println( "${it}")
+            println( "${it.first()}")
+            println( "${it.last()}")
+        }
+
+        "merong/11".toPath().let {
+            println( "${it}")
+            println( "${it.first()}")
+            println( "${it.last()}")
+        }
+
+    }
+
 }
 
 data class Person (

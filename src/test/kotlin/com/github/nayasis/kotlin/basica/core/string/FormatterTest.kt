@@ -1,6 +1,5 @@
-package com.github.nayasis.kotlin.basica.core.string.format
+package com.github.nayasis.kotlin.basica.core.string
 
-import com.github.nayasis.kotlin.basica.core.string.toMap
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.io.File

@@ -1,9 +1,11 @@
 package com.github.nayasis.kotlin.basica.core.collection
 
+import com.github.nayasis.kotlin.basica.core.string.urlEncode
 import com.github.nayasis.kotlin.basica.expression.MvelExpression
 import com.github.nayasis.kotlin.basica.model.NGrid
 import com.github.nayasis.kotlin.basica.reflection.Merger
 import com.github.nayasis.kotlin.basica.reflection.Reflector
+import java.nio.charset.Charset
 
 fun Map<*,*>.flattenKeys(): Map<String,Any?> = Reflector.flattenKeys(this)
 
@@ -42,4 +44,8 @@ fun Map<*,*>.toString(showType: Boolean, rowcount:Int = 500): String {
         grid.addData("value", value)
     }
     return grid.toString(showHeader=false, rowcount=rowcount)
+}
+
+fun Map<*,*>.toUrlParam(charset: Charset = Charsets.UTF_8): String {
+    return this.map { "${it.key.toString().urlEncode(charset)}=${it.value.toString().urlEncode(charset)}" }.joinToString("&")
 }
