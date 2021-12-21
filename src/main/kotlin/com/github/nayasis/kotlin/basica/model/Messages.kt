@@ -1,4 +1,3 @@
-@file:JvmName("Messages")
 @file:Suppress("MemberVisibilityCanBePrivate")
 
 package com.github.nayasis.kotlin.basica.model
