@@ -1,3 +1,5 @@
+@file:JvmName("Platforms")
+
 package com.github.nayasis.kotlin.basica.etc
 
 class Platforms { companion object {

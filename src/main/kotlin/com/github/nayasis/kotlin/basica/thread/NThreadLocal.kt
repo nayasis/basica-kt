@@ -1,3 +1,5 @@
+@file:JvmName("NThreadLocal")
+
 package com.github.nayasis.kotlin.basica.thread
 
 import java.util.*
