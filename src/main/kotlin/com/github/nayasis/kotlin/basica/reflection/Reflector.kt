@@ -1,3 +1,4 @@
+@file:JvmName("Reflector")
 @file:Suppress("NON_PUBLIC_CALL_FROM_PUBLIC_INLINE")
 
 package com.github.nayasis.kotlin.basica.reflection

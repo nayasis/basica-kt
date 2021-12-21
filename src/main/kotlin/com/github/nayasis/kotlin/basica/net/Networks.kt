@@ -1,3 +1,5 @@
+@file:JvmName("Networks")
+
 package com.github.nayasis.kotlin.basica.net
 
 import java.security.GeneralSecurityException
