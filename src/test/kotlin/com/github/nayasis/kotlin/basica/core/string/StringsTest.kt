@@ -10,7 +10,7 @@ import java.net.URLEncoder
 
 private val log = KotlinLogging.logger {}
 
-internal class StringsKtTest {
+internal class StringsTest {
 
     @Test
     fun `glob test`() {
@@ -144,6 +144,29 @@ internal class StringsKtTest {
         val another = "a&&&ab%26%20_e=3".toMapFromUrlParam()
         assertEquals("{a=null, ab& _e=3}", another.toString())
 
+    }
+
+    @Test
+    fun `mask`() {
+
+        val word = "010ABCD1234"
+
+        assertEquals("", word.mask(""))
+        assertEquals("010_ABCD_1234", word.mask("###_####_####"))
+        assertEquals("010-ABCD-123", word.mask("###-####-###"))
+        assertEquals("010-****-1234", word.mask("###-****-####"))
+        assertEquals("*010_ABCD_***", word.mask("\\*###_####_***"))
+        assertEquals("010_ABCD_123*", word.mask("###_####_###\\*"))
+        assertEquals("***-A**D-***", word.mask("***-#**#-***\\"))
+        assertEquals("###-ABCD-####", word.mask("###-****-####", pass = '*', hide = '#'))
+
+    }
+
+    @Test
+    fun `similarity`() {
+        assertEquals(1.0, "".similarity(""))
+        assertEquals(0.0, "".similarity("A"))
+        assertTrue( "ABCDEFG".similarity("CDEF").let { 0.5 < it && it < 0.6 } )
     }
 
 }
