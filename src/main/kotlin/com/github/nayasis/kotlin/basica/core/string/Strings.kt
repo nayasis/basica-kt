@@ -5,6 +5,8 @@ package com.github.nayasis.kotlin.basica.core.string
 import com.github.nayasis.kotlin.basica.core.character.Characters
 import com.github.nayasis.kotlin.basica.core.character.fontwidth
 import com.github.nayasis.kotlin.basica.core.character.isCJK
+import com.github.nayasis.kotlin.basica.core.extention.ifEmpty
+import com.github.nayasis.kotlin.basica.core.extention.isEmpty
 import com.github.nayasis.kotlin.basica.core.extention.then
 import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
 import com.github.nayasis.kotlin.basica.core.number.cast
@@ -33,7 +35,6 @@ import java.util.regex.Matcher
 import java.util.regex.Pattern
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
-import kotlin.collections.ArrayList
 import kotlin.math.min
 import kotlin.math.round
 import kotlin.reflect.KClass
@@ -526,4 +527,118 @@ fun String?.ifBlank(fn:() -> String): String {
 
 fun String?.ifNotBlank(fn: (String) -> Unit) {
     if(!this.isNullOrBlank()) fn(this)
+}
+
+/**
+ * mask pattern to original string
+ *
+ * example :
+ * -----------------------------------------------------------
+ * | example                               | result          |
+ * -----------------------------------------------------------
+ * | "010ABCD1234".mask("")                | ""              |
+ * | "010ABCD1234".mask("###_####_####")   | "010_ABCD_1234" |
+ * | "010ABCD1234".mask("###-####-###")    | "010-ABCD-123"  |
+ * | "010ABCD1234".mask("###-****-####")   | "010-****-1234" |
+ * | "010ABCD1234".mask("\\*###_####_***") | "*010_ABCD_***" |
+ * | "010ABCD1234".mask("###_####_###\\*") | "010_ABCD_123*" |
+ * | "010ABCD1234".mask("***-#**#-***\\")  | "***-A**D-***"  |
+ * -----------------------------------------------------------
+ *
+  * @param pattern  mask pattern.
+ *                  '#'  : substitute from word.
+ *                  '*'  : hide word with '*'
+ *                  '\\' : escape pattern
+ *  @param pass     pattern character to substitute word
+ *  @param hide     pattern character to hide word
+ * @return masked string
+ */
+fun String?.mask(pattern: String?, pass: Char = '#', hide: Char = '*' ): String {
+
+    if(this.isNullOrEmpty() || pattern.isNullOrEmpty()) return ""
+
+    val sb = StringBuilder()
+
+    var p = 0; var w = 0
+
+    val lastMask = pattern.length - 1
+    val lastWord = this.length - 1
+
+    while ( p <= lastMask ) {
+        when (pattern[p]) {
+            '\\' -> {
+                if(p != lastMask)
+                    sb.append(pattern[p+1])
+                p++
+            }
+            pass -> {
+                sb.append(this[w])
+                w++
+            }
+            hide -> {
+                sb.append(hide)
+                w++
+            }
+            else -> {
+                sb.append(pattern[p])
+            }
+        }
+        if(w > lastWord) break
+        p++
+    }
+
+    return sb.toString()
+
+}
+
+
+/**
+ * get Levenshtein distance
+ *
+ * @param source
+ * @param target
+ * @return cost
+  * @see [wikipedia](https://en.wikipedia.org/wiki/Levenshtein_distance)
+ */
+private fun getLavenshteinDistance(source: String, target: String): Int {
+    var src = source.lowercase()
+    var trg = target.lowercase()
+    val costs = IntArray(trg.length + 1)
+    for (i in 0..src.length) {
+        var lastValue = i
+        for (j in 0..trg.length) {
+            if (i == 0) {
+                costs[j] = j
+            } else {
+                if (j > 0) {
+                    var newValue = costs[j-1]
+                    if (src[i-1] != trg[j-1])
+                        newValue = min(min(newValue, lastValue),costs[j]) + 1
+                    costs[j-1] = lastValue
+                    lastValue = newValue
+                }
+            }
+        }
+        if (i > 0) costs[trg.length] = lastValue
+    }
+    return costs[trg.length]
+}
+
+/**
+ * get similarity between 0 and 1.
+ *
+ * 0 is non-matched and 1 is perfect-matched
+ *
+ * @param other target string to compare
+ * @return similarity
+ */
+fun String?.similarity(other: String?): Double {
+    var longer  = this.ifEmpty {""}
+    var shorter = other.ifEmpty{""}
+    if(longer.length < shorter.length)
+        longer = shorter.also { shorter = longer }
+    return when {
+        longer.isEmpty() -> if(shorter.isEmpty()) 1.0 else 0.0
+        else -> (longer.length - getLavenshteinDistance(longer, shorter)) / longer.length.toDouble()
+    }
 }
