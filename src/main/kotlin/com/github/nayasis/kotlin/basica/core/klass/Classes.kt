@@ -72,8 +72,12 @@ fun Type.isSubclassOf(klass: Class<*>): Boolean {
     return klass.isAssignableFrom(this as Class<*>)
 }
 
-fun Class<*>.isSubclassOf( klass: Class<*> ): Boolean {
+fun Class<*>.isSubclassOf(klass: Class<*>): Boolean {
     return klass.isAssignableFrom(this)
+}
+
+fun Class<*>.isSubclassOf(type: Type): Boolean {
+    return (type as Class<*>).isAssignableFrom(this)
 }
 
 val KClass<*>?.isEnum: Boolean
