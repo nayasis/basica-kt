@@ -68,12 +68,12 @@ private val IMMUTABLE = setOf(
     Class::class,
 )
 
-fun Class<*>.extends( klass: Class<*> ): Boolean {
-    return klass.isAssignableFrom(this)
+fun Type.isSubclassOf(klass: Class<*>): Boolean {
+    return klass.isAssignableFrom(this as Class<*>)
 }
 
-fun KClass<*>.extends(klass:KClass<*>): Boolean {
-    return this.isSubclassOf(klass)
+fun Class<*>.isSubclassOf( klass: Class<*> ): Boolean {
+    return klass.isAssignableFrom(this)
 }
 
 val KClass<*>?.isEnum: Boolean
