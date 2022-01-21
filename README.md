@@ -22,7 +22,7 @@ basic kotlin utility
 <dependency>
   <groupId>com.github.nayasis</groupId>
   <artifactId>basica-kt</artifactId>
-  <version>0.1.7</version>
+  <version>0.1.8</version>
 </dependency>
 ```
 
@@ -38,6 +38,6 @@ repositories {
 2. add dependency in **build.gradle.kts**.
 ```kotlin
 dependencies {
-  implementation( "com.github.nayasis:basica-kt:0.1.7" )
+  implementation( "com.github.nayasis:basica-kt:0.1.8" )
 }
 ```
