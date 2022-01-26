@@ -202,3 +202,6 @@ fun Long.toZonedDateTime(zoneId: ZoneId = ZoneId.systemDefault()): ZonedDateTime
 fun Long.toLocalDateTime(): LocalDateTime = this.toZonedDateTime().toLocalDateTime()
 
 fun Long.toLocalDate(): LocalDate = this.toLocalDateTime().toLocalDate()
+
+fun max( a: LocalDateTime, b: LocalDateTime ): LocalDateTime = if( a > b ) a else b
+fun min( a: LocalDateTime, b: LocalDateTime ): LocalDateTime = if( a > b ) b else a
