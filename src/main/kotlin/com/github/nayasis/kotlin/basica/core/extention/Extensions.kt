@@ -46,12 +46,3 @@ fun <T> T?.ifNotEmpty(fn: (T) -> Unit) {
 fun <T> T?.ifNotNull(fn: (T) -> Unit) {
     if(this != null) fn(this)
 }
-
-inline fun <T> Iterable<T>.sumByLong(selector: (T) -> Long): Long {
-    var sum = 0L
-    for (element in this) {
-        sum += selector(element)
-    }
-    return sum
-}
-
