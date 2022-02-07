@@ -8,6 +8,7 @@ import com.github.nayasis.kotlin.basica.core.character.isCJK
 import com.github.nayasis.kotlin.basica.core.extention.ifEmpty
 import com.github.nayasis.kotlin.basica.core.extention.isEmpty
 import com.github.nayasis.kotlin.basica.core.extention.then
+import com.github.nayasis.kotlin.basica.core.klass.Classes
 import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
 import com.github.nayasis.kotlin.basica.core.number.cast
 import com.github.nayasis.kotlin.basica.core.path.*
@@ -70,6 +71,10 @@ fun String.isUrl(): Boolean = try {
 }
 
 fun String.toUri(): URI = URI(this.replace(" ", "%20"))
+
+fun String.toResource(): URL? = Classes.getResource(this)
+
+fun String.toResources(): List<URL> = Classes.findResources(this)
 
 fun String.invariantSeparators(): String {
     return if ( FOLDER_SEPARATOR != '/' ) this.replace(FOLDER_SEPARATOR, '/') else this
