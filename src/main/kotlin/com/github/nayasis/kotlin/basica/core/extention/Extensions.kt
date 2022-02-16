@@ -39,10 +39,10 @@ fun <T> T?.ifNull(fn: () -> T): T {
     return this ?: fn()
 }
 
-fun <T> T?.ifNotEmpty(fn: (T) -> Unit) {
-    if(isNotEmpty(this) ) fn(this!!)
+fun <T,V> T?.ifNotEmpty(fn: (T) -> V): V? {
+    return if(isNotEmpty(this) ) fn(this!!) else null
 }
 
-fun <T> T?.ifNotNull(fn: (T) -> Unit) {
-    if(this != null) fn(this)
+fun <T,V> T?.ifNotNull(fn: (T) -> V): V? {
+    return if(this != null) fn(this) else null
 }
