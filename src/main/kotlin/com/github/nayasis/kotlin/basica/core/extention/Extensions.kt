@@ -31,6 +31,8 @@ fun Any?.isNotEmpty(): Boolean {
 
 infix fun <T> Boolean.then(param: T?): T? = if(this) param else null
 
+infix fun <T> Boolean.then(fn: () -> T): T? = if(this) fn() else null
+
 fun <T> T?.ifEmpty(fn: () -> T): T {
     return if(isEmpty(this) ) fn() else this!!
 }
