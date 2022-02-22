@@ -157,6 +157,20 @@ val String?.displayLength : Int
         return round(length).toInt()
     }
 
+fun String?.displaySubstr(startIndex: Int, length: Int): String {
+    if( this.isNullOrEmpty() ) return ""
+    val bf = StringBuilder()
+    var total = 0.0
+    for( i in startIndex until this.length ) {
+        val c = this[i]
+        total += c.fontwidth()
+        if( round(total) >= length )
+            return bf.toString()
+        bf.append(c)
+    }
+    return bf.toString()
+}
+
 fun String?.toCamel(): String {
     if( this.isNullOrEmpty() ) return ""
     var sb = StringBuffer()
