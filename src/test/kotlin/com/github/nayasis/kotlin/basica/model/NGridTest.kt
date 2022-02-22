@@ -133,6 +133,29 @@ internal class NGridTest {
 
     }
 
+    @Test
+    fun printOverflow() {
+
+        Characters.fullwidth = 2.0
+
+        val grid = NGrid()
+
+        grid.addRow(Person("우리나라 좋은나라 대한민국",1234567890))
+        grid.addRow(Person("우리나라 좋은나라 미국",1234567890))
+        grid.addRow(Person("우리나라 좋은나라 오스트레일리아",1234567890))
+
+        assertEquals("""
+            +------------------+----------+
+            |name              |age       |
+            +------------------+----------+
+            |우리나라 좋은나라 |1234567890|
+            |우리나라 좋은나라 |1234567890|
+            |우리나라 좋은나라 |1234567890|
+            +------------------+----------+            
+        """.trimIndent().trim(), grid.toString(maxColumnWidth=20))
+
+    }
+
 }
 
 @NoArg
