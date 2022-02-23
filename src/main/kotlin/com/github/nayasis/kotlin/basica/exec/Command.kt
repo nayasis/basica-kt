@@ -5,13 +5,14 @@ import com.github.nayasis.kotlin.basica.core.path.isFile
 import com.github.nayasis.kotlin.basica.core.string.toPath
 import com.github.nayasis.kotlin.basica.core.string.tokenize
 
+/**
+ * command line
+ */
 class Command {
 
     val command = ArrayList<String>()
     val environment = HashMap<String,String>()
     var workingDirectory: String? = null
-    var outputReader: ((String) -> Unit)? = null
-    var errorReader: ((String) -> Unit)? = null
 
     constructor(cli: String? = null, workingDirectory: String? = null, environment: Map<String,String> = HashMap()) {
         this.workingDirectory = workingDirectory
@@ -76,6 +77,54 @@ class Command {
     }
 
     override fun toString(): String = command.joinToString(" ")
+
+    /**
+     * run command
+     *
+     * @param outputReader  output stream line reader
+     * @param errorReader   error stream line reader
+     */
+    fun run(outputReader: ((String) -> Unit)? = {}, errorReader: ((String) -> Unit)? = {}): CommandExecutor {
+        return CommandExecutor().run(this,outputReader,errorReader)
+    }
+
+    /**
+     * run command
+     *
+     * @param outputReader  output stream line reader (include error stream)
+     */
+    fun run(outputReader: (String) -> Unit): CommandExecutor {
+        return run(outputReader,outputReader)
+    }
+
+    /**
+     * run command
+     *
+     * @param output    printed output
+     * @param error     printed error
+     */
+    fun run(output: StringBuffer, error: StringBuffer): CommandExecutor {
+        return run({output.append(it)}, {error.append(it)})
+    }
+
+    /**
+     * run command
+     *
+     * @param output    printed output (include error)
+     */
+    fun run(output: StringBuffer): CommandExecutor {
+        return run(output,output)
+    }
+
+    /**
+     * run command
+     * - print stream to System.out and System.err
+     *
+     * @param command   command to execute
+     */
+    fun runOnSystemOut(): CommandExecutor {
+        return run({print(it)},{System.err.print(it)})
+    }
 
 }
 
