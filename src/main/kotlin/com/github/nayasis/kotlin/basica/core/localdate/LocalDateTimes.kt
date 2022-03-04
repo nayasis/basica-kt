@@ -2,6 +2,8 @@
 
 package com.github.nayasis.kotlin.basica.core.localdate
 
+import com.github.nayasis.kotlin.basica.core.string.capture
+import com.github.nayasis.kotlin.basica.core.string.extractDigit
 import java.time.*
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
@@ -12,7 +14,7 @@ import java.util.*
 import kotlin.math.min
 import java.sql.Date as SqlDate
 
-private val PATTERN_DATE_DIGIT = "[^0-9\\+]".toRegex()
+private val PATTERN_OFFSET = "(.*)([+-])(\\d{2}):?(\\d{2})(.*)".toRegex()
 
 /**
  * convert string to LocalDateTime
@@ -27,8 +29,15 @@ fun String.toLocalDateTime(format: String = "", native: Boolean = false): LocalD
     if( format.isNotEmpty() && native )
         return parse(this, format)
 
-    val fmt    = parseFormat(format)
-    val digits = this.replace(PATTERN_DATE_DIGIT, "")
+    val fmt = parseFormat(format)
+
+    val (body,offset) = this.capture(PATTERN_OFFSET).let {
+        if(it.isEmpty()) {
+            Pair(this.extractDigit(),"")
+        } else {
+            Pair("${it[0]}${it[4]}".extractDigit(),"${it[1]}${it[2]}${it[3]}")
+        }
+    }
 
     val pattern = StringBuilder()
     val value   = StringBuilder()
@@ -36,7 +45,7 @@ fun String.toLocalDateTime(format: String = "", native: Boolean = false): LocalD
     var d = 0
     var pre: Char? = null
 
-    for( f in 0 until min(fmt.length,digits.length) ) {
+    for( f in 0 until min(fmt.length,body.length) ) {
         val cur = fmt[f]
         // avoid bug(JDK-8031085) in Java8
         if( cur == 'S' && pre != 'S' ) {
@@ -44,15 +53,13 @@ fun String.toLocalDateTime(format: String = "", native: Boolean = false): LocalD
             value.append('.')
         }
         pattern.append(cur)
-        if( cur == 'Z' ) {
-            repeat(5) { value.append(digits[d++]) }
-        } else {
-            value.append( digits[d++] )
-        }
+        value.append( body[d++] )
         pre = cur
     }
 
-    return parse(value.toString(), pattern.toString())
+    return parse(value.toString(),pattern.toString()).let {
+        if( offset.isEmpty() ) it else it.withOffset(ZoneOffset.of(offset))
+    }
 
 }
 
@@ -78,7 +85,7 @@ private fun parse(value: String, pattern: String): LocalDateTime {
 }
 
 private fun parseFormat(format: String): String {
-    if( format.isEmpty() ) return "yyyyMMddHHmmssSSSZ"
+    if( format.isEmpty() ) return "yyyyMMddHHmmssSSS"
     return format
         .replace("'.*?'".toRegex(), "") // remove user text
         .replace("YYYY".toRegex(), "yyyy")
@@ -202,3 +209,6 @@ fun Long.toZonedDateTime(zoneId: ZoneId = ZoneId.systemDefault()): ZonedDateTime
 fun Long.toLocalDateTime(): LocalDateTime = this.toZonedDateTime().toLocalDateTime()
 
 fun Long.toLocalDate(): LocalDate = this.toLocalDateTime().toLocalDate()
+
+fun LocalDateTime.withOffset(offset: ZoneOffset): LocalDateTime =
+    this.atOffset(ZoneOffset.UTC).withOffsetSameInstant(offset).toLocalDateTime()
