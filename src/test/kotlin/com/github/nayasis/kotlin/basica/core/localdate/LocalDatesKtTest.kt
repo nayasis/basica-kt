@@ -27,4 +27,14 @@ internal class LocalDatesKtTest{
 
     }
 
+    @Test
+    fun offset() {
+
+        Assertions.assertEquals("2020-01-01T16:00:00", "2020-01-01 13:00:00 Z+0300".toLocalDateTime().toFormat())
+        Assertions.assertEquals("2020-01-01T16:00:00", "2020-01-01 13:00:00 Z+03:00".toLocalDateTime().toFormat())
+        Assertions.assertEquals("2020-01-01T16:00:00", "2020-01-01 13:00:00 +03:00".toLocalDateTime().toFormat())
+        Assertions.assertEquals("2020-01-01T16:00:00", "2020-01-01 13:00:00 +0300".toLocalDateTime().toFormat())
+
+    }
+
 }
