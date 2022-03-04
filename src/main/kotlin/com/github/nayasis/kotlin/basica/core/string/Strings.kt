@@ -44,6 +44,14 @@ private val log = KotlinLogging.logger {}
 
 private val REGEX_CAMEL = "(_[a-zA-Z])".toPattern()
 private val REGEX_SNAKE = "([A-Z])".toPattern()
+private val REGEX_SPACE = "[ \t]+".toRegex()
+private val REGEX_SPACE_ENTER = "[ \t\n\r]+".toRegex()
+private val REGEX_LINE_REMAIN = " *[\n\r]".toRegex()
+private val REGEX_LINE = "[\n\r]+".toRegex()
+private val REGEX_EXTRACT_DIGIT = "[^0-9]".toRegex()
+private val REGEX_EXTRACT_UPPER = "[^A-Z]".toRegex()
+private val REGEX_EXTRACT_LOWER = "[^a-z]".toRegex()
+
 private val FORMATTER   = Formatter()
 
 fun String.message(locale: Locale? = null): String = Messages[locale, this]
@@ -290,16 +298,18 @@ fun String?.escapeRegex(): String {
     return buf.toString()
 }
 
-fun String?.toSingleSpace(includeLineBreaker:Boolean = false): String =
-    if (this.isNullOrEmpty()) "" else this.replace(((includeLineBreaker) then "[ \t]+" ?: "[ \t\n\r]+").toRegex(), " ").trim()
+fun String?.toSingleSpace(includeLineBreaker: Boolean = false): String =
+    if (this.isNullOrEmpty()) "" else this.replace((includeLineBreaker) then REGEX_SPACE_ENTER ?: REGEX_SPACE, " ").trim()
 
 fun String?.toSingleEnter(): String =
-    if( this.isNullOrEmpty() ) "" else this.replace(" *[\n\r]".toRegex(), "\n").replace( "[ \n\r]+".toRegex(), "\n" )
+    if( this.isNullOrEmpty() ) "" else this.replace(REGEX_LINE_REMAIN, "\n").replace(REGEX_LINE, "\n")
 
-fun String?.extractDigit(): String = if( this.isNullOrEmpty() ) "" else this.replace( "[^0-9]".toRegex(), "" )
-fun String?.extractUppers(): String = if( this.isNullOrEmpty() ) "" else this.replace( "[^A-Z]".toRegex(), "" )
-fun String?.extractLowers(): String = if( this.isNullOrEmpty() ) "" else this.replace( "[^a-z]".toRegex(), "" )
+fun String?.extractDigit(): String  = if( this.isNullOrEmpty() ) "" else this.replace(REGEX_EXTRACT_DIGIT, "")
+fun String?.extractUppers(): String = if( this.isNullOrEmpty() ) "" else this.replace(REGEX_EXTRACT_UPPER, "")
+fun String?.extractLowers(): String = if( this.isNullOrEmpty() ) "" else this.replace(REGEX_EXTRACT_LOWER, "")
 
+fun String?.removeSpace(includeLineBreaker: Boolean = false): String =
+    if (this.isNullOrEmpty()) "" else this.replace((includeLineBreaker) then REGEX_SPACE_ENTER ?: REGEX_SPACE, "")
 
 fun String?.tokenize(delimiter: String, returnDelimiter: Boolean = false): List<String> {
     if( this.isNullOrEmpty() ) return emptyList()
