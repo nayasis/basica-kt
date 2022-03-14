@@ -126,6 +126,16 @@ class Command {
         return run({print(it)},{System.err.print(it)})
     }
 
+    /**
+     * capture command's execution output
+     *
+     * @param timeout max wait time (milli-seconds)
+     * @return output
+     */
+    fun captureOutput(timeout: Long = -1): List<String> {
+        return CommandExecutor().captureOutput(this,timeout)
+    }
+
 }
 
 private const val SINGLE = "\'"
