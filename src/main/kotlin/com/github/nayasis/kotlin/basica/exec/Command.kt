@@ -118,7 +118,7 @@ class Command {
 
     /**
      * run command
-     * - print stream to System.out and System.err
+     * - print output stream to System.out or System.err
      *
      * @param command   command to execute
      */
