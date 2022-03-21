@@ -3,11 +3,9 @@
 
 package com.github.nayasis.kotlin.basica.core.path
 
-import com.github.nayasis.kotlin.basica.core.klass.Classes
 import com.github.nayasis.kotlin.basica.core.string.invariantSeparators
 import com.github.nayasis.kotlin.basica.core.string.toFile
 import com.github.nayasis.kotlin.basica.core.string.toPath
-import com.github.nayasis.kotlin.basica.core.url.toFile
 import org.mozilla.universalchardet.UniversalDetector
 import java.io.*
 import java.net.URI
@@ -15,11 +13,7 @@ import java.net.URL
 import java.nio.charset.Charset
 import java.nio.file.*
 import java.nio.file.StandardOpenOption.APPEND
-import java.nio.file.attribute.BasicFileAttributes
-import java.nio.file.attribute.FileAttribute
-import java.nio.file.attribute.FileTime
-import java.nio.file.attribute.PosixFilePermission
-import java.nio.file.attribute.UserPrincipal
+import java.nio.file.attribute.*
 import java.util.stream.Stream
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
@@ -30,8 +24,13 @@ import kotlin.streams.toList
 
 const val FOLDER_SEPARATOR_UNIX    = '/'
 const val FOLDER_SEPARATOR_WINDOWS = '\\'
-
 val FOLDER_SEPARATOR = File.separatorChar
+
+val pathUserHome: Path
+    get() = System.getProperty("user.home").toPath()
+
+val pathRoot: Path
+    get() = Paths.get("").toAbsolutePath()
 
 val Path.name: String
     get() = fileName?.toString().orEmpty()
@@ -149,35 +148,35 @@ private object PathRelativizer {
     }
 }
 
-fun Path.exists(vararg options: LinkOption): Boolean = Files.exists(this, *options)
-fun Path.notExists(vararg options: LinkOption): Boolean = Files.notExists(this, *options)
-fun Path.isRegularFile(vararg options: LinkOption): Boolean = Files.isRegularFile(this, *options)
-fun Path.isFile(vararg options: LinkOption): Boolean = Files.isRegularFile(this, *options)
-fun Path.isDirectory(vararg options: LinkOption): Boolean = Files.isDirectory(this, *options)
+fun Path?.exists(vararg options: LinkOption): Boolean = this != null && Files.exists(this, *options)
+fun Path?.notExists(vararg options: LinkOption): Boolean = this == null || Files.notExists(this, *options)
+fun Path?.isRegularFile(vararg options: LinkOption): Boolean = this != null && Files.isRegularFile(this, *options)
+fun Path?.isFile(vararg options: LinkOption): Boolean = this != null && Files.isRegularFile(this, *options)
+fun Path?.isDirectory(vararg options: LinkOption): Boolean = this != null && Files.isDirectory(this, *options)
 
-fun Path.isSymbolicLink(): Boolean = Files.isSymbolicLink(this)
-fun Path.isExecutable(): Boolean = Files.isExecutable(this)
-fun Path.isHidden(): Boolean = Files.isHidden(this)
-fun Path.isReadable(): Boolean = Files.isReadable(this)
-fun Path.isWritable(): Boolean = Files.isWritable(this)
-fun Path.isSameFile(other: Path): Boolean = Files.isSameFile(this,other)
-fun Path.fileSize(): Long = Files.size(this)
-fun Path.fileStore(): FileStore = Files.getFileStore(this)
+fun Path?.isSymbolicLink(): Boolean = this != null && Files.isSymbolicLink(this)
+fun Path?.isExecutable(): Boolean = this != null && Files.isExecutable(this)
+fun Path?.isHidden(): Boolean = this != null && Files.isHidden(this)
+fun Path?.isReadable(): Boolean = this != null && Files.isReadable(this)
+fun Path?.isWritable(): Boolean = this != null && Files.isWritable(this)
+fun Path?.isSameFile(other: Path): Boolean = this != null && Files.isSameFile(this,other)
+fun Path?.fileSize(): Long = Files.size(this)
+fun Path?.fileStore(): FileStore = Files.getFileStore(this)
 
-fun Path.attribute(key: String, vararg options: LinkOption): Any? = Files.getAttribute(this,key,*options)
-fun Path.attribute(key: String, value: Any?, vararg options: LinkOption): Any? = Files.setAttribute(this,key,value,*options)
-inline fun <reified T:BasicFileAttributes> Path.attributes(vararg options: LinkOption): T = Files.readAttributes(this,T::class.java,*options)
-fun Path.lastModifiedTime(vararg options: LinkOption): FileTime = Files.getLastModifiedTime(this,*options)
-fun Path.lastModifiedTime(time: FileTime) = Files.setLastModifiedTime(this,time)
-fun Path.lastModifiedTime(time: Long) = Files.setLastModifiedTime(this, FileTime.fromMillis(time))
-fun Path.owner(vararg options: LinkOption): UserPrincipal? = Files.getOwner(this,*options)
-fun Path.owner(owner: UserPrincipal): Path = Files.setOwner(this,owner)
-fun Path.permissions(vararg options: LinkOption): Set<PosixFilePermission> = Files.getPosixFilePermissions(this,*options)
-fun Path.permissions(permissions: Set<PosixFilePermission>): Path = Files.setPosixFilePermissions(this,permissions)
+fun Path.getAttribute(key: String, vararg options: LinkOption): Any? = Files.getAttribute(this,key,*options)
+fun Path.setAttribute(key: String, value: Any?, vararg options: LinkOption): Any? = Files.setAttribute(this,key,value,*options)
+inline fun <reified T:BasicFileAttributes> Path.getAttributes(vararg options: LinkOption): T = Files.readAttributes(this,T::class.java,*options)
+fun Path.getLastModifiedTime(vararg options: LinkOption): FileTime = Files.getLastModifiedTime(this,*options)
+fun Path.setLastModifiedTime(time: FileTime): Path = Files.setLastModifiedTime(this,time)
+fun Path.setLastModifiedTime(time: Long): Path = Files.setLastModifiedTime(this, FileTime.fromMillis(time))
+fun Path.getOwner(vararg options: LinkOption): UserPrincipal? = Files.getOwner(this,*options)
+fun Path.setOwner(owner: UserPrincipal): Path = Files.setOwner(this,owner)
+fun Path.getPermissions(vararg options: LinkOption): Set<PosixFilePermission> = Files.getPosixFilePermissions(this,*options)
+fun Path.setPermissions(permissions: Set<PosixFilePermission>): Path = Files.setPosixFilePermissions(this,permissions)
 
 fun Path.makeDir(vararg attributes: FileAttribute<*>): Path = Files.createDirectories(this, *attributes)
-fun Path.makeHardLink(target: Path) = Files.createLink(this,target)
-fun Path.makeSymbolicLink(target: Path, vararg attributes: FileAttribute<*>) = Files.createSymbolicLink(this,target,*attributes)
+fun Path.makeHardLink(target: Path): Path = Files.createLink(this,target)
+fun Path.makeSymbolicLink(target: Path, vararg attributes: FileAttribute<*>): Path = Files.createSymbolicLink(this,target,*attributes)
 fun Path.readSymbolicLink(): Path = Files.readSymbolicLink(this)
 
 fun Path.makeFile(vararg attributes: FileAttribute<*>): Path {
@@ -211,24 +210,28 @@ fun Path.delete(recursive: Boolean = true): Boolean {
  */
 fun Path.touch(): Boolean {
     return try {
-        lastModifiedTime( System.currentTimeMillis() )
+        setLastModifiedTime( System.currentTimeMillis() )
         true
     } catch (e: Exception) {
         false
     }
 }
 
-fun makeTempFile(directory: Path?, prefix: String? = null, suffix: String? = null, vararg attributes: FileAttribute<*>): Path =
-    if( directory != null )
-        Files.createTempFile(directory, prefix, suffix, *attributes)
-    else
+fun Path?.makeTempFile(prefix: String? = null, suffix: String? = null, vararg attributes: FileAttribute<*>): Path {
+    return if(this.isDirectory()) {
+        Files.createTempFile(this, prefix, suffix, *attributes)
+    } else {
         Files.createTempFile(prefix, suffix, *attributes)
+    }
+}
 
-fun makeTempDirectory(directory: Path?, prefix: String? = null, vararg attributes: FileAttribute<*>): Path =
-    if( directory != null )
-        Files.createTempDirectory(directory, prefix, *attributes)
-    else
+fun Path?.makeTempDirectory(prefix: String? = null, vararg attributes: FileAttribute<*>): Path {
+    return if(this.isDirectory()) {
+        Files.createTempDirectory(this, prefix, *attributes)
+    } else {
         Files.createTempDirectory(prefix, *attributes)
+    }
+}
 
 fun Path.copy(target: Path, overwrite: Boolean = true, vararg options: CopyOption): Path {
     if( this.notExists() )
@@ -327,9 +330,9 @@ fun Path.copyTree(target: Path, overwrite: Boolean = true, vararg options: CopyO
  * </pre>
  * @param includeFile       include file
  * @param includeDirectory  include directory
- * @param action            specific action when matched path found
+ * @param filter            specific action when matched path found
  */
-fun Path.find(glob: String = "*", depth: Int = -1, includeFile: Boolean = true, includeDirectory: Boolean = true, action: (Path) -> Unit ): Stream<Path> {
+fun Path.findToStream(glob: String = "*", depth: Int = -1, includeFile: Boolean = true, includeDirectory: Boolean = true): Stream<Path> {
     var matcher = FileSystems.getDefault().getPathMatcher("glob:$glob")
     return Files.walk(this, if(depth < 0) Int.MAX_VALUE else depth + 1 ).filter{ it: Path? ->
         when {
@@ -338,10 +341,7 @@ fun Path.find(glob: String = "*", depth: Int = -1, includeFile: Boolean = true, 
             ! matcher.matches(it.fileName) -> false
             ! includeFile && it.isFile() -> false
             ! includeDirectory && it.isDirectory() -> false
-            else -> {
-                action.invoke(it)
-                true
-            }
+            else -> true
         }
     }
 }
@@ -383,8 +383,8 @@ fun Path.find(glob: String = "*", depth: Int = -1, includeFile: Boolean = true, 
  * @param includeDirectory  include directory
  * @return  file or directory paths
  */
-fun Path.find(glob: String = "*", depth: Int = -1, includeFile: Boolean = true, includeDirectory: Boolean = true ): List<Path> =
-    find(glob,depth,includeFile,includeDirectory){}.toList()
+fun Path.find(glob: String = "*", depth: Int = -1, includeFile: Boolean = true, includeDirectory: Boolean = true): List<Path> =
+    findToStream(glob,depth,includeFile,includeDirectory).toList()
 
 /**
  * Resolves the given [other] path against this path.
@@ -457,15 +457,6 @@ fun <T> Path.readObject(): T? {
 fun Path.writeObject(any: Any?) = writeGzip {
     it.writeObject(any)
     it.flush()
-}
-
-fun userHome(): Path = System.getProperty("user.home").toPath()
-
-fun rootPath(): Path = Paths.get("").toAbsolutePath()
-
-fun rootPath(klass: KClass<*>): Path {
-    val location = Classes.getRootLocation(klass)
-    return location.toFile().toPath()
 }
 
 val KClass<*>.rootPath: Path
