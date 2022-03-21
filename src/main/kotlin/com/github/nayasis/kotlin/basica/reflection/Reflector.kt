@@ -40,7 +40,7 @@ class Reflector { companion object {
     private val mapper = createJsonMapper()
     private val nullMapper = createJsonMapper(ignoreNull = false)
 
-    private fun createJsonMapper(
+    fun createJsonMapper(
         ignoreNull: Boolean     = true,
         sort: Boolean           = false,
         skipJsonIgnore: Boolean = false,

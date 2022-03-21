@@ -1,6 +1,7 @@
 package com.github.nayasis.kotlin.basica.core.string
 
 import com.github.nayasis.kotlin.basica.core.collection.toUrlParam
+import com.github.nayasis.kotlin.basica.core.extention.isNotEmpty
 import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
 import mu.KotlinLogging
 import org.junit.jupiter.api.Assertions.*
@@ -167,6 +168,19 @@ internal class StringsTest {
         assertEquals(1.0, "".similarity(""))
         assertEquals(0.0, "".similarity("A"))
         assertTrue( "ABCDEFG".similarity("CDEF").let { 0.5 < it && it < 0.6 } )
+    }
+
+    @Test
+    fun `find resources`() {
+
+        val resources = "/message/*.prop".toResources()
+        println( resources )
+        assertTrue(resources.isNotEmpty(), "there are no resources.")
+
+        val resource = "message/message.en.prop".toResource()
+        println(resource)
+        assertTrue(resource.isNotEmpty(), "there are no resource.")
+
     }
 
 }

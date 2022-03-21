@@ -2,6 +2,7 @@ package com.github.nayasis.kotlin.basica.model
 
 import com.github.nayasis.kotlin.basica.core.character.fontwidth
 import com.github.nayasis.kotlin.basica.core.character.repeat
+import com.github.nayasis.kotlin.basica.core.string.displaySubstr
 import com.github.nayasis.kotlin.basica.core.string.dpadEnd
 import com.github.nayasis.kotlin.basica.core.string.dpadStart
 import kotlin.math.ceil
@@ -19,9 +20,7 @@ private fun toString(value: Any?, maxWidth: Int): String {
         is Map<*, *> -> if (value.isEmpty()) return "{}"
         is Collection<*> -> if (value.isEmpty()) return "[]"
     }
-    return value.toString().let {
-        it.substring(0,min(maxWidth,it.length))
-    }
+    return value.toString().displaySubstr(0,maxWidth)
 }
 
 private fun toDisplayString(value: Any?, maxWidth: Int): String {
@@ -38,7 +37,7 @@ private fun toDisplayString(value: Any?, maxWidth: Int): String {
         }
 
         if( size + w > maxWidth )
-            return "${sb.substring(0, maxWidth.toInt()-(4-round(w).toInt()))}..."
+            return "${sb.substring(0, maxWidth -(4-round(w).toInt()))}..."
 
         size += w
         sb.append( when(c) {
