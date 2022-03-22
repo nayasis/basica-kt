@@ -1,8 +1,7 @@
 package com.github.nayasis.kotlin.basica.model
 
+import com.github.nayasis.kotlin.basica.core.path.Paths
 import com.github.nayasis.kotlin.basica.core.path.div
-import com.github.nayasis.kotlin.basica.core.path.pathRoot
-import com.github.nayasis.kotlin.basica.core.path.rootPath
 import com.github.nayasis.kotlin.basica.core.string.bind
 import com.github.nayasis.kotlin.basica.core.string.message
 import mu.KotlinLogging
@@ -23,7 +22,7 @@ internal class MessagesTest {
     @Test
     fun `load from file`() {
 
-        val path = pathRoot / "build/resources/test/message/message.en.prop"
+        val path = Paths.applicationRoot / "build/resources/test/message/message.en.prop"
 
         Messages.loadFromFile(path)
 

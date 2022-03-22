@@ -1,8 +1,9 @@
 @file:JvmMultifileClass
-@file:JvmName("Paths")
 
 package com.github.nayasis.kotlin.basica.core.path
 
+import com.github.nayasis.kotlin.basica.core.path.Paths.Companion.FOLDER_SEPARATOR_UNIX
+import com.github.nayasis.kotlin.basica.core.path.Paths.Companion.FOLDER_SEPARATOR_WINDOWS
 import com.github.nayasis.kotlin.basica.core.string.invariantSeparators
 import com.github.nayasis.kotlin.basica.core.string.toFile
 import com.github.nayasis.kotlin.basica.core.string.toPath
@@ -14,6 +15,7 @@ import java.nio.charset.Charset
 import java.nio.file.*
 import java.nio.file.StandardOpenOption.APPEND
 import java.nio.file.attribute.*
+import java.nio.file.spi.FileSystemProvider
 import java.util.stream.Stream
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
@@ -22,15 +24,62 @@ import kotlin.io.path.inputStream
 import kotlin.reflect.KClass
 import kotlin.streams.toList
 
-const val FOLDER_SEPARATOR_UNIX    = '/'
-const val FOLDER_SEPARATOR_WINDOWS = '\\'
-val FOLDER_SEPARATOR = File.separatorChar
+class Paths { companion object {
 
-val pathUserHome: Path
-    get() = System.getProperty("user.home").toPath()
+    val FOLDER_SEPARATOR = File.separatorChar
+    const val FOLDER_SEPARATOR_UNIX    = '/'
+    const val FOLDER_SEPARATOR_WINDOWS = '\\'
 
-val pathRoot: Path
-    get() = Paths.get("").toAbsolutePath()
+    fun get(first: String, vararg more: String): Path =
+        FileSystems.getDefault().getPath(first.trim(),*more)
+
+    fun get(uri: URI): Path {
+        val scheme = uri.scheme ?: throw IllegalArgumentException("Missing scheme")
+        if(scheme.equals("file",ignoreCase=true))
+            return FileSystems.getDefault().provider().getPath(uri)
+        for(provider in FileSystemProvider.installedProviders()) {
+            if(provider.scheme.equals(scheme,ignoreCase=true))
+                return provider.getPath(uri)
+        }
+        throw FileSystemNotFoundException("Provider \"$scheme\" not installed")
+    }
+
+    val userHome: Path
+        get() = System.getProperty("user.home").toPath()
+
+    val applicationRoot: Path
+        get() = get("").toAbsolutePath()
+
+    /**
+     * create an empty file in the default temporary directory (vary by OS).
+     *
+     * @param directory base directory in which to create file (default: OS's default temporary directory)
+     * @param prefix temporary file's prefix name
+     * @param suffix temporary file's suffix name
+     * @param attributes attribute options to create file
+     * @return temporary file
+     */
+    fun makeTempFile(directory: Path? = null, prefix: String? = null, suffix: String? = null, vararg attributes: FileAttribute<*>): Path =
+        if(directory != null)
+            Files.createTempFile(directory, prefix, suffix, *attributes)
+        else
+            Files.createTempFile(prefix, suffix, *attributes)
+
+    /**
+     * create a empty directory in the default temporary directory (vary by OS).
+     *
+     * @param directory base directory in which to create directory (default: OS's default temporary directory)
+     * @param prefix temporary directory's prefix name
+     * @param attributes attribute options to create directory
+     * @return temporary directory
+     */
+    fun makeTempDirectory(directory: Path? = null, prefix: String? = null, vararg attributes: FileAttribute<*>): Path =
+        if(directory != null)
+            Files.createTempDirectory(directory, prefix, *attributes)
+        else
+            Files.createTempDirectory(prefix, *attributes)
+
+}}
 
 val Path.name: String
     get() = fileName?.toString().orEmpty()
@@ -214,22 +263,6 @@ fun Path.touch(): Boolean {
         true
     } catch (e: Exception) {
         false
-    }
-}
-
-fun Path?.makeTempFile(prefix: String? = null, suffix: String? = null, vararg attributes: FileAttribute<*>): Path {
-    return if(this.isDirectory()) {
-        Files.createTempFile(this, prefix, suffix, *attributes)
-    } else {
-        Files.createTempFile(prefix, suffix, *attributes)
-    }
-}
-
-fun Path?.makeTempDirectory(prefix: String? = null, vararg attributes: FileAttribute<*>): Path {
-    return if(this.isDirectory()) {
-        Files.createTempDirectory(this, prefix, *attributes)
-    } else {
-        Files.createTempDirectory(prefix, *attributes)
     }
 }
 
@@ -417,13 +450,13 @@ operator fun Path.plus(other: String): Path = resolve(other.trim().replace("^[\\
 /**
  * Converts the provided [path] string to a [Path] object of the [default][FileSystems.getDefault] filesystem.
  */
-fun Path(path: String): Path = Paths.get(path.trim())
+fun Path(path: String): Path = Paths.get(path)
 
 /**
  * Converts the name sequence specified with the [base] path string and a number of [more] additional names
  * to a [Path] object of the [default][FileSystems.getDefault] filesystem.
  */
-fun Path(base: String, vararg more: String): Path = Paths.get(base.trim(), *more)
+fun Path(base: String, vararg more: String): Path = Paths.get(base, *more)
 
 /**
  * Converts this URI to a [Path] object.
