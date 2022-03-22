@@ -11,41 +11,40 @@ internal class CommandExecutorTest {
 
     @Test
     fun notepad() {
-        CommandExecutor().run("cmd /c start notepad")
+        Command("cmd /c start notepad").run()
     }
 
     @Test
     fun excelAsync() {
-        CommandExecutor().run("cmd.exe /c start excel.exe").waitFor()
+        Command("cmd.exe /c start excel.exe").run().waitFor()
         println(">> Done!!")
     }
 
     @Test
     fun excelSync() {
-        CommandExecutor().run("cmd.exe /c start /wait excel.exe").waitFor()
+        Command("cmd.exe /c start /wait excel.exe").run().waitFor()
         println(">> Done!!")
     }
 
     @Test
     fun runExcel() {
-        CommandExecutor().run("c:\\Program Files (x86)\\Microsoft Office\\Office15\\EXCEL.EXE").waitFor()
+        Command("c:\\Program Files (x86)\\Microsoft Office\\Office15\\EXCEL.EXE").run().waitFor()
         println(">> Done!!")
     }
 
     @Test
     fun preventDoubleExecution() {
         assertThrows(IllegalAccessException::class.java) {
-            val executor = CommandExecutor()
             val path = "c:\\Program Files (x86)\\Microsoft Office\\Office15\\EXCEL.EXE"
-            executor.run(path)
-            executor.run(path)
+            Command(path).run()
+            Command(path).run()
         }
     }
 
     @Test
     fun readDir() {
         val out = StringBuffer()
-        CommandExecutor().run("cmd /c c: && cd \"c:\\Windows\" && dir",out).waitFor()
+        Command("cmd /c c: && cd \"c:\\Windows\" && dir").run(out).waitFor()
         println(out)
         assertTrue(out.isNotEmpty())
     }
@@ -62,7 +61,7 @@ internal class CommandExecutorTest {
     fun communication() {
 
         val out = StringBuffer()
-        val executor = CommandExecutor().run("cmd",out)
+        val executor = Command("cmd").run(out)
 
         executor.sendCommand("c:")
         executor.sendCommand("cd c:\\Users")
@@ -80,7 +79,7 @@ internal class CommandExecutorTest {
 
         val out = StringBuffer()
 
-        CommandExecutor().run("cmd /c c: && cd \"c:\\Windows\" && dir") { out.append(it) }.waitFor()
+        Command("cmd /c c: && cd \"c:\\Windows\" && dir").run { out.append(it) }.waitFor()
 
         println(out)
         assertTrue(out.isNotEmpty())
@@ -90,7 +89,7 @@ internal class CommandExecutorTest {
     @Test
     fun openEmail() {
         val addr = "mailto:nayasis@gmail.com?subject=merong"
-        CommandExecutor().run("explorer \"${addr}\"").waitFor()
+        Command("explorer \"${addr}\"").run().waitFor()
     }
 
 
@@ -101,7 +100,7 @@ internal class CommandExecutorTest {
         val command = "${cd}/chdman.exe createcd -f -i ${cd}/disc.cue -o ${cd}/disc.chd"
 
         thread(true) {
-            CommandExecutor().run(command,{txt -> print(txt)},{txt -> print(txt)}).waitFor()
+            Command(command).run({txt -> print(txt)},{txt -> print(txt)}).waitFor()
 //            CommandExecutor().runOnSystemOut(command).waitFor()
         }
 

@@ -1,7 +1,7 @@
 package com.github.nayasis.kotlin.basica.core.resource.util
 
-import com.github.nayasis.kotlin.basica.core.path.FOLDER_SEPARATOR_UNIX
-import com.github.nayasis.kotlin.basica.core.path.FOLDER_SEPARATOR_WINDOWS
+import com.github.nayasis.kotlin.basica.core.path.Paths.Companion.FOLDER_SEPARATOR_UNIX
+import com.github.nayasis.kotlin.basica.core.path.Paths.Companion.FOLDER_SEPARATOR_WINDOWS
 import java.util.*
 
 object PathModifier {
@@ -26,7 +26,7 @@ object PathModifier {
             }
         }
         if (pathToUse.startsWith(FOLDER_SEPARATOR_UNIX)) {
-            prefix = prefix + FOLDER_SEPARATOR_UNIX
+            prefix += FOLDER_SEPARATOR_UNIX
             pathToUse = pathToUse.substring(1)
         }
         val pathArray = pathToUse.split(FOLDER_SEPARATOR_UNIX)

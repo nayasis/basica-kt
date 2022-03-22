@@ -39,16 +39,16 @@ internal class StopWatchTest {
         val stopWatch = StopWatch()
 
         sleep(100)
+        log.debug { stopWatch.elapsedSeconds }
         assertTrue( stopWatch.elapsedMillis > 100 )
-        log.debug { stopWatch.elapsedSeconds }
 
         sleep(100)
+        log.debug { stopWatch.elapsedSeconds }
         assertTrue( stopWatch.elapsedMillis > 200 )
-        log.debug { stopWatch.elapsedSeconds }
 
         sleep(100)
-        assertTrue( stopWatch.elapsedMillis > 300 )
         log.debug { stopWatch.elapsedSeconds }
+        assertTrue( stopWatch.elapsedMillis > 300 )
 
     }
 

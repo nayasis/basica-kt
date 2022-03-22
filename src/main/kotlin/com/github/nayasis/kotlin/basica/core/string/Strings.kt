@@ -12,6 +12,8 @@ import com.github.nayasis.kotlin.basica.core.klass.Classes
 import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
 import com.github.nayasis.kotlin.basica.core.number.cast
 import com.github.nayasis.kotlin.basica.core.path.*
+import com.github.nayasis.kotlin.basica.core.path.Paths.Companion.FOLDER_SEPARATOR
+import com.github.nayasis.kotlin.basica.core.path.Paths.Companion.FOLDER_SEPARATOR_UNIX
 import com.github.nayasis.kotlin.basica.core.url.URLCodec
 import com.github.nayasis.kotlin.basica.model.Messages
 import com.github.nayasis.kotlin.basica.reflection.Reflector
@@ -85,7 +87,7 @@ fun String.toResource(): URL? = Classes.getResource(this)
 fun String.toResources(): List<URL> = Classes.findResources(this)
 
 fun String.invariantSeparators(): String {
-    return if ( FOLDER_SEPARATOR != '/' ) this.replace(FOLDER_SEPARATOR, '/') else this
+    return if(FOLDER_SEPARATOR != FOLDER_SEPARATOR_UNIX) this.replace(FOLDER_SEPARATOR, FOLDER_SEPARATOR_UNIX) else this
 }
 
 fun String?.glob(glob: String = "*", depth: Int = -1, includeFile: Boolean = true, includeDirectory: Boolean = true ): List<Path> {

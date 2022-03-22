@@ -118,12 +118,22 @@ class Command {
 
     /**
      * run command
-     * - print stream to System.out and System.err
+     * - print output stream to System.out or System.err
      *
      * @param command   command to execute
      */
     fun runOnSystemOut(): CommandExecutor {
         return run({print(it)},{System.err.print(it)})
+    }
+
+    /**
+     * capture command's execution output
+     *
+     * @param timeout max wait time (milli-seconds)
+     * @return output
+     */
+    fun captureOutput(timeout: Long = -1): List<String> {
+        return CommandExecutor().captureOutput(this,timeout)
     }
 
 }

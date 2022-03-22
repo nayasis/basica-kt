@@ -1,9 +1,9 @@
 package com.github.nayasis.kotlin.basica.exec
 
 import com.github.nayasis.kotlin.basica.core.extention.ifNotEmpty
-import com.github.nayasis.kotlin.basica.core.extention.isNotEmpty
 import com.github.nayasis.kotlin.basica.core.string.toFile
 import com.github.nayasis.kotlin.basica.etc.Platforms
+import com.github.nayasis.kotlin.basica.etc.error
 import mu.KotlinLogging
 import java.io.BufferedWriter
 import java.io.InputStream
@@ -119,55 +119,22 @@ class CommandExecutor {
     }
 
     /**
-     * run command
+     * capture command's execution output
      *
-     * @param command       command to execute
-     * @param outputReader  output stream line reader
-     * @param errorReader   error stream line reader
+     * @param command command to execute
+     * @param timeout max wait time (milli-seconds)
+     * @return output
      */
-    fun run(command: String, outputReader: ((String) -> Unit)? = {}, errorReader: ((String) -> Unit)? = {}): CommandExecutor {
-        return run(Command(command),outputReader,errorReader)
-    }
-
-    /**
-     * run command
-     *
-     * @param command       command to execute
-     * @param outputReader  output stream line reader (include error stream)
-     */
-    fun run(command: String, outputReader: (String) -> Unit): CommandExecutor {
-        return run(command,outputReader,outputReader)
-    }
-
-    /**
-     * run command
-     *
-     * @param command   command to execute
-     * @param output    printed output
-     * @param error     printed error
-     */
-    fun run(command: String, output: StringBuffer, error: StringBuffer): CommandExecutor {
-        return run(command,{output.append(it)}, {error.append(it)})
-    }
-
-    /**
-     * run command
-     *
-     * @param command   command to execute
-     * @param output    printed output (include error)
-     */
-    fun run(command: String, output: StringBuffer): CommandExecutor {
-        return run(command,output,output)
-    }
-
-    /**
-     * run command
-     * - print stream to System.out and System.err
-     *
-     * @param command   command to execute
-     */
-    fun runOnSystemOut(command: String): CommandExecutor {
-        return run(command,{print(it)},{System.err.print(it)})
+    fun captureOutput(command: Command, timeout: Long = -1): List<String> {
+        val lines = ArrayList<String>()
+        try {
+            run(command) { line ->
+                lines.add(line)
+            }.waitFor(timeout)
+        } catch (e: Exception) {
+            log.error(e)
+        }
+        return lines
     }
 
     /**

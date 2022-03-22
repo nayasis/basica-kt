@@ -13,7 +13,7 @@ private val log = KotlinLogging.logger {}
 
 internal class PathsTest {
 
-    val TEST_DIR = userHome() / "basica-file-test"
+    val TEST_DIR = Paths.userHome / "basica-file-test"
 
     @BeforeEach
     fun makeTemp() {
@@ -39,9 +39,9 @@ internal class PathsTest {
     @Test
     fun glob() {
 
-        val homeDir = userHome().invariantSeparators
+        val homeDir = Paths.userHome.invariantSeparators
 
-        homeDir.toPath().find("*",0) {
+        homeDir.toPath().findToStream("*",0).forEach {
             log.debug { it }
         }
     }
@@ -125,13 +125,19 @@ internal class PathsTest {
     @Test
     fun readLines() {
 
-        val path = rootPath() + "/build/resources/test/xml/Grammar.xml"
+        val path = Paths.userHome + "/build/resources/test/xml/Grammar.xml"
             log.debug { path }
 
-        val txt = path.readLines()
+        try {
+            path.writeText("AAA")
+
+            val txt = path.readLines()
             log.debug { txt }
 
-        assertFalse(txt.isEmpty())
+            assertFalse(txt.isEmpty())
+        } finally {
+            path.delete()
+        }
 
     }
 
@@ -285,7 +291,7 @@ internal class PathsTest {
     @Test
     fun last() {
 
-        rootPath().let {
+        Paths.applicationRoot.let {
             println( "${it}")
             println( "${it.first()}")
             println( "${it.last()}")
