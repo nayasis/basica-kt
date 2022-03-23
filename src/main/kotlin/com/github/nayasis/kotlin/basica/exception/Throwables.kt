@@ -2,8 +2,6 @@ package com.github.nayasis.kotlin.basica.exception
 
 import ch.qos.logback.classic.spi.ThrowableProxy
 import ch.qos.logback.classic.spi.ThrowableProxyUtil
-import java.io.PrintWriter
-import java.io.StringWriter
 
 private var enableLogback = true
 
@@ -11,7 +9,7 @@ fun Throwable.filterStackTrace(pattern: Regex? = null): Throwable {
     if( pattern == null ) return this
     val self = this
     return Throwable(message).apply {
-        stackTrace = self.stackTrace.filter { pattern.find("$it") != null }.toTypedArray()
+        stackTrace = self.stackTrace.filter { pattern.find("$it") == null }.toTypedArray()
         self.cause?.let { initCause(it.filterStackTrace(pattern)) }
     }
 }
