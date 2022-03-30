@@ -63,6 +63,8 @@ class CommandExecutor {
             command.workingDirectory?.toFile().ifNotEmpty { if(it.exists()) directory(it) }
         }
 
+        exitValue = null
+
         try {
             process = builder.start()
         } catch (e: Throwable) {
@@ -179,7 +181,6 @@ class CommandExecutor {
             }
         } catch (e: Throwable) {
             onProcessFailed?.let { it(e) }
-            return destroy()
         }
 
         try {
@@ -191,8 +192,10 @@ class CommandExecutor {
                 }
             }
         } finally {
-            return destroy()
+            destroy()
         }
+
+        return exitValue
 
     }
 
@@ -200,14 +203,12 @@ class CommandExecutor {
      * terminate process forcibly.
      * @return	process termination code ( 0 : success )
      */
-    fun destroy(): Int? {
-        exitValue = process?.exitValue()
+    fun destroy() {
         runCatching { process?.destroyForcibly() }; process = null
         runCatching { output?.interrupt() }; output = null
         runCatching { error?.interrupt() }; error = null
         runCatching { inputPipe?.close() }; inputPipe = null
         latch = null
-        return exitValue
     }
 
     /**
