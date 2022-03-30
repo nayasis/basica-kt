@@ -201,7 +201,6 @@ class CommandExecutor {
 
     /**
      * terminate process forcibly.
-     * @return	process termination code ( 0 : success )
      */
     fun destroy() {
         runCatching { process?.destroyForcibly() }; process = null
