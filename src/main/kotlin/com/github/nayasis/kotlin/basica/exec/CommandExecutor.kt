@@ -7,6 +7,7 @@ import com.github.nayasis.kotlin.basica.etc.error
 import mu.KotlinLogging
 import java.io.BufferedWriter
 import java.io.InputStream
+import java.io.OutputStream
 import java.io.OutputStreamWriter
 import java.security.InvalidParameterException
 import java.util.concurrent.CountDownLatch
@@ -39,6 +40,9 @@ class CommandExecutor {
 
     val errorStream: InputStream?
         get() = process?.errorStream
+
+    val inputStream: OutputStream?
+        get() = process?.outputStream
 
     /**
      * run command
