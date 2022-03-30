@@ -31,7 +31,7 @@ class CommandExecutor {
         get() {
             if(process == null) return null
             if(field == null)
-                field = BufferedWriter(OutputStreamWriter(process!!.outputStream, Platforms.os.charset))
+                field = BufferedWriter(OutputStreamWriter(inputStream, Platforms.os.charset))
             return field
         }
 
@@ -75,8 +75,8 @@ class CommandExecutor {
         latch = listOfNotNull(outputReader, errorReader).size.let { if(it > 0) CountDownLatch(it) else null }
 
         if( latch != null ) {
-            outputReader?.let { output = ProcessOutputThread(process!!.inputStream,it,latch!!).apply { start() } }
-            errorReader?.let { error = ProcessOutputThread(process!!.errorStream,it,latch!!).apply { start() } }
+            outputReader?.let { output = ProcessOutputThread(outputStream!!,it,latch!!).apply { start() } }
+            errorReader?.let { error = ProcessOutputThread(errorStream!!,it,latch!!).apply { start() } }
         }
 
         return this
