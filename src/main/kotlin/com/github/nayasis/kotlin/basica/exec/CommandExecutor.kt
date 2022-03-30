@@ -219,7 +219,6 @@ class CommandExecutor {
     fun sendCommand(command: String): Boolean {
         return inputPipe?.let {
             it.write(command)
-            it.write("\n")
             it.flush()
             true
         } ?: false
