@@ -3,8 +3,8 @@ package com.github.nayasis.kotlin.basica.model
 import com.fasterxml.jackson.core.type.TypeReference
 import com.github.nayasis.kotlin.basica.annotation.NoArg
 import com.github.nayasis.kotlin.basica.core.character.Characters
-import com.github.nayasis.kotlin.basica.core.localdate.toFormat
 import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
+import com.github.nayasis.kotlin.basica.core.localdate.toString
 import mu.KotlinLogging
 import org.junit.jupiter.api.Test
 
@@ -201,8 +201,8 @@ data class Person(
 data class ComplexVo(
     val name: String,
     val age: Int,
-    val birth: String = "2020-01-01".toLocalDateTime().minusDays(1000).toFormat("YYYY-MM-DD HH:MI:SS.FFF"),
+    val birth: String = "2020-01-01".toLocalDateTime().minusDays(1000).toString("YYYY-MM-DD HH:MI:SS.FFF"),
     val address: String = "매우매우 긴 주소입니다.",
-    val regDt: String = "2021-07-23".toLocalDateTime().toFormat("YYYY-MM-DD HH:MI:SS.FFF"),
-    val updDt: String = "2022-09-25".toLocalDateTime().toFormat("YYYY-MM-DD HH:MI:SS.FFF"),
+    val regDt: String = "2021-07-23".toLocalDateTime().toString("YYYY-MM-DD HH:MI:SS.FFF"),
+    val updDt: String = "2022-09-25".toLocalDateTime().toString("YYYY-MM-DD HH:MI:SS.FFF"),
 )
