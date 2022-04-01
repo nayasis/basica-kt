@@ -151,17 +151,27 @@ fun LocalDateTime.atEndOfDay(): LocalDateTime =
 
 fun LocalDate.atEndOfDay(): LocalDateTime = LocalDateTime.of(this, LocalTime.MAX)
 
-fun LocalDateTime.toFormat(format: String = ""): String =
+// format, toString
+
+fun LocalDateTime.format(format: String = ""): String =
     this.format( printFormat(format, ISO_LOCAL_DATE_TIME) )
 
-fun LocalDate.toFormat(format: String = ""): String =
+fun LocalDate.format(format: String = ""): String =
     this.format( printFormat(format, ISO_LOCAL_DATE) )
 
-fun Date.toFormat(format: String = "", zoneId: ZoneId = ZoneId.systemDefault()): String =
+fun Date.format(format: String = "", zoneId: ZoneId = ZoneId.systemDefault()): String =
     this.toLocalDateTime(zoneId).format( printFormat(format, ISO_LOCAL_DATE_TIME) )
 
-fun SqlDate.toFormat(format: String = ""): String =
+fun SqlDate.format(format: String = ""): String =
     this.toLocalDate().format( printFormat(format, ISO_LOCAL_DATE_TIME) )
+
+fun LocalDateTime.toString(format: String = ""): String = this.format(format)
+
+fun LocalDate.toString(format: String = ""): String = this.format(format)
+
+fun Date.toString(format: String = "", zoneId: ZoneId = ZoneId.systemDefault()): String = this.format(format)
+
+fun SqlDate.toString(format: String = ""): String = this.format(format)
 
 // [LocalDateTime -> LocalDate] is already exists.
 

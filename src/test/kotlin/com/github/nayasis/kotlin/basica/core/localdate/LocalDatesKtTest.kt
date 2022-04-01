@@ -19,21 +19,21 @@ internal class LocalDatesKtTest{
 
         val current = "2020-12-22 13:42:59".toLocalDateTime()
 
-        Assertions.assertEquals("2020-12-01", current.atStartOfMonth().toFormat("YYYY-MM-DD"))
-        Assertions.assertEquals("2020-12-31", current.atEndOfMonth().toFormat("YYYY-MM-DD"))
+        Assertions.assertEquals("2020-12-01", current.atStartOfMonth().format("YYYY-MM-DD"))
+        Assertions.assertEquals("2020-12-31", current.atEndOfMonth().format("YYYY-MM-DD"))
 
-        Assertions.assertEquals("2020-12-22 00:00:00", current.atStartOfDay().toFormat("YYYY-MM-DD HH:MI:SS"))
-        Assertions.assertEquals("2020-12-22 23:59:59", current.atEndOfDay().toFormat("YYYY-MM-DD HH:MI:SS"))
+        Assertions.assertEquals("2020-12-22 00:00:00", current.atStartOfDay().toString("YYYY-MM-DD HH:MI:SS"))
+        Assertions.assertEquals("2020-12-22 23:59:59", current.atEndOfDay().toString("YYYY-MM-DD HH:MI:SS"))
 
     }
 
     @Test
     fun offset() {
 
-        Assertions.assertEquals("2020-01-01T16:00:00", "2020-01-01 13:00:00 Z+0300".toLocalDateTime().toFormat())
-        Assertions.assertEquals("2020-01-01T16:00:00", "2020-01-01 13:00:00 Z+03:00".toLocalDateTime().toFormat())
-        Assertions.assertEquals("2020-01-01T16:00:00", "2020-01-01 13:00:00 +03:00".toLocalDateTime().toFormat())
-        Assertions.assertEquals("2020-01-01T16:00:00", "2020-01-01 13:00:00 +0300".toLocalDateTime().toFormat())
+        Assertions.assertEquals("2020-01-01T16:00:00", "2020-01-01 13:00:00 Z+0300".toLocalDateTime().format())
+        Assertions.assertEquals("2020-01-01T16:00:00", "2020-01-01 13:00:00 Z+03:00".toLocalDateTime().format())
+        Assertions.assertEquals("2020-01-01T16:00:00", "2020-01-01 13:00:00 +03:00".toLocalDateTime().format())
+        Assertions.assertEquals("2020-01-01T16:00:00", "2020-01-01 13:00:00 +0300".toLocalDateTime().format())
 
     }
 

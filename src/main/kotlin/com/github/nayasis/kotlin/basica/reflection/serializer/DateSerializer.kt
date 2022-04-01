@@ -7,13 +7,13 @@ import com.fasterxml.jackson.databind.DeserializationContext
 import com.fasterxml.jackson.databind.JsonDeserializer
 import com.fasterxml.jackson.databind.JsonSerializer
 import com.fasterxml.jackson.databind.SerializerProvider
+import com.github.nayasis.kotlin.basica.core.localdate.format
 import com.github.nayasis.kotlin.basica.core.localdate.toDate
-import com.github.nayasis.kotlin.basica.core.localdate.toFormat
 import java.util.*
 
 class DateSerializer: JsonSerializer<Date>() {
     override fun serialize(value: Date, generator: JsonGenerator, provider: SerializerProvider) {
-        provider.defaultSerializeValue( value.toFormat(), generator )
+        provider.defaultSerializeValue( value.format(), generator )
     }
 }
 

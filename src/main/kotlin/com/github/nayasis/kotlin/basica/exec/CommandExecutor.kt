@@ -7,6 +7,7 @@ import com.github.nayasis.kotlin.basica.etc.error
 import mu.KotlinLogging
 import java.io.BufferedWriter
 import java.io.InputStream
+import java.io.OutputStream
 import java.io.OutputStreamWriter
 import java.security.InvalidParameterException
 import java.util.concurrent.CountDownLatch
@@ -30,7 +31,7 @@ class CommandExecutor {
         get() {
             if(process == null) return null
             if(field == null)
-                field = BufferedWriter(OutputStreamWriter(process!!.outputStream, Platforms.os.charset))
+                field = BufferedWriter(OutputStreamWriter(inputStream, Platforms.os.charset))
             return field
         }
 
@@ -39,6 +40,9 @@ class CommandExecutor {
 
     val errorStream: InputStream?
         get() = process?.errorStream
+
+    val inputStream: OutputStream?
+        get() = process?.outputStream
 
     /**
      * run command
@@ -59,6 +63,8 @@ class CommandExecutor {
             command.workingDirectory?.toFile().ifNotEmpty { if(it.exists()) directory(it) }
         }
 
+        exitValue = null
+
         try {
             process = builder.start()
         } catch (e: Throwable) {
@@ -69,8 +75,8 @@ class CommandExecutor {
         latch = listOfNotNull(outputReader, errorReader).size.let { if(it > 0) CountDownLatch(it) else null }
 
         if( latch != null ) {
-            outputReader?.let { output = ProcessOutputThread(process!!.inputStream,it,latch!!).apply { start() } }
-            errorReader?.let { error = ProcessOutputThread(process!!.errorStream,it,latch!!).apply { start() } }
+            outputReader?.let { output = ProcessOutputThread(outputStream!!,it,latch!!).apply { start() } }
+            errorReader?.let { error = ProcessOutputThread(errorStream!!,it,latch!!).apply { start() } }
         }
 
         return this
@@ -175,7 +181,6 @@ class CommandExecutor {
             }
         } catch (e: Throwable) {
             onProcessFailed?.let { it(e) }
-            return destroy()
         }
 
         try {
@@ -187,23 +192,22 @@ class CommandExecutor {
                 }
             }
         } finally {
-            return destroy()
+            destroy()
         }
+
+        return exitValue
 
     }
 
     /**
      * terminate process forcibly.
-     * @return	process termination code ( 0 : success )
      */
-    fun destroy(): Int? {
-        exitValue = process?.exitValue()
+    fun destroy() {
         runCatching { process?.destroyForcibly() }; process = null
         runCatching { output?.interrupt() }; output = null
         runCatching { error?.interrupt() }; error = null
         runCatching { inputPipe?.close() }; inputPipe = null
         latch = null
-        return exitValue
     }
 
     /**
@@ -215,7 +219,6 @@ class CommandExecutor {
     fun sendCommand(command: String): Boolean {
         return inputPipe?.let {
             it.write(command)
-            it.write("\n")
             it.flush()
             true
         } ?: false

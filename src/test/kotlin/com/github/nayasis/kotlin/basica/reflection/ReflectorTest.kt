@@ -1,8 +1,8 @@
 package com.github.nayasis.kotlin.basica.reflection
 
 import com.github.nayasis.kotlin.basica.core.collection.toJson
+import com.github.nayasis.kotlin.basica.core.localdate.format
 import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
-import com.github.nayasis.kotlin.basica.core.localdate.toFormat
 import mu.KotlinLogging
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -32,7 +32,7 @@ internal class ReflectorTest {
         var obj1 = Reflector.toObject<Dummy>(json)
             println(obj1)
 
-        assertEquals( "2021-03-26T15:16:31.154", obj1.C.toFormat() )
+        assertEquals( "2021-03-26T15:16:31.154", obj1.C.format() )
 
     }
 
