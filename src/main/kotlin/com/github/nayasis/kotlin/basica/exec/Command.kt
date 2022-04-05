@@ -114,8 +114,12 @@ class Command {
      *
      * @param command   command to execute
      */
-    fun runOnSystemOut(): CommandExecutor {
-        return run({print(it)},{System.err.print(it)})
+    fun runOnSystemOut(redirectError: Boolean = true): CommandExecutor {
+        return if( redirectError ) {
+            run({print(it)},null)
+        } else {
+            run({print(it)},{System.err.print(it)})
+        }
     }
 
     /**
