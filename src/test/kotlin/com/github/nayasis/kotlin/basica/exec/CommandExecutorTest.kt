@@ -54,7 +54,7 @@ internal class CommandExecutorTest {
         val command = Command().apply {
             this.command.addAll(listOf("cmd", "/c", "c:", "&&", "cd", "c:\\Windows", "&&", "dir"))
         }
-        CommandExecutor().runOnSystemOut(command).waitFor()
+        command.runOnSystemOut().waitFor()
     }
 
     @Test
@@ -111,7 +111,7 @@ internal class CommandExecutorTest {
     @Test
     fun runNetworkExe() {
         val cmd = Command("\\\\NAS2\\emul\\_tool\\3DS\\decrypter\\3ds_decrypt_v4.exe", "\\\\NAS2\\emul\\_tool\\3DS\\decrypter")
-        CommandExecutor().run(cmd) { println(it) }
+        cmd.run() { println(it) }
     }
 
 }

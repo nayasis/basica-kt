@@ -4,6 +4,7 @@ import com.github.nayasis.kotlin.basica.core.extention.isNotEmpty
 import com.github.nayasis.kotlin.basica.core.path.isFile
 import com.github.nayasis.kotlin.basica.core.string.toPath
 import com.github.nayasis.kotlin.basica.core.string.tokenize
+import com.github.nayasis.kotlin.basica.etc.error
 
 /**
  * command line
@@ -52,7 +53,7 @@ class Command {
 
         var status = NONE
 
-        for( token in command.tokenize("${SINGLE}${DOUBLE}${SPACE.joinToString("")}", true) ) {
+        for( token in command.tokenize("${SINGLE}${DOUBLE}${SPACE}", true) ) {
             if( status != NONE || token !in SPACE)
                 buf.append(token)
             when(status) {
@@ -84,17 +85,8 @@ class Command {
      * @param outputReader  output stream line reader
      * @param errorReader   error stream line reader
      */
-    fun run(outputReader: ((String) -> Unit)? = {}, errorReader: ((String) -> Unit)? = {}): CommandExecutor {
-        return CommandExecutor().run(this,outputReader,errorReader)
-    }
-
-    /**
-     * run command
-     *
-     * @param outputReader  output stream line reader (include error stream)
-     */
-    fun run(outputReader: (String) -> Unit): CommandExecutor {
-        return run(outputReader,outputReader)
+    fun run(outputReader: ((line: String) -> Unit)? = null, errorReader: ((line: String) -> Unit)? = null): CommandExecutor {
+        return CommandExecutor(this,outputReader,errorReader)
     }
 
     /**
@@ -113,7 +105,7 @@ class Command {
      * @param output    printed output (include error)
      */
     fun run(output: StringBuffer): CommandExecutor {
-        return run(output,output)
+        return run({output.append(it)}, null)
     }
 
     /**
@@ -122,8 +114,12 @@ class Command {
      *
      * @param command   command to execute
      */
-    fun runOnSystemOut(): CommandExecutor {
-        return run({print(it)},{System.err.print(it)})
+    fun runOnSystemOut(redirectError: Boolean = true): CommandExecutor {
+        return if( redirectError ) {
+            run({print(it)},null)
+        } else {
+            run({print(it)},{System.err.print(it)})
+        }
     }
 
     /**
@@ -133,7 +129,9 @@ class Command {
      * @return output
      */
     fun captureOutput(timeout: Long = -1): List<String> {
-        return CommandExecutor().captureOutput(this,timeout)
+        val lines = ArrayList<String>()
+        run({line -> lines.add(line)},null).waitFor(timeout)
+        return lines
     }
 
 }
@@ -141,4 +139,4 @@ class Command {
 private const val SINGLE = "\'"
 private const val DOUBLE = "\""
 private const val NONE   = ""
-private val       SPACE  = listOf(" ","\t","\r","\n")
+private val       SPACE  = listOf(" ","\t","\r","\n").joinToString("")
