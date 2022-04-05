@@ -208,7 +208,7 @@ class CommandExecutor {
                 }
             }
         } finally {
-            close()
+            destroy()
         }
 
         return exitValue
@@ -218,7 +218,7 @@ class CommandExecutor {
     /**
      * terminate process forcibly.
      */
-    fun close() {
+    fun destroy() {
         runCatching { process?.destroyForcibly() }; process = null
         runCatching { output?.interrupt() }; output = null
         runCatching { error?.interrupt() }; error = null
