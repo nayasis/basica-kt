@@ -4,7 +4,6 @@ import com.github.nayasis.kotlin.basica.core.extention.isNotEmpty
 import com.github.nayasis.kotlin.basica.core.path.isFile
 import com.github.nayasis.kotlin.basica.core.string.toPath
 import com.github.nayasis.kotlin.basica.core.string.tokenize
-import com.github.nayasis.kotlin.basica.etc.error
 
 /**
  * command line
@@ -82,18 +81,29 @@ class Command {
     /**
      * run command
      *
-     * @param outputReader  output stream line reader
-     * @param errorReader   error stream line reader
+     * @param redirect      use inherit redirect by reader setting
+     * @param outputReader  output reader
+     * @param errorReader   error reader
      */
-    fun run(outputReader: ((line: String) -> Unit)? = null, errorReader: ((line: String) -> Unit)? = null): CommandExecutor {
-        return CommandExecutor(this,outputReader,errorReader)
+    fun run(redirect: Boolean, outputReader: ((line: String) -> Unit)? = null, errorReader: ((line: String) -> Unit)? = null): CommandExecutor {
+        return CommandExecutor(this, redirect,outputReader,errorReader)
     }
 
     /**
      * run command
      *
-     * @param output    printed output
-     * @param error     printed error
+     * @param outputReader  output reader
+     * @param errorReader   error reader
+     */
+    fun run(outputReader: ((line: String) -> Unit)? = null, errorReader: ((line: String) -> Unit)? = null): CommandExecutor {
+        return CommandExecutor(this, true,outputReader,errorReader)
+    }
+
+    /**
+     * run command
+     *
+     * @param output printed output
+     * @param error  printed error
      */
     fun run(output: StringBuffer, error: StringBuffer): CommandExecutor {
         return run({output.append(it)}, {error.append(it)})
@@ -102,23 +112,20 @@ class Command {
     /**
      * run command
      *
-     * @param output    printed output (include error)
+     * @param output printed output (include error)
      */
     fun run(output: StringBuffer): CommandExecutor {
         return run({output.append(it)}, null)
     }
 
     /**
-     * run command
-     * - print output stream to System.out or System.err
-     *
-     * @param command   command to execute
+     * run command with printing output to System.out and System.err
      */
     fun runOnSystemOut(redirectError: Boolean = true): CommandExecutor {
         return if( redirectError ) {
-            run({print(it)},null)
+            run(true,{print(it)},null)
         } else {
-            run({print(it)},{System.err.print(it)})
+            run(true,{print(it)},{System.err.print(it)})
         }
     }
 
