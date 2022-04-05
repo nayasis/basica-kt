@@ -59,10 +59,11 @@ class CommandExecutor {
      * run command
      *
      * @param command       command to execute
-     * @param outputReader  output stream line reader
-     * @param errorReader   error stream line reader
+     * @param redirect      use inherit redirect by reader setting
+     * @param outputReader  output reader
+     * @param errorReader   error reader
      */
-    constructor(command: Command, outputReader: ((String) -> Unit)? = null, errorReader: ((String) -> Unit)? = null) {
+    constructor(command: Command, redirect: Boolean = true, outputReader: ((String) -> Unit)? = null, errorReader: ((String) -> Unit)? = null) {
 
         if(command.isEmpty())
             throw InvalidParameterException("command is empty.")
@@ -73,14 +74,18 @@ class CommandExecutor {
 
             when {
                 outputReader == null && errorReader == null -> {
-                    redirectInput(ProcessBuilder.Redirect.INHERIT)
-                    redirectError(ProcessBuilder.Redirect.INHERIT)
+                    if(redirect) {
+                        redirectInput(ProcessBuilder.Redirect.INHERIT)
+                        redirectError(ProcessBuilder.Redirect.INHERIT)
+                    }
                 }
                 outputReader != null -> {
                     redirectErrorStream(true)
                 }
                 errorReader != null -> {
-                    redirectInput(ProcessBuilder.Redirect.INHERIT)
+                    if(redirect) {
+                        redirectInput(ProcessBuilder.Redirect.INHERIT)
+                    }
                 }
             }
 
@@ -92,43 +97,18 @@ class CommandExecutor {
 
         when {
             outputReader != null && errorReader != null -> {
-                outputReader.let { outputGobbler = ProcessOutputThread(output!!,it,latch!!).apply { start() } }
-                errorReader.let { errorGobbler = ProcessOutputThread(error!!,it,latch!!).apply { start() } }
+                outputReader.let { outputGobbler = ProcessOutputThread(output,it,latch!!).apply { start() } }
+                errorReader.let { errorGobbler = ProcessOutputThread(error,it,latch!!).apply { start() } }
             }
             outputReader != null -> {
-                outputReader.let { outputGobbler = ProcessOutputThread(output!!,it,latch!!).apply { start() } }
+                outputReader.let { outputGobbler = ProcessOutputThread(output,it,latch!!).apply { start() } }
             }
             errorReader != null -> {
-                errorReader.let { errorGobbler = ProcessOutputThread(error!!,it,latch!!).apply { start() } }
+                errorReader.let { errorGobbler = ProcessOutputThread(error,it,latch!!).apply { start() } }
             }
         }
 
     }
-
-    /**
-     * run command
-     *
-     * @param command       command to execute
-     * @param outputReader  output stream line reader (include error stream)
-     */
-    constructor(command: Command, outputReader: (String) -> Unit): this(command,outputReader,null)
-
-    /**
-     * run command
-     *
-     * @param command   command to execute
-     * @param output    printed output
-     * @param error     printed error
-     */
-    constructor(command: Command, output: StringBuffer, error: StringBuffer): this(command,{output.append(it)}, {error.append(it)})
-
-    /**
-     * run command
-     *
-     * @param command   command to execute
-     * @param output    printed output (include error)
-     */
-    constructor(command: Command, output: StringBuffer): this(command,{output.append(it)}, null)
 
     /**
      * process is alive or not
