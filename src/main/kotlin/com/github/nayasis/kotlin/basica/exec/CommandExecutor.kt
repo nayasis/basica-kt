@@ -3,7 +3,6 @@ package com.github.nayasis.kotlin.basica.exec
 import com.github.nayasis.kotlin.basica.core.extention.ifNotEmpty
 import com.github.nayasis.kotlin.basica.core.string.toFile
 import com.github.nayasis.kotlin.basica.etc.Platforms
-import com.github.nayasis.kotlin.basica.etc.error
 import mu.KotlinLogging
 import java.io.BufferedWriter
 import java.io.InputStream
@@ -23,42 +22,38 @@ class CommandExecutor {
     /**
      * native process
      */
-    var process: Process? = null
+    var process: Process
+        private set
 
-    /**
-     * function executed on process failure.
-     */
-    var onProcessFailed: ((Throwable)->Unit)? = null
-
-    private var output: ProcessOutputThread? = null
-    private var error: ProcessOutputThread? = null
+    private var outputGobbler: ProcessOutputThread? = null
+    private var errorGobbler:  ProcessOutputThread? = null
     private var latch: CountDownLatch? = null
 
     private var inputPipe: BufferedWriter? = null
         get() {
             if(process == null) return null
             if(field == null)
-                field = BufferedWriter(OutputStreamWriter(inputStream, Platforms.os.charset))
+                field = BufferedWriter(OutputStreamWriter(input, Platforms.os.charset))
             return field
         }
 
     /**
      * normal output of process
      */
-    val outputStream: InputStream?
-        get() = process?.inputStream
+    val output: InputStream
+        get() = process.inputStream
 
     /**
      * error output of process
      */
-    val errorStream: InputStream?
-        get() = process?.errorStream
+    val error: InputStream
+        get() = process.errorStream
 
     /**
      * normal input stream of process
      */
-    val inputStream: OutputStream?
-        get() = process?.outputStream
+    val input: OutputStream
+        get() = process.outputStream
 
     /**
      * run command
@@ -67,35 +62,46 @@ class CommandExecutor {
      * @param outputReader  output stream line reader
      * @param errorReader   error stream line reader
      */
-    fun run(command: Command, outputReader: ((String) -> Unit)? = {}, errorReader: ((String) -> Unit)? = {}): CommandExecutor {
+    constructor(command: Command, outputReader: ((String) -> Unit)? = null, errorReader: ((String) -> Unit)? = null) {
 
-        if(alive)
-            throw IllegalAccessException("process is running.")
         if(command.isEmpty())
             throw InvalidParameterException("command is empty.")
 
         val builder = ProcessBuilder(command.command).apply {
             environment().putAll(command.environment)
             command.workingDirectory?.toFile().ifNotEmpty { if(it.exists()) directory(it) }
+
+            when {
+                outputReader == null && errorReader == null -> {
+                    redirectInput(ProcessBuilder.Redirect.INHERIT)
+                    redirectError(ProcessBuilder.Redirect.INHERIT)
+                }
+                outputReader != null -> {
+                    redirectErrorStream(true)
+                }
+                errorReader != null -> {
+                    redirectInput(ProcessBuilder.Redirect.INHERIT)
+                }
+            }
+
         }
 
-        exitValue = null
-
-        try {
-            process = builder.start()
-        } catch (e: Throwable) {
-            onProcessFailed?.let{it(e)}
-            throw e
-        }
+        process = builder.start()
 
         latch = listOfNotNull(outputReader, errorReader).size.let { if(it > 0) CountDownLatch(it) else null }
 
-        if( latch != null ) {
-            outputReader?.let { output = ProcessOutputThread(outputStream!!,it,latch!!).apply { start() } }
-            errorReader?.let { error = ProcessOutputThread(errorStream!!,it,latch!!).apply { start() } }
+        when {
+            outputReader != null && errorReader != null -> {
+                outputReader.let { outputGobbler = ProcessOutputThread(output!!,it,latch!!).apply { start() } }
+                errorReader.let { errorGobbler = ProcessOutputThread(error!!,it,latch!!).apply { start() } }
+            }
+            outputReader != null -> {
+                outputReader.let { outputGobbler = ProcessOutputThread(output!!,it,latch!!).apply { start() } }
+            }
+            errorReader != null -> {
+                errorReader.let { errorGobbler = ProcessOutputThread(error!!,it,latch!!).apply { start() } }
+            }
         }
-
-        return this
 
     }
 
@@ -105,9 +111,7 @@ class CommandExecutor {
      * @param command       command to execute
      * @param outputReader  output stream line reader (include error stream)
      */
-    fun run(command: Command, outputReader: (String) -> Unit): CommandExecutor {
-        return run(command,outputReader,outputReader)
-    }
+    constructor(command: Command, outputReader: (String) -> Unit): this(command,outputReader,null)
 
     /**
      * run command
@@ -116,9 +120,7 @@ class CommandExecutor {
      * @param output    printed output
      * @param error     printed error
      */
-    fun run(command: Command, output: StringBuffer, error: StringBuffer): CommandExecutor {
-        return run(command,{output.append(it)}, {error.append(it)})
-    }
+    constructor(command: Command, output: StringBuffer, error: StringBuffer): this(command,{output.append(it)}, {error.append(it)})
 
     /**
      * run command
@@ -126,38 +128,7 @@ class CommandExecutor {
      * @param command   command to execute
      * @param output    printed output (include error)
      */
-    fun run(command: Command, output: StringBuffer): CommandExecutor {
-        return run(command,output,output)
-    }
-
-    /**
-     * run command
-     * - print stream to System.out and System.err
-     *
-     * @param command   command to execute
-     */
-    fun runOnSystemOut(command: Command): CommandExecutor {
-        return run(command,{print(it)},{System.err.print(it)})
-    }
-
-    /**
-     * capture command's execution output
-     *
-     * @param command command to execute
-     * @param timeout max wait time (milli-seconds)
-     * @return output
-     */
-    fun captureOutput(command: Command, timeout: Long = -1): List<String> {
-        val lines = ArrayList<String>()
-        try {
-            run(command) { line ->
-                lines.add(line)
-            }.waitFor(timeout)
-        } catch (e: Exception) {
-            log.error(e)
-        }
-        return lines
-    }
+    constructor(command: Command, output: StringBuffer): this(command,{output.append(it)}, null)
 
     /**
      * process is alive or not
@@ -165,16 +136,10 @@ class CommandExecutor {
     val alive: Boolean
         get() = when {
             process?.isAlive == true -> true
-            output?.isAlive == true -> true
-            error?.isAlive == true -> true
+            outputGobbler?.isAlive == true -> true
+            errorGobbler?.isAlive == true -> true
             else -> false
         }
-
-    /**
-     * process termination code
-     */
-    var exitValue: Int? = null
-        private set
 
     /**
      * wait until process is closed.
@@ -182,24 +147,17 @@ class CommandExecutor {
      * @param timeout	max wait time (milli-seconds)
      * @return	process termination code ( 0 : success )
      */
-    fun waitFor(timeout: Long = -1): Int? {
-
-        if(!alive) return null
+    fun waitFor(timeout: Long = -1): Int {
 
         try {
-            process?.let {
+            process.let {
                 if( timeout < 0) {
                     it.waitFor()
                 } else {
                     it.waitFor(timeout,TimeUnit.MILLISECONDS)
                 }
-                exitValue = it.exitValue()
             }
-        } catch (e: Throwable) {
-            onProcessFailed?.let { it(e) }
-        }
 
-        try {
             latch?.let {
                 if(timeout < 0) {
                     it.await()
@@ -207,11 +165,11 @@ class CommandExecutor {
                     it.await(timeout,TimeUnit.MILLISECONDS)
                 }
             }
+
+            return process.exitValue()
         } finally {
             destroy()
         }
-
-        return exitValue
 
     }
 
@@ -219,13 +177,13 @@ class CommandExecutor {
      * terminate process forcibly.
      */
     fun destroy() {
-        runCatching { process?.destroyForcibly() }; process = null
-        runCatching { output?.interrupt() }; output = null
-        runCatching { error?.interrupt() }; error = null
+        runCatching { process.destroyForcibly() };
+        runCatching { outputGobbler?.interrupt() }; outputGobbler = null
+        runCatching { errorGobbler?.interrupt() }; errorGobbler = null
         runCatching { inputPipe?.close() }; inputPipe = null
-        runCatching { inputStream?.close() }
-        runCatching { outputStream?.close() }
-        runCatching { errorStream?.close() }
+        runCatching { input.close() }
+        runCatching { output.close() }
+        runCatching { error.close() }
         latch = null
     }
 
