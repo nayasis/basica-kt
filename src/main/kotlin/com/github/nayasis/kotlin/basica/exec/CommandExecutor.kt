@@ -20,7 +20,14 @@ private val log = KotlinLogging.logger {}
  */
 class CommandExecutor {
 
+    /**
+     * native process
+     */
     var process: Process? = null
+
+    /**
+     * function executed on process failure.
+     */
     var onProcessFailed: ((Throwable)->Unit)? = null
 
     private var output: ProcessOutputThread? = null
@@ -35,12 +42,21 @@ class CommandExecutor {
             return field
         }
 
+    /**
+     * normal output of process
+     */
     val outputStream: InputStream?
         get() = process?.inputStream
 
+    /**
+     * error output of process
+     */
     val errorStream: InputStream?
         get() = process?.errorStream
 
+    /**
+     * normal input stream of process
+     */
     val inputStream: OutputStream?
         get() = process?.outputStream
 
@@ -192,7 +208,7 @@ class CommandExecutor {
                 }
             }
         } finally {
-            destroy()
+            close()
         }
 
         return exitValue
@@ -202,11 +218,14 @@ class CommandExecutor {
     /**
      * terminate process forcibly.
      */
-    fun destroy() {
+    fun close() {
         runCatching { process?.destroyForcibly() }; process = null
         runCatching { output?.interrupt() }; output = null
         runCatching { error?.interrupt() }; error = null
         runCatching { inputPipe?.close() }; inputPipe = null
+        runCatching { inputStream?.close() }
+        runCatching { outputStream?.close() }
+        runCatching { errorStream?.close() }
         latch = null
     }
 
