@@ -12,7 +12,7 @@ import java.security.InvalidParameterException
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-private val log = KotlinLogging.logger {}
+private val logger = KotlinLogging.logger {}
 
 /**
  * Commandline executor
@@ -59,11 +59,30 @@ class CommandExecutor {
      * run command
      *
      * @param command       command to execute
-     * @param redirect      use inherit redirect by reader setting
+     * @param redirectError redirect error stream to input stream
+     */
+    constructor(command: Command, redirectError: Boolean = true) {
+
+        if(command.isEmpty())
+            throw InvalidParameterException("command is empty.")
+
+        process = ProcessBuilder(command.command).apply {
+            environment().putAll(command.environment)
+            command.workingDirectory?.toFile().ifNotEmpty { if(it.exists()) directory(it) }
+            if(redirectError)
+                redirectErrorStream(true)
+        }.start()
+
+    }
+
+    /**
+     * run command
+     *
+     * @param command       command to execute
      * @param outputReader  output reader
      * @param errorReader   error reader
      */
-    constructor(command: Command, redirect: Boolean = true, outputReader: ((String) -> Unit)? = null, errorReader: ((String) -> Unit)? = null) {
+    constructor(command: Command, outputReader: ((String) -> Unit)? = null, errorReader: ((String) -> Unit)? = null) {
 
         if(command.isEmpty())
             throw InvalidParameterException("command is empty.")
@@ -74,18 +93,14 @@ class CommandExecutor {
 
             when {
                 outputReader == null && errorReader == null -> {
-                    if(redirect) {
-                        redirectInput(ProcessBuilder.Redirect.INHERIT)
-                        redirectError(ProcessBuilder.Redirect.INHERIT)
-                    }
+                    redirectInput(ProcessBuilder.Redirect.INHERIT)
+                    redirectError(ProcessBuilder.Redirect.INHERIT)
                 }
                 outputReader != null -> {
                     redirectErrorStream(true)
                 }
                 errorReader != null -> {
-                    if(redirect) {
-                        redirectInput(ProcessBuilder.Redirect.INHERIT)
-                    }
+                    redirectInput(ProcessBuilder.Redirect.INHERIT)
                 }
             }
 

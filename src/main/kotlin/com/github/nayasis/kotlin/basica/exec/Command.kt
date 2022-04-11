@@ -79,14 +79,13 @@ class Command {
     override fun toString(): String = command.joinToString(" ")
 
     /**
-     * run command
+     * run command by the way of ProcessBuilder.
      *
-     * @param redirect      use inherit redirect by reader setting
-     * @param outputReader  output reader
-     * @param errorReader   error reader
+     * @param redirectError redirect error stream to input stream
+     * @return CommandExecutor
      */
-    fun run(redirect: Boolean, outputReader: ((line: String) -> Unit)? = null, errorReader: ((line: String) -> Unit)? = null): CommandExecutor {
-        return CommandExecutor(this, redirect,outputReader,errorReader)
+    fun runProcess(redirectError: Boolean = true): CommandExecutor {
+        return CommandExecutor(this,redirectError)
     }
 
     /**
@@ -96,7 +95,7 @@ class Command {
      * @param errorReader   error reader
      */
     fun run(outputReader: ((line: String) -> Unit)? = null, errorReader: ((line: String) -> Unit)? = null): CommandExecutor {
-        return CommandExecutor(this, true,outputReader,errorReader)
+        return CommandExecutor(this, outputReader,errorReader)
     }
 
     /**
@@ -120,12 +119,14 @@ class Command {
 
     /**
      * run command with printing output to System.out and System.err
+     *
+     * @param redirectError redirect error stream to input stream
      */
     fun runOnSystemOut(redirectError: Boolean = true): CommandExecutor {
         return if( redirectError ) {
-            run(true,{print(it)},null)
+            run({print(it)},null)
         } else {
-            run(true,{print(it)},{System.err.print(it)})
+            run({print(it)},{System.err.print(it)})
         }
     }
 
