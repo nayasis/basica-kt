@@ -31,7 +31,6 @@ class CommandExecutor {
 
     private var inputPipe: BufferedWriter? = null
         get() {
-            if(process == null) return null
             if(field == null)
                 field = BufferedWriter(OutputStreamWriter(input, Platforms.os.charset))
             return field
@@ -130,7 +129,7 @@ class CommandExecutor {
      */
     val alive: Boolean
         get() = when {
-            process?.isAlive == true -> true
+            process.isAlive -> true
             outputGobbler?.isAlive == true -> true
             errorGobbler?.isAlive == true -> true
             else -> false

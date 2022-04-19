@@ -169,7 +169,7 @@ fun LocalDateTime.toString(format: String = ""): String = this.format(format)
 
 fun LocalDate.toString(format: String = ""): String = this.format(format)
 
-fun Date.toString(format: String = "", zoneId: ZoneId = ZoneId.systemDefault()): String = this.format(format)
+fun Date.toString(format: String = "", zoneId: ZoneId = ZoneId.systemDefault()): String = this.format(format,zoneId)
 
 fun SqlDate.toString(format: String = ""): String = this.format(format)
 
