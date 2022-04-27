@@ -499,6 +499,27 @@ fun <T:Number> String?.toNumber(type: KClass<T>): T {
     }
 }
 
+fun String?.toBoolean(trueWhenEmpty: Boolean = true): Boolean {
+    return this.toYn(trueWhenEmpty) == 'Y'
+}
+
+fun Any?.toYn(trueWhenEmpty: Boolean = true): Char {
+    return when {
+        this.isEmpty() -> if(trueWhenEmpty) 'Y' else 'N'
+        this is Boolean -> if(this) 'Y' else 'N'
+        else -> {
+            val text = "$this".trim()
+            return when {
+                "y".equals(text,ignoreCase = true) -> 'Y'
+                "yes".equals(text,ignoreCase = true) -> 'Y'
+                "t".equals(text,ignoreCase = true) -> 'Y'
+                "true".equals(text,ignoreCase = true) -> 'Y'
+                else -> 'N'
+            }
+        }
+    }
+}
+
 inline fun <reified T:Number> String?.toNumber(): T {
     return toNumber(T::class)
 }
