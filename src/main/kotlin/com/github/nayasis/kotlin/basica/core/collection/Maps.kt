@@ -15,7 +15,7 @@ fun Map<*,*>.toJson(pretty: Boolean = false, ignoreNull: Boolean = true, view: C
 
 inline fun <reified T> Map<*,*>.toObject(ignoreNull: Boolean = true): T = Reflector.toObject(this,ignoreNull)
 
-fun Map<*,*>.merge(other: Map<*,*>?, skipEmpty: Boolean = true): Map<*,*> = Merger().merge(other,this, skipEmpty)
+fun Map<*,*>.merge(other: Map<*,*>?, skipEmpty: Boolean = true): MutableMap<*,*> = Merger().merge(other,this, skipEmpty)
 
 @Suppress("UNCHECKED_CAST")
 fun <V> Map<*,*>.get(expression: MvelExpression? ): V? {
