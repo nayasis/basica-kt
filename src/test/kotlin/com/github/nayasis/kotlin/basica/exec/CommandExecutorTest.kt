@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test
 import java.lang.Thread.sleep
 import kotlin.concurrent.thread
 
-@Disabled("exclude by platform dependency")
+//@Disabled("exclude by platform dependency")
 internal class CommandExecutorTest {
 
     @Test
@@ -47,6 +47,15 @@ internal class CommandExecutorTest {
         Command("cmd /c c: && cd \"c:\\Windows\" && dir").run(out).waitFor()
         println(out)
         assertTrue(out.isNotEmpty())
+    }
+
+    @Test
+    fun printDir() {
+        println(">> start")
+        Command("cmd /c dir").run({ line ->
+            println("- $line")
+        }).waitFor()
+        println(">> end")
     }
 
     @Test
