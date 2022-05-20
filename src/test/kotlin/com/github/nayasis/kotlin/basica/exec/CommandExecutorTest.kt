@@ -1,12 +1,16 @@
 package com.github.nayasis.kotlin.basica.exec
 
-import org.junit.jupiter.api.Assertions.*
+import mu.KotlinLogging
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.lang.Thread.sleep
 import kotlin.concurrent.thread
 
-//@Disabled("exclude by platform dependency")
+private val logger = KotlinLogging.logger {}
+
+@Disabled("exclude by platform dependency")
 internal class CommandExecutorTest {
 
     @Test
@@ -50,23 +54,6 @@ internal class CommandExecutorTest {
     }
 
     @Test
-    fun printDir() {
-        println(">> start")
-        Command("cmd /c dir").run({ line ->
-            println("- $line")
-        }).waitFor()
-        println(">> end")
-    }
-
-    @Test
-    fun redirectOutputToSystemOut() {
-        val command = Command().apply {
-            this.command.addAll(listOf("cmd", "/c", "c:", "&&", "cd", "c:\\Windows", "&&", "dir"))
-        }
-        command.runOnSystemOut().waitFor()
-    }
-
-    @Test
     fun communication() {
 
         val out = StringBuffer()
@@ -88,10 +75,34 @@ internal class CommandExecutorTest {
 
         val out = StringBuffer()
 
-        Command("cmd /c c: && cd \"c:\\Windows\" && dir").run { out.append(it) }.waitFor()
+        Command("cmd /c c: && cd \"c:\\Windows\" && dir").run({ out.append(it) }).waitFor()
 
         println(out)
         assertTrue(out.isNotEmpty())
+
+    }
+
+    @Test
+    fun printOutputOnMame() {
+
+        logger.debug{">> start"}
+
+        var capture = false
+        var i = 0
+
+        Command("c:\\download\\_temp\\mame\\mame.exe -listxml").run{ it.trimStart().let { line ->
+            if( !capture && line.startsWith("<machine ") ) {
+                capture = true
+            }
+            if( capture ) {
+                if( line.endsWith("</machine>") ) {
+                    capture = false
+                    println("${i++}")
+                }
+            }
+        }}.waitFor()
+
+        logger.debug{">> end"}
 
     }
 
