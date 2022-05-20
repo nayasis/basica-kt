@@ -328,6 +328,7 @@ fun Path.copyTree(target: Path, overwrite: Boolean = true, vararg options: CopyO
     })
     return target
 }
+
 /**
  * search files or directories.
  *
@@ -362,10 +363,10 @@ fun Path.copyTree(target: Path, overwrite: Boolean = true, vararg options: CopyO
  *    ...
  * </pre>
  * @param includeFile       include file
- * @param includeDirectory  include directory
- * @param filter            specific action when matched path found
+ * @param includeDirectory  include directory (default: false)
+ * @return file or directory paths via stream
  */
-fun Path.findToStream(glob: String = "*", depth: Int = -1, includeFile: Boolean = true, includeDirectory: Boolean = true): Stream<Path> {
+fun Path.findToStream(glob: String = "*", depth: Int = -1, includeFile: Boolean = true, includeDirectory: Boolean = false): Stream<Path> {
     var matcher = FileSystems.getDefault().getPathMatcher("glob:$glob")
     return Files.walk(this, if(depth < 0) Int.MAX_VALUE else depth + 1 ).filter{ it: Path? ->
         when {
@@ -413,10 +414,10 @@ fun Path.findToStream(glob: String = "*", depth: Int = -1, includeFile: Boolean 
  *    ...
  * </pre>
  * @param includeFile       include file
- * @param includeDirectory  include directory
+ * @param includeDirectory  include directory (default: false)
  * @return  file or directory paths
  */
-fun Path.find(glob: String = "*", depth: Int = -1, includeFile: Boolean = true, includeDirectory: Boolean = true): List<Path> =
+fun Path.find(glob: String = "*", depth: Int = -1, includeFile: Boolean = true, includeDirectory: Boolean = false): List<Path> =
     findToStream(glob,depth,includeFile,includeDirectory).toList()
 
 /**
