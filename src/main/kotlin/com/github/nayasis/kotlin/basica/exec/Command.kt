@@ -1,9 +1,12 @@
 package com.github.nayasis.kotlin.basica.exec
 
+import com.github.nayasis.kotlin.basica.core.extention.ifNotEmpty
 import com.github.nayasis.kotlin.basica.core.extention.isNotEmpty
 import com.github.nayasis.kotlin.basica.core.path.isFile
+import com.github.nayasis.kotlin.basica.core.string.toFile
 import com.github.nayasis.kotlin.basica.core.string.toPath
 import com.github.nayasis.kotlin.basica.core.string.tokenize
+import java.security.InvalidParameterException
 
 /**
  * command line
@@ -79,13 +82,36 @@ class Command {
     override fun toString(): String = command.joinToString(" ")
 
     /**
-     * run command by the way of ProcessBuilder.
+     * run process
      *
      * @param redirectError redirect error stream to input stream
-     * @return CommandExecutor
+     * @return process
      */
-    fun runProcess(redirectError: Boolean = true): CommandExecutor {
-        return CommandExecutor(this,redirectError)
+    fun runProcess(redirectError: Boolean = true): Process {
+        if(isEmpty())
+            throw InvalidParameterException("command is empty.")
+        return ProcessBuilder(command).apply {
+            environment().putAll(environment)
+            workingDirectory?.toFile().ifNotEmpty { if(it.exists()) directory(it) }
+            if(redirectError)
+                redirectErrorStream(true)
+        }.start()
+    }
+
+    /**
+     * run command
+     */
+    fun run(): CommandExecutor {
+        return CommandExecutor(this, null,null)
+    }
+
+    /**
+     * run command
+     *
+     * @param outputReader  output reader (include error)
+     */
+    fun run(outputReader: ((line: String) -> Unit)): CommandExecutor {
+        return CommandExecutor(this, outputReader,null)
     }
 
     /**
@@ -94,7 +120,7 @@ class Command {
      * @param outputReader  output reader
      * @param errorReader   error reader
      */
-    fun run(outputReader: ((line: String) -> Unit)? = null, errorReader: ((line: String) -> Unit)? = null): CommandExecutor {
+    fun run(outputReader: ((line: String) -> Unit), errorReader: ((line: String) -> Unit)): CommandExecutor {
         return CommandExecutor(this, outputReader,errorReader)
     }
 
@@ -114,20 +140,7 @@ class Command {
      * @param output printed output (include error)
      */
     fun run(output: StringBuffer): CommandExecutor {
-        return run({output.append(it)}, null)
-    }
-
-    /**
-     * run command with printing output to System.out and System.err
-     *
-     * @param redirectError redirect error stream to input stream
-     */
-    fun runOnSystemOut(redirectError: Boolean = true): CommandExecutor {
-        return if( redirectError ) {
-            run({print(it)},null)
-        } else {
-            run({print(it)},{System.err.print(it)})
-        }
+        return run { output.append(it) }
     }
 
     /**
@@ -138,7 +151,7 @@ class Command {
      */
     fun captureOutput(timeout: Long = -1): List<String> {
         val lines = ArrayList<String>()
-        run({line -> lines.add(line)},null).waitFor(timeout)
+        run { line -> lines.add(line) }.waitFor(timeout)
         return lines
     }
 
