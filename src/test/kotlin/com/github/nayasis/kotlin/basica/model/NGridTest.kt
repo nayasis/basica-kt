@@ -3,6 +3,7 @@ package com.github.nayasis.kotlin.basica.model
 import com.fasterxml.jackson.core.type.TypeReference
 import com.github.nayasis.kotlin.basica.annotation.NoArg
 import com.github.nayasis.kotlin.basica.core.character.Characters
+import com.github.nayasis.kotlin.basica.core.collection.toNGrid
 import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
 import com.github.nayasis.kotlin.basica.core.localdate.toString
 import mu.KotlinLogging
@@ -103,6 +104,41 @@ internal class NGridTest {
             |age|name|
             +---+----+
             +---+----+            
+        """.trimIndent().trim(), grid.toString())
+
+    }
+
+    @Test
+    fun `print empty generic collection with header`() {
+
+        val list = ArrayList<Person>()
+
+        val grid = list.toNGrid()
+
+        log.debug { "\n${grid}" }
+
+        assertEquals("""
+            +---+----+
+            |age|name|
+            +---+----+
+            +---+----+            
+        """.trimIndent().trim(), grid.toString())
+
+    }
+
+    @Test
+    fun `print empty object collection with non-header`() {
+
+        val list = ArrayList<Any>()
+
+        val grid = list.toNGrid()
+
+        log.debug { "\n${grid}" }
+
+        assertEquals("""
+            +---+
+            |   |
+            +---+            
         """.trimIndent().trim(), grid.toString())
 
     }
