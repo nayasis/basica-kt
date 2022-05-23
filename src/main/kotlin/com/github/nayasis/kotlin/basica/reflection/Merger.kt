@@ -24,9 +24,9 @@ class Merger {
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun merge(from: Map<*,*>?, to: Map<*,*>?, skipEmpty: Boolean = true ): Map<*,*> {
+    fun merge(from: Map<*,*>?, to: Map<*,*>?, skipEmpty: Boolean = true ): MutableMap<*,*> {
 
-        val rs = HashMap<Any?,Any?>()
+        val rs = LinkedHashMap<Any?,Any?>()
 
         if( from.isNullOrEmpty() && to.isNullOrEmpty() ) {
             return rs

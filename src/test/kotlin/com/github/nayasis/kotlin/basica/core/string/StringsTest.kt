@@ -183,6 +183,13 @@ internal class StringsTest {
 
     }
 
+    @Test
+    fun `capitalize`() {
+        assertEquals("Capitalize", "capitalize".capitalize())
+        assertEquals("Merong", "merong".capitalize())
+        assertEquals("능력자", "능력자".capitalize())
+    }
+
 }
 
 data class Dummy(

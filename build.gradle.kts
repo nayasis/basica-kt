@@ -2,8 +2,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
 	`maven`
-	kotlin("jvm") version "1.5.21"
-	kotlin("plugin.noarg") version "1.5.21"
+	kotlin("jvm") version "1.6.10"
+	kotlin("plugin.noarg") version "1.6.10"
 }
 
 noArg {
@@ -62,7 +62,6 @@ tasks.withType<Test> {
 
 tasks.withType<KotlinCompile> {
 	kotlinOptions {
-		useIR = true
 		freeCompilerArgs = listOf(
 			"-Xjsr305=strict"
 		)

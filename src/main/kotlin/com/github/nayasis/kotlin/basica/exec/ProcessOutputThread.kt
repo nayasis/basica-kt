@@ -8,7 +8,7 @@ import java.io.InputStream
 import java.io.InputStreamReader
 import java.util.concurrent.CountDownLatch
 
-private val log = KotlinLogging.logger{}
+private val logger = KotlinLogging.logger{}
 
 class ProcessOutputThread(
     val inputStream: InputStream,
@@ -21,11 +21,11 @@ class ProcessOutputThread(
     }
 
     override fun run() {
-        inputStream.use { stream -> InputStreamReader(stream, Platforms.os.charset).use { streamReader -> BufferedReader(streamReader).use { reader ->
+        inputStream.use { InputStreamReader(it, Platforms.os.charset).use { stream -> BufferedReader(stream).use { reader ->
             try {
                 read(reader)
             } catch (e: Exception) {
-                log.error(e)
+                logger.error(e)
             } finally {
                 latch.countDown()
             }
@@ -33,11 +33,9 @@ class ProcessOutputThread(
     }
 
     private fun read(bufferedReader: BufferedReader) {
-        val buffer = CharArray(1024)
-        var length = 0
-        while( ! isInterrupted && bufferedReader.read(buffer,0,buffer.size).also{length = it} != -1 ) {
-            val txt = StringBuilder(length).append(buffer,0,length).toString()
-            reader?.let{it(txt)}
+        var line: String? = null
+        while( ! isInterrupted && bufferedReader.readLine().also { line = it } != null ) {
+            this.reader?.invoke(line!!)
         }
     }
 

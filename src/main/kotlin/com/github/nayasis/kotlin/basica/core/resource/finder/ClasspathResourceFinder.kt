@@ -6,6 +6,7 @@ import com.github.nayasis.kotlin.basica.core.resource.type.interfaces.Resource
 import com.github.nayasis.kotlin.basica.core.resource.util.URL_PREFIX_FILE
 import com.github.nayasis.kotlin.basica.core.resource.util.URL_PREFIX_JAR
 import com.github.nayasis.kotlin.basica.core.resource.util.URL_SEPARATOR_JAR
+import com.github.nayasis.kotlin.basica.core.string.capitalize
 import mu.KotlinLogging
 import java.io.File
 import java.io.IOException

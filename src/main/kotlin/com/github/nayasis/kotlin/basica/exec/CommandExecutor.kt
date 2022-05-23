@@ -31,7 +31,6 @@ class CommandExecutor {
 
     private var inputPipe: BufferedWriter? = null
         get() {
-            if(process == null) return null
             if(field == null)
                 field = BufferedWriter(OutputStreamWriter(input, Platforms.os.charset))
             return field
@@ -59,26 +58,6 @@ class CommandExecutor {
      * run command
      *
      * @param command       command to execute
-     * @param redirectError redirect error stream to input stream
-     */
-    constructor(command: Command, redirectError: Boolean = true) {
-
-        if(command.isEmpty())
-            throw InvalidParameterException("command is empty.")
-
-        process = ProcessBuilder(command.command).apply {
-            environment().putAll(command.environment)
-            command.workingDirectory?.toFile().ifNotEmpty { if(it.exists()) directory(it) }
-            if(redirectError)
-                redirectErrorStream(true)
-        }.start()
-
-    }
-
-    /**
-     * run command
-     *
-     * @param command       command to execute
      * @param outputReader  output reader
      * @param errorReader   error reader
      */
@@ -90,7 +69,6 @@ class CommandExecutor {
         val builder = ProcessBuilder(command.command).apply {
             environment().putAll(command.environment)
             command.workingDirectory?.toFile().ifNotEmpty { if(it.exists()) directory(it) }
-
             when {
                 outputReader == null && errorReader == null -> {
                     redirectInput(ProcessBuilder.Redirect.INHERIT)
@@ -103,7 +81,6 @@ class CommandExecutor {
                     redirectInput(ProcessBuilder.Redirect.INHERIT)
                 }
             }
-
         }
 
         process = builder.start()
@@ -130,7 +107,7 @@ class CommandExecutor {
      */
     val alive: Boolean
         get() = when {
-            process?.isAlive == true -> true
+            process.isAlive -> true
             outputGobbler?.isAlive == true -> true
             errorGobbler?.isAlive == true -> true
             else -> false

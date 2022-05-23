@@ -230,7 +230,7 @@ fun String?.escape(): String {
 
 fun String?.unescape(): String {
     if(this.isNullOrEmpty()) return ""
-    var sb = StringBuffer()
+    val sb = StringBuffer()
     val matcher = "\\\\(b|t|n|f|r|\\\"|\\\'|\\\\)|([u|U][0-9a-fA-F]{4})".toPattern().matcher(this)
     while(matcher.find()) {
         val unescaped: String? = if (matcher.start(1) >= 0) {
@@ -243,6 +243,13 @@ fun String?.unescape(): String {
         matcher.appendReplacement(sb, Matcher.quoteReplacement(unescaped))
     }
     return sb.toString()
+}
+
+fun String?.capitalize(): String {
+    return when {
+        isNullOrEmpty() -> ""
+        else -> replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+    }
 }
 
 private fun unescapeUnicodeChar(escaped: String): String? {
@@ -489,6 +496,27 @@ fun <T:Number> String?.toNumber(type: KClass<T>): T {
             BigInteger::class -> BigInteger.ZERO
             else              -> 0.cast(type)
         } as T
+    }
+}
+
+fun String?.toBoolean(trueWhenEmpty: Boolean = true): Boolean {
+    return this.toYn(trueWhenEmpty) == 'Y'
+}
+
+fun Any?.toYn(trueWhenEmpty: Boolean = true): Char {
+    return when {
+        this.isEmpty() -> if(trueWhenEmpty) 'Y' else 'N'
+        this is Boolean -> if(this) 'Y' else 'N'
+        else -> {
+            val text = "$this".trim()
+            return when {
+                "y".equals(text,ignoreCase = true) -> 'Y'
+                "yes".equals(text,ignoreCase = true) -> 'Y'
+                "t".equals(text,ignoreCase = true) -> 'Y'
+                "true".equals(text,ignoreCase = true) -> 'Y'
+                else -> 'N'
+            }
+        }
     }
 }
 
