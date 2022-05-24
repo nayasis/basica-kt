@@ -190,6 +190,31 @@ internal class StringsTest {
         assertEquals("능력자", "능력자".capitalize())
     }
 
+    @Test
+    fun `isNumeric`() {
+        assertTrue("1.2".isNumeric())
+        assertTrue( "${Int.MAX_VALUE}".isNumeric())
+        assertTrue( "${Int.MIN_VALUE}".isNumeric())
+        assertTrue( "${Long.MAX_VALUE}".isNumeric())
+        assertTrue( "${Long.MIN_VALUE}".isNumeric())
+        assertTrue( "${Float.MAX_VALUE}".isNumeric())
+        assertTrue( "${Float.MAX_VALUE}".isNumeric())
+        assertTrue( "${Double.MAX_VALUE}".isNumeric())
+        assertTrue( "${Double.MAX_VALUE}".isNumeric())
+        assertTrue( "${Short.MAX_VALUE}".isNumeric())
+        assertTrue( "${Short.MAX_VALUE}".isNumeric())
+        assertTrue( "${Byte.MAX_VALUE}".isNumeric())
+        assertTrue( "${Byte.MAX_VALUE}".isNumeric())
+        assertTrue("5.67892E+04".isNumeric())
+        assertTrue("5.67892e+04".isNumeric())
+        assertTrue("1.23456E-05".isNumeric())
+        assertTrue("1.23456e-05".isNumeric())
+        assertFalse("1.2A".isNumeric())
+        assertFalse("1.2.2".isNumeric())
+        assertFalse("5.67892+04".isNumeric())
+        assertFalse("1.23456-05".isNumeric())
+    }
+
 }
 
 data class Dummy(

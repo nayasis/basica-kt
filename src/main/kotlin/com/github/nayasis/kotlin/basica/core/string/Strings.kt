@@ -27,6 +27,7 @@ import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.math.MathContext
 import java.net.MalformedURLException
 import java.net.URI
 import java.net.URL
@@ -105,7 +106,7 @@ fun String?.find(pattern: Regex?): Boolean {
     return this.find( pattern?.toPattern() )
 }
 
-fun String?.isDate(format: String): Boolean {
+fun String?.isDate(format: String = ""): Boolean {
     return when {
         this.isNullOrEmpty() -> false
         else -> try {
@@ -116,8 +117,6 @@ fun String?.isDate(format: String): Boolean {
         }
     }
 }
-
-fun String?.isDate(): Boolean = isDate("")
 
 fun String?.dpadStart(length: Int, padChar: Char = ' ' ): String {
     val repeat = length - this.displayLength
@@ -700,4 +699,21 @@ fun String?.similarity(other: String?): Double {
         longer.isEmpty() -> if(shorter.isEmpty()) 1.0 else 0.0
         else -> (longer.length - getLavenshteinDistance(longer, shorter)) / longer.length.toDouble()
     }
+}
+
+fun String.isShort(radix: Int = 10): Boolean = toShortOrNull(radix) != null
+fun String.isByte(radix: Int = 10): Boolean = toByteOrNull(radix) != null
+fun String.isInt(radix: Int = 10): Boolean = toIntOrNull(radix) != null
+fun String.isLong(radix: Int = 10): Boolean = toLongOrNull(radix) != null
+fun String.isFloat(): Boolean = toFloatOrNull() != null
+fun String.isDouble(): Boolean = toDoubleOrNull() != null
+fun String.isNumeric(): Boolean = isDouble()
+
+fun String.isBigInteger(radix: Int = 10): Boolean = toBigIntegerOrNull(radix) != null
+fun String.isBigDecimal(mathContext: MathContext? = null): Boolean {
+    return if(mathContext == null) {
+        toBigDecimalOrNull()
+    } else {
+        toBigDecimalOrNull(mathContext)
+    } != null
 }
