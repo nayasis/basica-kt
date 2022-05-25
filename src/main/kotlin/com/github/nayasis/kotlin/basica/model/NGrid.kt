@@ -17,47 +17,50 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
         private const val serialVersionUID = 4570402963506233953L
     }
 
-    private val header  = Header(this)
-    private val body    = TreeMap<Int,HashMap<Any,Any?>>()
+    val header: NGridHeader
+        get() = _header
+
+    val body: Map<Int,Map<Any,Any?>>
+        get() = _body
+
+    private val _header = Header(this)
+    private val _body   = TreeMap<Int,HashMap<Any,Any?>>()
 
     internal var printer: NGridPrinter? = null
 
     constructor(header: KClass<*>? = null) {
-        this.header.addAll(header)
+        this._header.addAll(header)
     }
 
     constructor(grid: NGrid) {
-        header.init(grid.header)
-        body.putAll(grid.body)
+        _header.init(grid._header)
+        _body.putAll(grid._body)
     }
 
     constructor(collection: Collection<*>, header: KClass<*>? = null) {
         if( collection.isEmpty())
-            this.header.addAll(header)
+            this._header.addAll(header)
         for( row in collection )
             addRow(row)
     }
 
     constructor(array: Array<*>, header: KClass<*>? = null) {
         if( array.isEmpty())
-            this.header.addAll(header)
+            this._header.addAll(header)
         for( row in array ) {
             addRow(row)
         }
     }
 
-    fun header(): NGridHeader = header
-    fun body() : Map<Int,Map<Any,Any?>> = body
-
     fun setRow( index: Int, value: Any? ) {
         if( index < 0 )
             throw IndexOutOfBoundsException("$index")
         when (value) {
-            null -> body[index] = HashMap()
+            null -> _body[index] = HashMap()
             is Map<*,*> -> setMap(index, value)
             is NGrid -> {
-                header.merge(value.header)
-                value.body.forEach{ body[maxindex()] = it.value }
+                _header.merge(value._header)
+                value._body.forEach{ _body[maxindex()] = it.value }
             }
             is Collection<*> -> {
                 var idx = index
@@ -80,79 +83,79 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
         printer = null
     }
 
-    private fun setMap( index: Int, map: Map<*,*> ) {
+    private fun setMap(index: Int, map: Map<*,*>) {
         val e = HashMap<Any,Any?>(map)
-        body[index] = e
-        e.keys.forEach { header.add(it,index) }
+        _body[index] = e
+        e.keys.forEach { _header.add(it,index) }
     }
 
-    fun addRow( value: Any? ) = setRow( maxindex(), value )
+    fun addRow(value: Any?) = setRow(maxindex(), value)
 
-    fun addData(key: Any, value: Any?) = setData(header.next(key), key, value)
+    fun addData(key: Any, value: Any?) = setData(_header.next(key), key, value)
 
     fun removeRow(index: Int) {
-        if( ! body.containsKey(index) ) return
-        body[index]!!.keys.forEach{ header.remove(it,index) }
-        body.remove(index)
+        if( ! _body.containsKey(index) ) return
+        _body[index]!!.keys.forEach{ _header.remove(it,index) }
+        _body.remove(index)
     }
 
     fun removeKey( key: Any ) {
-        header.remove(key)
-        for( index in ArrayList(body.keys) ) {
-            val row = body[index]!!
+        _header.remove(key)
+        for( index in ArrayList(_body.keys) ) {
+            val row = _body[index]!!
             row.remove(key)
             if( row.isEmpty() ) {
-                body.remove(index)
+                _body.remove(index)
             }
         }
     }
 
     fun removeData(row: Int, key: Any) {
-        header.remove(key,row)
-        body[row]?.let {
+        _header.remove(key,row)
+        _body[row]?.let {
             it.remove(key)
             if( it.isEmpty() ) {
-                body.remove(row)
+                _body.remove(row)
             }
         }
     }
 
-    private fun maxindex(): Int = if(body.isEmpty()) 0 else body.lastKey() + 1
+    private fun maxindex(): Int = if(_body.isEmpty()) 0 else _body.lastKey() + 1
 
     fun size(): Int = maxindex()
 
-    fun size(key: Any): Int = header.size(key)
+    fun size(key: Any): Int = _header.size(key)
 
-    fun getRow(index: Int): Map<Any,Any?> = body[index] ?: emptyMap()
+    fun getRow(index: Int): Map<Any,Any?> = _body[index] ?: emptyMap()
 
     fun setCell(row: Int, col: Int, value: Any?) {
-        if( header.keyByIndex(col) == null )
-            header.add(col,col)
-        setData(row, header.keyByIndex(col)!!, value)
+        if( _header.keyByIndex(col) == null )
+            _header.add(col,col)
+        setData(row, _header.keyByIndex(col)!!, value)
     }
 
     fun setData(row: Int, key: Any, value: Any?) {
-        header.add(key)
-        if( body[row] == null )
-            body[row] = HashMap()
-        body[row]!![key] = value
+        _header.add(key)
+        if( _body[row] == null )
+            _body[row] = HashMap()
+        _body[row]!![key] = value
         printer = null
     }
 
     fun getCell(row: Int, col: Int): Any? {
-        val key = header.keyByIndex(col) ?: return null
+        val key = _header.keyByIndex(col) ?: return null
         return getData(row,key)
     }
 
     fun getData(row: Int, key: Any): Any? {
-        return if (body[row] == null) null else body[row]!![key]
+        return if (_body[row] == null) null else _body[row]!![key]
     }
 
     fun toList(): List<Map<Any,Any?>> {
         val empty = emptyMap<Any,Any?>()
         val list = ArrayList<Map<Any,Any?>>()
         for( i in 0 until maxindex()) {
-            list.add( body[i] ?: empty )
+            list.add( _body[i] ?: empty )
         }
         return list
     }
@@ -161,7 +164,7 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
         val list = ArrayList<T?>()
         for( i in 0 until maxindex()) {
             try {
-                list.add( body[i]?.let { Reflector.toObject(it,typeClass) } )
+                list.add( _body[i]?.let { Reflector.toObject(it,typeClass) } )
             } catch (e: Exception) {
                 if( ignoreError ) {
                     list.add(null)
@@ -201,7 +204,7 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
 
     fun <T:Any> toListFrom(key: Any, typeClass: KClass<T>, ignoreError: Boolean = true): List<T?> {
         val list = ArrayList<T?>()
-        for( (_,row) in body) {
+        for( (_,row) in _body) {
             val v = row[key]
             list.add(cast(v,typeClass,ignoreError))
         }
@@ -210,7 +213,7 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
 
     fun <T:Any> toListFrom(key: Any, typeRef: TypeReference<T>, ignoreError: Boolean = true): List<T?> {
         val list = ArrayList<T?>()
-        for( (_,row) in body) {
+        for( (_,row) in _body) {
             list.add( row[key].let {
                 if(it == null) null else {
                     try {
@@ -231,21 +234,21 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
     fun copy(): NGrid = NGrid(this)
 
     fun clear(bodyOnly: Boolean = false) {
-        body.clear()
+        _body.clear()
         if( ! bodyOnly )
-            header.clear()
+            _header.clear()
     }
 
     fun sort(comparator: Comparator<Map<Any,Any?>>) {
 
-        val indies = ArrayList(body.keys)
-        val rows   = ArrayList(body.values)
+        val indies = ArrayList(_body.keys)
+        val rows   = ArrayList(_body.values)
 
         Collections.sort(rows,comparator)
 
-        body.clear()
+        _body.clear()
         for( i in 0 until indies.size )
-            body[indies[i]] = rows[i]
+            _body[indies[i]] = rows[i]
 
     }
 
