@@ -80,7 +80,7 @@ class NGridPrinter(
         val empty = meta.line(' ','|',showIndexColumn)
         val body  = StringBuilder().append(line)
 
-        if( showHeader && ! grid.header().isEmpty() ) {
+        if( showHeader && ! grid.header.isEmpty() ) {
             if( useAlias ) {
                 body.append('\n').append(toString(meta.alias,showIndexColumn))
             } else {
@@ -89,12 +89,12 @@ class NGridPrinter(
             body.append('\n').append(line)
         }
 
-        if( grid.body().isEmpty() ) {
-            if( grid.header().isEmpty() ) {
+        if( grid.body.isEmpty() ) {
+            if( grid.header.isEmpty() ) {
                 body.append('\n').append(empty)
             }
         } else {
-            for( (i,row) in grid.body() ) {
+            for( (i,row) in grid.body ) {
                 when {
                     i > rowcount -> break
                     row.isEmpty() -> body.append('\n').append(empty)
@@ -158,19 +158,19 @@ private class PrintMeta {
     var indexWidth = INDEX_COLUMN_NAME.length
 
     constructor(grid: NGrid, maxColumnWidth: Int) {
-        for( key in grid.header().keys() ) {
+        for( key in grid.header.keys() ) {
             header.add(key)
-            alias.add(grid.header().getAlias(key))
+            alias.add(grid.header.getAlias(key))
             width.add(maxwidth(grid,key,maxColumnWidth.toDouble()))
         }
-        indexWidth = max(ceil(log10(grid.size().toDouble())).toInt(),indexWidth)
+        indexWidth = max(ceil(log10(grid.size.toDouble())).toInt(),indexWidth)
     }
 
     private fun maxwidth(grid: NGrid, key: Any, maxColumnWidth: Double): Int {
         var width = listOf(
             getDisplayWidth(key, maxColumnWidth),
-            getDisplayWidth(grid.header().getAlias(key), maxColumnWidth),
-            grid.body().values.map { row ->
+            getDisplayWidth(grid.header.getAlias(key), maxColumnWidth),
+            grid.body.values.map { row ->
                 row[key]?.let { getDisplayWidth(it,maxColumnWidth) } ?: 0.0
             }.maxOrNull() ?: 0.0
         ).maxOrNull() ?: 0.0

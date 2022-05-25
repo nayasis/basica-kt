@@ -32,8 +32,8 @@ internal class NGridTest {
         grid.addData("val", "컨트롤러는 이런 것입니다.")
         grid.addData("val", 3359)
 
-        grid.header().setAlias("key", "이것은 KEY 입니다.")
-        grid.header().setAlias("val", "これは VALUE です")
+        grid.header.setAlias("key", "이것은 KEY 입니다.")
+        grid.header.setAlias("val", "これは VALUE です")
 
         log.debug { "\n${grid}" }
         log.debug { "\n${grid.toString(false)}" }
@@ -79,7 +79,7 @@ internal class NGridTest {
             +---+            
         """.trimIndent().trim(), grid.toString())
 
-        grid.header().add("name")
+        grid.header.add("name")
 
         log.debug { "\n${grid}" }
 
