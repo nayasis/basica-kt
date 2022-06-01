@@ -807,3 +807,14 @@ fun Path.writeText(text: CharSequence, charset: Charset = Charsets.UTF_8, vararg
 fun Path.appendText(text: CharSequence, charset: Charset = Charsets.UTF_8) {
     writer(charset, APPEND).use { it.append(text) }
 }
+
+/**
+ * Rename path
+ *
+ * @param newName new file name
+ * @param overwrite true if overwrite new path to previous.
+ */
+fun Path.rename(newName: String, overwrite: Boolean = false) {
+    val trg = this.parent.resolve(newName)
+    this.move(trg,overwrite)
+}
