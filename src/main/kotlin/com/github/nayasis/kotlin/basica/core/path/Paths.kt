@@ -816,5 +816,7 @@ fun Path.appendText(text: CharSequence, charset: Charset = Charsets.UTF_8) {
  */
 fun Path.rename(newName: String, overwrite: Boolean = false) {
     val trg = this.parent.resolve(newName)
-    this.move(trg,overwrite)
+    if(trg != this) {
+        this.move(trg,overwrite)
+    }
 }
