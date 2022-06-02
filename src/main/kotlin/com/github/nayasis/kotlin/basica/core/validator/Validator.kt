@@ -21,7 +21,7 @@ fun isEmpty(value: Any?): Boolean {
         is FloatArray -> value.isEmpty()
         is DoubleArray -> value.isEmpty()
         is BooleanArray -> value.isEmpty()
-        is NGrid -> value.size() == 0
+        is NGrid -> value.size == 0
         is InputStream -> value.available() == 0
         else -> false
     }

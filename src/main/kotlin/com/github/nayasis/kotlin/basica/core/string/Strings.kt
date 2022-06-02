@@ -106,6 +106,7 @@ fun String?.find(pattern: Regex?): Boolean {
     return this.find( pattern?.toPattern() )
 }
 
+@JvmOverloads
 fun String?.isDate(format: String = ""): Boolean {
     return when {
         this.isNullOrEmpty() -> false
@@ -118,6 +119,7 @@ fun String?.isDate(format: String = ""): Boolean {
     }
 }
 
+@JvmOverloads
 fun String?.dpadStart(length: Int, padChar: Char = ' ' ): String {
     val repeat = length - this.displayLength
     return when {
@@ -132,6 +134,7 @@ fun String?.dpadStart(length: Int, padChar: Char = ' ' ): String {
     }
 }
 
+@JvmOverloads
 fun String?.dpadEnd(length: Int, padChar: Char = ' ' ): String {
     val repeat = length - this.displayLength
     return when {
@@ -251,12 +254,12 @@ fun String?.capitalize(): String {
     }
 }
 
-private fun unescapeUnicodeChar(escaped: String): String? {
+private fun unescapeUnicodeChar(escaped: String): String {
     val hex = escaped.substring(2).toInt(16)
     return hex.toChar().toString()
 }
 
-private fun unescapeChar(escaped: String): String? {
+private fun unescapeChar(escaped: String): String {
     return when (escaped[0]) {
         'b' -> "\b"
         't' -> "\t"
@@ -266,12 +269,15 @@ private fun unescapeChar(escaped: String): String? {
     }
 }
 
+@JvmOverloads
 fun String?.urlEncode(charset: Charset = Charsets.UTF_8, legacyMode: Boolean = true): String =
     if( this.isNullOrEmpty() ) "" else URLCodec().encode(this,charset,legacyMode)
 
+@JvmOverloads
 fun String?.urlDecode(charset: Charset = Charsets.UTF_8, legacyMode: Boolean = true): String =
     if( this.isNullOrEmpty() ) "" else URLCodec().decode(this,charset,legacyMode)
 
+@JvmOverloads
 fun String?.toMapFromUrlParam(charset: Charset = Charsets.UTF_8 ): Map<String,String?> {
     if(this.isNullOrEmpty()) return emptyMap()
     return this.split("&").mapNotNull {
@@ -306,6 +312,7 @@ fun String?.escapeRegex(): String {
     return buf.toString()
 }
 
+@JvmOverloads
 fun String?.toSingleSpace(includeLineBreaker: Boolean = false): String =
     if (this.isNullOrEmpty()) "" else this.replace((includeLineBreaker) then REGEX_SPACE_ENTER ?: REGEX_SPACE, " ").trim()
 
@@ -316,6 +323,7 @@ fun String?.extractDigit(): String  = if( this.isNullOrEmpty() ) "" else this.re
 fun String?.extractUppers(): String = if( this.isNullOrEmpty() ) "" else this.replace(REGEX_EXTRACT_UPPER, "")
 fun String?.extractLowers(): String = if( this.isNullOrEmpty() ) "" else this.replace(REGEX_EXTRACT_LOWER, "")
 
+@JvmOverloads
 fun String?.removeSpace(includeLineBreaker: Boolean = false): String =
     if (this.isNullOrEmpty()) "" else this.replace((includeLineBreaker) then REGEX_SPACE_ENTER ?: REGEX_SPACE, "")
 
@@ -498,10 +506,12 @@ fun <T:Number> String?.toNumber(type: KClass<T>): T {
     }
 }
 
+@JvmOverloads
 fun String?.toBoolean(trueWhenEmpty: Boolean = true): Boolean {
     return this.toYn(trueWhenEmpty) == 'Y'
 }
 
+@JvmOverloads
 fun Any?.toYn(trueWhenEmpty: Boolean = true): Char {
     return when {
         this.isEmpty() -> if(trueWhenEmpty) 'Y' else 'N'
@@ -611,6 +621,7 @@ fun String?.ifNotBlank(fn: (String) -> Unit) {
  *  @param hide     pattern character to hide word
  * @return masked string
  */
+@JvmOverloads
 fun String?.mask(pattern: String?, pass: Char = '#', hide: Char = '*' ): String {
 
     if(this.isNullOrEmpty() || pattern.isNullOrEmpty()) return ""
@@ -701,15 +712,21 @@ fun String?.similarity(other: String?): Double {
     }
 }
 
+@JvmOverloads
 fun String.isShort(radix: Int = 10): Boolean = toShortOrNull(radix) != null
+@JvmOverloads
 fun String.isByte(radix: Int = 10): Boolean = toByteOrNull(radix) != null
+@JvmOverloads
 fun String.isInt(radix: Int = 10): Boolean = toIntOrNull(radix) != null
+@JvmOverloads
 fun String.isLong(radix: Int = 10): Boolean = toLongOrNull(radix) != null
 fun String.isFloat(): Boolean = toFloatOrNull() != null
 fun String.isDouble(): Boolean = toDoubleOrNull() != null
 fun String.isNumeric(): Boolean = isDouble()
 
+@JvmOverloads
 fun String.isBigInteger(radix: Int = 10): Boolean = toBigIntegerOrNull(radix) != null
+@JvmOverloads
 fun String.isBigDecimal(mathContext: MathContext? = null): Boolean {
     return if(mathContext == null) {
         toBigDecimalOrNull()
