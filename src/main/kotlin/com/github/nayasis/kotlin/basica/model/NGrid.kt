@@ -227,8 +227,6 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
         return list
     }
 
-    fun copy(): NGrid = NGrid(this)
-
     fun clear(bodyOnly: Boolean = false) {
         _body.clear()
         if( ! bodyOnly )
@@ -247,6 +245,8 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
             _body[indies[i]] = rows[i]
 
     }
+
+    public override fun clone(): NGrid = NGrid(this)
 
     override fun toString(): String = toString(true)
 
