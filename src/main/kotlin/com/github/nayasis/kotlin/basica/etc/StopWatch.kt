@@ -1,7 +1,7 @@
 package com.github.nayasis.kotlin.basica.etc
 
 import com.github.nayasis.kotlin.basica.core.collection.sumByLong
-import com.github.nayasis.kotlin.basica.core.math.round
+import com.github.nayasis.kotlin.basica.core.number.round
 import com.github.nayasis.kotlin.basica.model.NGrid
 import java.io.Serializable
 
@@ -27,7 +27,7 @@ class StopWatch: Serializable {
     val elapsedMillis: Long
         get() = elapsedNanos / 1_000_000
     val elapsedSeconds: Double
-        get() = round(elapsedNanos / 1_000_000_000.0, 3 )
+        get() = (elapsedNanos / 1_000_000_000.0).round(3)
 
     fun stop(): StopWatch {
         addLog()
@@ -66,7 +66,7 @@ class StopWatch: Serializable {
             if (i == last) {
                 log.percent = remainPercent
             } else {
-                log.percent = round(log.milis.toDouble() / total * 100,1)
+                log.percent = (log.milis.toDouble() / total * 100).round(1)
                 remainPercent -= log.percent
             }
         }

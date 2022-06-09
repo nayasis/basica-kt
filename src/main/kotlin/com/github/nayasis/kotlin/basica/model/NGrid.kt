@@ -152,13 +152,8 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
         return if (_body[row] == null) null else _body[row]!![key]
     }
 
-    fun toList(): List<Map<Any,Any?>> {
-        val empty = emptyMap<Any,Any?>()
-        val list = ArrayList<Map<Any,Any?>>()
-        for( i in 0 until maxindex()) {
-            list.add( _body[i] ?: empty )
-        }
-        return list
+    inline fun <reified T: Any> toList(ignoreError: Boolean = true): List<T?> {
+        return toList(T::class,ignoreError)
     }
 
     fun <T:Any> toList(typeClass: KClass<T>, ignoreError: Boolean = true): List<T?> {
@@ -167,7 +162,7 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
             try {
                 list.add( _body[i]?.let { Reflector.toObject(it,typeClass) } )
             } catch (e: Exception) {
-                if( ignoreError ) {
+                if( !ignoreError ) {
                     list.add(null)
                 } else {
                     throw e
@@ -232,8 +227,6 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
         return list
     }
 
-    fun copy(): NGrid = NGrid(this)
-
     fun clear(bodyOnly: Boolean = false) {
         _body.clear()
         if( ! bodyOnly )
@@ -252,6 +245,8 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
             _body[indies[i]] = rows[i]
 
     }
+
+    public override fun clone(): NGrid = NGrid(this)
 
     override fun toString(): String = toString(true)
 

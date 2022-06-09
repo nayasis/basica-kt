@@ -2,6 +2,7 @@ package com.github.nayasis.kotlin.basica.core.number
 
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.time.Duration
 import kotlin.reflect.KClass
@@ -47,3 +48,28 @@ operator fun Duration.plus(duration: Duration): Duration
 
 operator fun Duration.minus(duration: Duration): Duration
     = this.minus(duration)
+
+fun Double.round(scale: Int = 0, mode: RoundingMode = RoundingMode.HALF_UP): Double {
+    return BigDecimal(this).setScale(scale,mode).toDouble()
+}
+
+fun Double.floor(scale: Int = 0): Double {
+    return BigDecimal(this).setScale(scale,RoundingMode.FLOOR).toDouble()
+}
+
+fun Double.ceil(scale: Int = 0): Double {
+    return BigDecimal(this).setScale(scale,RoundingMode.CEILING).toDouble()
+}
+
+fun Float.round(scale: Int = 0, mode: RoundingMode = RoundingMode.HALF_UP): Float {
+    return BigDecimal(this.toDouble()).setScale(scale,mode).toFloat()
+}
+
+fun Float.floor(scale: Int = 0): Float {
+    return BigDecimal(this.toDouble()).setScale(scale,RoundingMode.FLOOR).toFloat()
+}
+
+fun Float.ceil(scale: Int = 0): Float {
+    return BigDecimal(this.toDouble()).setScale(scale,RoundingMode.CEILING).toFloat()
+}
+

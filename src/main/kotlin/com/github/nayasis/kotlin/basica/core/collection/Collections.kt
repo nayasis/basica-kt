@@ -1,6 +1,5 @@
 package com.github.nayasis.kotlin.basica.core.collection
 
-import com.fasterxml.jackson.core.type.TypeReference
 import com.github.nayasis.kotlin.basica.model.NGrid
 
 fun <T> Iterator<T>.toList(): List<T> {
