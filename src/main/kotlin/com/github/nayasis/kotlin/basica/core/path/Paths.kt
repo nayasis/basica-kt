@@ -2,7 +2,6 @@
 
 package com.github.nayasis.kotlin.basica.core.path
 
-import com.github.nayasis.kotlin.basica.core.number.round
 import com.github.nayasis.kotlin.basica.core.path.Paths.Companion.FOLDER_SEPARATOR_UNIX
 import com.github.nayasis.kotlin.basica.core.path.Paths.Companion.FOLDER_SEPARATOR_WINDOWS
 import com.github.nayasis.kotlin.basica.core.string.invariantSeparators
