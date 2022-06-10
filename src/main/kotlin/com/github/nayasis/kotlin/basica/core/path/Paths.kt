@@ -211,7 +211,7 @@ fun Path?.isReadable(): Boolean = this != null && Files.isReadable(this)
 fun Path?.isWritable(): Boolean = this != null && Files.isWritable(this)
 fun Path?.isSameFile(other: Path): Boolean = this != null && Files.isSameFile(this,other)
 
-val Path?.size: Long
+val Path?.fileSize: Long
     get() = Files.size(this)
 val Path?.fileStore: FileStore
     get() = Files.getFileStore(this)
@@ -831,7 +831,7 @@ fun Path.rename(newName: String, overwrite: Boolean = false) {
 val Path.statistics: ResourceStatistics
     get() {
         return if(this.isFile()) {
-            ResourceStatistics(1,this.size)
+            ResourceStatistics(1,this.fileSize)
         } else if(this.isDirectory()) {
             val res = ResourceStatistics()
             Files.walkFileTree(this, object: SimpleFileVisitor<Path>() {
@@ -841,7 +841,7 @@ val Path.statistics: ResourceStatistics
                 }
                 override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
                     res.fileCount++
-                    res.size += file.size
+                    res.size += file.fileSize
                     return FileVisitResult.CONTINUE
                 }
             })
