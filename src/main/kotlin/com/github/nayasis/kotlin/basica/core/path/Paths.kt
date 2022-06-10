@@ -209,8 +209,11 @@ fun Path?.isHidden(): Boolean = this != null && Files.isHidden(this)
 fun Path?.isReadable(): Boolean = this != null && Files.isReadable(this)
 fun Path?.isWritable(): Boolean = this != null && Files.isWritable(this)
 fun Path?.isSameFile(other: Path): Boolean = this != null && Files.isSameFile(this,other)
-fun Path?.fileSize(): Long = Files.size(this)
-fun Path?.fileStore(): FileStore = Files.getFileStore(this)
+
+val Path?.fileSize: Long
+    get() = Files.size(this)
+val Path?.fileStore: FileStore
+    get() = Files.getFileStore(this)
 
 fun Path.getAttribute(key: String, vararg options: LinkOption): Any? = Files.getAttribute(this,key,*options)
 fun Path.setAttribute(key: String, value: Any?, vararg options: LinkOption): Any? = Files.setAttribute(this,key,value,*options)
@@ -819,4 +822,39 @@ fun Path.rename(newName: String, overwrite: Boolean = false) {
     if(trg != this) {
         this.move(trg,overwrite)
     }
+}
+
+/**
+ * resource statistics (file counts, directory counts, total size)
+ */
+val Path.statistics: ResourceStatistics
+    get() {
+        return if(this.isFile()) {
+            ResourceStatistics(1,this.fileSize)
+        } else if(this.isDirectory()) {
+            val res = ResourceStatistics()
+            Files.walkFileTree(this, object: SimpleFileVisitor<Path>() {
+                override fun preVisitDirectory(dir: Path, attrs: BasicFileAttributes): FileVisitResult {
+                    res.dirCount++
+                    return FileVisitResult.CONTINUE
+                }
+                override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
+                    res.fileCount++
+                    res.size += file.fileSize
+                    return FileVisitResult.CONTINUE
+                }
+            })
+            res
+        } else {
+            ResourceStatistics()
+        }
+    }
+
+data class ResourceStatistics(
+    var fileCount: Long = 0,
+    var dirCount: Long = 0,
+    var size: Long = 0,
+) {
+    val totalCount: Long
+        get() = fileCount + dirCount
 }
