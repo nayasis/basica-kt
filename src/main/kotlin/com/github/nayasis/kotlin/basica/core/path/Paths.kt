@@ -217,7 +217,6 @@ val Path?.fileStore: FileStore
 
 fun Path.getAttribute(key: String, vararg options: LinkOption): Any? = Files.getAttribute(this,key,*options)
 fun Path.setAttribute(key: String, value: Any?, vararg options: LinkOption): Any? = Files.setAttribute(this,key,value,*options)
-inline fun <reified T:BasicFileAttributes> Path.getAttributes(vararg options: LinkOption): T = Files.readAttributes(this,T::class.java,*options)
 fun Path.getLastModifiedTime(vararg options: LinkOption): FileTime = Files.getLastModifiedTime(this,*options)
 fun Path.setLastModifiedTime(time: FileTime): Path = Files.setLastModifiedTime(this,time)
 fun Path.setLastModifiedTime(time: Long): Path = Files.setLastModifiedTime(this, FileTime.fromMillis(time))
@@ -225,6 +224,18 @@ fun Path.getOwner(vararg options: LinkOption): UserPrincipal? = Files.getOwner(t
 fun Path.setOwner(owner: UserPrincipal): Path = Files.setOwner(this,owner)
 fun Path.getPermissions(vararg options: LinkOption): Set<PosixFilePermission> = Files.getPosixFilePermissions(this,*options)
 fun Path.setPermissions(permissions: Set<PosixFilePermission>): Path = Files.setPosixFilePermissions(this,permissions)
+
+inline fun <reified T: BasicFileAttributes> Path.getAttributes(vararg options: LinkOption): T = Files.readAttributes(this,T::class.java,*options)
+inline fun <reified T: BasicFileAttributeView> Path.getAttributeView(vararg options: LinkOption): T = Files.getFileAttributeView(this,T::class.java,*options)
+fun Path.copyAttribute(target: Path) {
+    val src = this.getAttributes<BasicFileAttributes>()
+    var trg = target.getAttributeView<BasicFileAttributeView>()
+    trg.setTimes(
+        src.lastModifiedTime(),
+        src.lastAccessTime(),
+        src.creationTime(),
+    )
+}
 
 fun Path.makeDir(vararg attributes: FileAttribute<*>): Path = Files.createDirectories(this, *attributes)
 fun Path.makeHardLink(target: Path): Path = Files.createLink(this,target)
