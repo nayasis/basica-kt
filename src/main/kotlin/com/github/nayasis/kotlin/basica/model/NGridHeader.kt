@@ -14,6 +14,7 @@ interface NGridHeader: Serializable, Cloneable {
     fun keys(): List<Any>
     fun aliases(): List<String>
     fun size(key: Any): Int
+    val size: Int
     fun containsKey(key: Any): Boolean
     fun setAlias(key: Any, alias: String)
     fun getAlias(key: Any): String
@@ -102,6 +103,9 @@ class Header(
         val last = keys[key]?.lastOrNull()
         return if( last == null ) 0 else last + 1
     }
+
+    override val size: Int
+        get() = keys.size
 
     override fun containsKey(key: Any): Boolean = keys.containsKey(key)
 

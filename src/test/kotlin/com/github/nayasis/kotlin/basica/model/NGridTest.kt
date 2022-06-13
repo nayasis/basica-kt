@@ -3,6 +3,7 @@ package com.github.nayasis.kotlin.basica.model
 import com.fasterxml.jackson.core.type.TypeReference
 import com.github.nayasis.kotlin.basica.annotation.NoArg
 import com.github.nayasis.kotlin.basica.core.character.Characters
+import com.github.nayasis.kotlin.basica.core.collection.toNGrid
 import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
 import com.github.nayasis.kotlin.basica.core.localdate.toString
 import mu.KotlinLogging
@@ -31,8 +32,8 @@ internal class NGridTest {
         grid.addData("val", "컨트롤러는 이런 것입니다.")
         grid.addData("val", 3359)
 
-        grid.header().setAlias("key", "이것은 KEY 입니다.")
-        grid.header().setAlias("val", "これは VALUE です")
+        grid.header.setAlias("key", "이것은 KEY 입니다.")
+        grid.header.setAlias("val", "これは VALUE です")
 
         log.debug { "\n${grid}" }
         log.debug { "\n${grid.toString(false)}" }
@@ -78,7 +79,7 @@ internal class NGridTest {
             +---+            
         """.trimIndent().trim(), grid.toString())
 
-        grid.header().add("name")
+        grid.header.add("name")
 
         log.debug { "\n${grid}" }
 
@@ -103,6 +104,41 @@ internal class NGridTest {
             |age|name|
             +---+----+
             +---+----+            
+        """.trimIndent().trim(), grid.toString())
+
+    }
+
+    @Test
+    fun `print empty generic collection with header`() {
+
+        val list = ArrayList<Person>()
+
+        val grid = list.toNGrid()
+
+        log.debug { "\n${grid}" }
+
+        assertEquals("""
+            +---+----+
+            |age|name|
+            +---+----+
+            +---+----+            
+        """.trimIndent().trim(), grid.toString())
+
+    }
+
+    @Test
+    fun `print empty object collection with non-header`() {
+
+        val list = ArrayList<Any>()
+
+        val grid = list.toNGrid()
+
+        log.debug { "\n${grid}" }
+
+        assertEquals("""
+            +---+
+            |   |
+            +---+            
         """.trimIndent().trim(), grid.toString())
 
     }

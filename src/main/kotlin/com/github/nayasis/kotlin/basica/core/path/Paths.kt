@@ -209,12 +209,14 @@ fun Path?.isHidden(): Boolean = this != null && Files.isHidden(this)
 fun Path?.isReadable(): Boolean = this != null && Files.isReadable(this)
 fun Path?.isWritable(): Boolean = this != null && Files.isWritable(this)
 fun Path?.isSameFile(other: Path): Boolean = this != null && Files.isSameFile(this,other)
-fun Path?.fileSize(): Long = Files.size(this)
-fun Path?.fileStore(): FileStore = Files.getFileStore(this)
+
+val Path?.fileSize: Long
+    get() = Files.size(this)
+val Path?.fileStore: FileStore
+    get() = Files.getFileStore(this)
 
 fun Path.getAttribute(key: String, vararg options: LinkOption): Any? = Files.getAttribute(this,key,*options)
 fun Path.setAttribute(key: String, value: Any?, vararg options: LinkOption): Any? = Files.setAttribute(this,key,value,*options)
-inline fun <reified T:BasicFileAttributes> Path.getAttributes(vararg options: LinkOption): T = Files.readAttributes(this,T::class.java,*options)
 fun Path.getLastModifiedTime(vararg options: LinkOption): FileTime = Files.getLastModifiedTime(this,*options)
 fun Path.setLastModifiedTime(time: FileTime): Path = Files.setLastModifiedTime(this,time)
 fun Path.setLastModifiedTime(time: Long): Path = Files.setLastModifiedTime(this, FileTime.fromMillis(time))
@@ -222,6 +224,18 @@ fun Path.getOwner(vararg options: LinkOption): UserPrincipal? = Files.getOwner(t
 fun Path.setOwner(owner: UserPrincipal): Path = Files.setOwner(this,owner)
 fun Path.getPermissions(vararg options: LinkOption): Set<PosixFilePermission> = Files.getPosixFilePermissions(this,*options)
 fun Path.setPermissions(permissions: Set<PosixFilePermission>): Path = Files.setPosixFilePermissions(this,permissions)
+
+inline fun <reified T: BasicFileAttributes> Path.getAttributes(vararg options: LinkOption): T = Files.readAttributes(this,T::class.java,*options)
+inline fun <reified T: BasicFileAttributeView> Path.getAttributeView(vararg options: LinkOption): T = Files.getFileAttributeView(this,T::class.java,*options)
+fun Path.copyAttribute(target: Path) {
+    val src = this.getAttributes<BasicFileAttributes>()
+    var trg = target.getAttributeView<BasicFileAttributeView>()
+    trg.setTimes(
+        src.lastModifiedTime(),
+        src.lastAccessTime(),
+        src.creationTime(),
+    )
+}
 
 fun Path.makeDir(vararg attributes: FileAttribute<*>): Path = Files.createDirectories(this, *attributes)
 fun Path.makeHardLink(target: Path): Path = Files.createLink(this,target)
@@ -363,10 +377,10 @@ fun Path.copyTree(target: Path, overwrite: Boolean = true, vararg options: CopyO
  *    ...
  * </pre>
  * @param includeFile       include file
- * @param includeDirectory  include directory (default: false)
+ * @param includeDirectory  include directory
  * @return file or directory paths via stream
  */
-fun Path.findToStream(glob: String = "*", depth: Int = -1, includeFile: Boolean = true, includeDirectory: Boolean = false): Stream<Path> {
+fun Path.findToStream(glob: String = "*", depth: Int = -1, includeFile: Boolean = true, includeDirectory: Boolean = true): Stream<Path> {
     var matcher = FileSystems.getDefault().getPathMatcher("glob:$glob")
     return Files.walk(this, if(depth < 0) Int.MAX_VALUE else depth + 1 ).filter{ it: Path? ->
         when {
@@ -414,11 +428,159 @@ fun Path.findToStream(glob: String = "*", depth: Int = -1, includeFile: Boolean 
  *    ...
  * </pre>
  * @param includeFile       include file
- * @param includeDirectory  include directory (default: false)
+ * @param includeDirectory  include directory
  * @return  file or directory paths
  */
-fun Path.find(glob: String = "*", depth: Int = -1, includeFile: Boolean = true, includeDirectory: Boolean = false): List<Path> =
+fun Path.find(glob: String = "*", depth: Int = -1, includeFile: Boolean = true, includeDirectory: Boolean = true): List<Path> =
     findToStream(glob,depth,includeFile,includeDirectory).toList()
+
+/**
+ * search files
+ *
+ * @param glob   path matching glob expression
+ * <pre>
+ * ** : ignore directory variation
+ * *  : filename LIKE search
+ *
+ * 1. **.xml           : all files having "xml" extension below searchDir and it's all sub directories.
+ * 2. *.xml            : all files having "xml" extension in searchDir
+ * 3. c:\home\*\*.xml  : all files having "xml" extension below 'c:\home\' and it's just 1 depth below directories.
+ * 4. c:\home\**\*.xml : all files having "xml" extension below 'c:\home\' and it's all sub directories.
+ *
+ * 1. *  It matches zero , one or more than one characters. While matching, it will not cross directories boundaries.
+ * 2. ** It does the same as * but it crosses the directory boundaries.
+ * 3. ?  It matches only one character for the given name.
+ * 4. \  It helps to avoid characters to be interpreted as special characters.
+ * 5. [] In a set of characters, only single character is matched. If (-) hyphen is used then, it matches a range of characters. Example: [efg] matches "e","f" or "g" . [a-d] matches a range from a to d.
+ * 6. {} It helps to matches the group of sub patterns.
+ *
+ * 1. *.java when given path is java , we will get true by PathMatcher.matches(path).
+ * 2. *.* if file contains a dot, pattern will be matched.
+ * 3. *.{java,txt} If file is either java or txt, path will be matched.
+ * 4. abc.? matches a file which start with abc and it has extension with only single character.
+ * </pre>
+ * @param depth         depth to scan
+ * <pre>
+ *   -1 : infinite
+ *    0 : in searchDir itself
+ *    1 : from searchDir to 1 depth sub directory
+ *    2 : from searchDir to 2 depth sub directory
+ *    ...
+ * </pre>
+ * @return file via stream
+ */
+fun Path.findFilesToStream(glob: String = "*", depth: Int = -1): Stream<Path> = findToStream(glob,depth, includeFile=true, includeDirectory=false)
+
+/**
+ * search files.
+ *
+ * @param glob   path matching glob expression
+ * <pre>
+ * ** : ignore directory variation
+ * *  : filename LIKE search
+ *
+ * 1. **.xml           : all files having "xml" extension below searchDir and it's all sub directories.
+ * 2. *.xml            : all files having "xml" extension in searchDir
+ * 3. c:\home\*\*.xml  : all files having "xml" extension below 'c:\home\' and it's just 1 depth below directories.
+ * 4. c:\home\**\*.xml : all files having "xml" extension below 'c:\home\' and it's all sub directories.
+ *
+ * 1. *  It matches zero , one or more than one characters. While matching, it will not cross directories boundaries.
+ * 2. ** It does the same as * but it crosses the directory boundaries.
+ * 3. ?  It matches only one character for the given name.
+ * 4. \  It helps to avoid characters to be interpreted as special characters.
+ * 5. [] In a set of characters, only single character is matched. If (-) hyphen is used then, it matches a range of characters. Example: [efg] matches "e","f" or "g" . [a-d] matches a range from a to d.
+ * 6. {} It helps to matches the group of sub patterns.
+ *
+ * 1. *.java when given path is java , we will get true by PathMatcher.matches(path).
+ * 2. *.* if file contains a dot, pattern will be matched.
+ * 3. *.{java,txt} If file is either java or txt, path will be matched.
+ * 4. abc.? matches a file which start with abc and it has extension with only single character.
+ * </pre>
+ * @param depth         depth to scan
+ * <pre>
+ *   -1 : infinite
+ *    0 : in searchDir itself
+ *    1 : from searchDir to 1 depth sub directory
+ *    2 : from searchDir to 2 depth sub directory
+ *    ...
+ * </pre>
+ * @return  file paths
+ */
+fun Path.findFiles(glob: String = "*", depth: Int = -1): List<Path> = find(glob,depth, includeFile=true, includeDirectory=false)
+
+/**
+ * search directories.
+ *
+ * @param glob   path matching glob expression
+ * <pre>
+ * ** : ignore directory variation
+ * *  : filename LIKE search
+ *
+ * 1. **.xml           : all files having "xml" extension below searchDir and it's all sub directories.
+ * 2. *.xml            : all files having "xml" extension in searchDir
+ * 3. c:\home\*\*.xml  : all files having "xml" extension below 'c:\home\' and it's just 1 depth below directories.
+ * 4. c:\home\**\*.xml : all files having "xml" extension below 'c:\home\' and it's all sub directories.
+ *
+ * 1. *  It matches zero , one or more than one characters. While matching, it will not cross directories boundaries.
+ * 2. ** It does the same as * but it crosses the directory boundaries.
+ * 3. ?  It matches only one character for the given name.
+ * 4. \  It helps to avoid characters to be interpreted as special characters.
+ * 5. [] In a set of characters, only single character is matched. If (-) hyphen is used then, it matches a range of characters. Example: [efg] matches "e","f" or "g" . [a-d] matches a range from a to d.
+ * 6. {} It helps to matches the group of sub patterns.
+ *
+ * 1. *.java when given path is java , we will get true by PathMatcher.matches(path).
+ * 2. *.* if file contains a dot, pattern will be matched.
+ * 3. *.{java,txt} If file is either java or txt, path will be matched.
+ * 4. abc.? matches a file which start with abc and it has extension with only single character.
+ * </pre>
+ * @param depth         depth to scan
+ * <pre>
+ *   -1 : infinite
+ *    0 : in searchDir itself
+ *    1 : from searchDir to 1 depth sub directory
+ *    2 : from searchDir to 2 depth sub directory
+ *    ...
+ * </pre>
+ * @return directory paths via stream
+ */
+fun Path.findDirsToStream(glob: String = "*", depth: Int = -1): Stream<Path> = findToStream(glob,depth, includeFile=false, includeDirectory=true)
+
+/**
+ * search directories.
+ *
+ * @param glob   path matching glob expression
+ * <pre>
+ * ** : ignore directory variation
+ * *  : filename LIKE search
+ *
+ * 1. **.xml           : all files having "xml" extension below searchDir and it's all sub directories.
+ * 2. *.xml            : all files having "xml" extension in searchDir
+ * 3. c:\home\*\*.xml  : all files having "xml" extension below 'c:\home\' and it's just 1 depth below directories.
+ * 4. c:\home\**\*.xml : all files having "xml" extension below 'c:\home\' and it's all sub directories.
+ *
+ * 1. *  It matches zero , one or more than one characters. While matching, it will not cross directories boundaries.
+ * 2. ** It does the same as * but it crosses the directory boundaries.
+ * 3. ?  It matches only one character for the given name.
+ * 4. \  It helps to avoid characters to be interpreted as special characters.
+ * 5. [] In a set of characters, only single character is matched. If (-) hyphen is used then, it matches a range of characters. Example: [efg] matches "e","f" or "g" . [a-d] matches a range from a to d.
+ * 6. {} It helps to matches the group of sub patterns.
+ *
+ * 1. *.java when given path is java , we will get true by PathMatcher.matches(path).
+ * 2. *.* if file contains a dot, pattern will be matched.
+ * 3. *.{java,txt} If file is either java or txt, path will be matched.
+ * 4. abc.? matches a file which start with abc and it has extension with only single character.
+ * </pre>
+ * @param depth         depth to scan
+ * <pre>
+ *   -1 : infinite
+ *    0 : in searchDir itself
+ *    1 : from searchDir to 1 depth sub directory
+ *    2 : from searchDir to 2 depth sub directory
+ *    ...
+ * </pre>
+ * @return  directory paths
+ */
+fun Path.findDirs(glob: String = "*", depth: Int = -1): List<Path> = find(glob,depth, includeFile=false, includeDirectory=true)
 
 /**
  * Resolves the given [other] path against this path.
@@ -658,4 +820,52 @@ fun Path.writeText(text: CharSequence, charset: Charset = Charsets.UTF_8, vararg
  */
 fun Path.appendText(text: CharSequence, charset: Charset = Charsets.UTF_8) {
     writer(charset, APPEND).use { it.append(text) }
+}
+
+/**
+ * Rename path
+ *
+ * @param newName new file name
+ * @param overwrite true if overwrite new path to previous.
+ */
+fun Path.rename(newName: String, overwrite: Boolean = false) {
+    val trg = this.parent.resolve(newName)
+    if(trg != this) {
+        this.move(trg,overwrite)
+    }
+}
+
+/**
+ * resource statistics (file counts, directory counts, total size)
+ */
+val Path.statistics: ResourceStatistics
+    get() {
+        return if(this.isFile()) {
+            ResourceStatistics(1,this.fileSize)
+        } else if(this.isDirectory()) {
+            val res = ResourceStatistics()
+            Files.walkFileTree(this, object: SimpleFileVisitor<Path>() {
+                override fun preVisitDirectory(dir: Path, attrs: BasicFileAttributes): FileVisitResult {
+                    res.dirCount++
+                    return FileVisitResult.CONTINUE
+                }
+                override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
+                    res.fileCount++
+                    res.size += file.fileSize
+                    return FileVisitResult.CONTINUE
+                }
+            })
+            res
+        } else {
+            ResourceStatistics()
+        }
+    }
+
+data class ResourceStatistics(
+    var fileCount: Long = 0,
+    var dirCount: Long = 0,
+    var size: Long = 0,
+) {
+    val totalCount: Long
+        get() = fileCount + dirCount
 }
