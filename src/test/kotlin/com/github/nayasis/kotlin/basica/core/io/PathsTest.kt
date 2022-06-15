@@ -1,4 +1,4 @@
-package com.github.nayasis.kotlin.basica.core.path
+package com.github.nayasis.kotlin.basica.core.io
 
 import com.github.nayasis.kotlin.basica.core.string.toPath
 import mu.KotlinLogging

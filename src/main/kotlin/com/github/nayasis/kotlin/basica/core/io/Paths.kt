@@ -1,9 +1,9 @@
 @file:JvmMultifileClass
 
-package com.github.nayasis.kotlin.basica.core.path
+package com.github.nayasis.kotlin.basica.core.io
 
-import com.github.nayasis.kotlin.basica.core.path.Paths.Companion.FOLDER_SEPARATOR_UNIX
-import com.github.nayasis.kotlin.basica.core.path.Paths.Companion.FOLDER_SEPARATOR_WINDOWS
+import com.github.nayasis.kotlin.basica.core.io.Paths.Companion.FOLDER_SEPARATOR_UNIX
+import com.github.nayasis.kotlin.basica.core.io.Paths.Companion.FOLDER_SEPARATOR_WINDOWS
 import com.github.nayasis.kotlin.basica.core.string.invariantSeparators
 import com.github.nayasis.kotlin.basica.core.string.toFile
 import com.github.nayasis.kotlin.basica.core.string.toPath

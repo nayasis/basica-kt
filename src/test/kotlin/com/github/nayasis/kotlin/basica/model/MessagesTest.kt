@@ -1,7 +1,7 @@
 package com.github.nayasis.kotlin.basica.model
 
-import com.github.nayasis.kotlin.basica.core.path.Paths
-import com.github.nayasis.kotlin.basica.core.path.div
+import com.github.nayasis.kotlin.basica.core.io.Paths
+import com.github.nayasis.kotlin.basica.core.io.div
 import com.github.nayasis.kotlin.basica.core.string.bind
 import com.github.nayasis.kotlin.basica.core.string.message
 import mu.KotlinLogging

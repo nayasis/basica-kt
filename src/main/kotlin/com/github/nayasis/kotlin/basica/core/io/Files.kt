@@ -1,4 +1,4 @@
-package com.github.nayasis.kotlin.basica.core.path
+package com.github.nayasis.kotlin.basica.core.io
 
 import java.io.File
 import java.net.URL

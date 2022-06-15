@@ -1,6 +1,6 @@
 package com.github.nayasis.kotlin.basica.core.url
 
-import com.github.nayasis.kotlin.basica.core.path.detectCharset
+import com.github.nayasis.kotlin.basica.core.io.detectCharset
 import com.github.nayasis.kotlin.basica.core.string.toUri
 import java.io.File
 import java.io.InputStream

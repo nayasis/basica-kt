@@ -1,7 +1,7 @@
 package com.github.nayasis.kotlin.basica.model
 
-import com.github.nayasis.kotlin.basica.core.path.detectCharset
-import com.github.nayasis.kotlin.basica.core.path.inputStream
+import com.github.nayasis.kotlin.basica.core.io.detectCharset
+import com.github.nayasis.kotlin.basica.core.io.inputStream
 import com.github.nayasis.kotlin.basica.core.string.toPath
 import com.github.nayasis.kotlin.basica.core.url.detectCharset
 import com.github.nayasis.kotlin.basica.core.url.inStream
