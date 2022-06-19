@@ -869,3 +869,51 @@ data class ResourceStatistics(
     val totalCount: Long
         get() = fileCount + dirCount
 }
+
+fun Collection<Path>?.isCommonPrefix(prefix: Path?): Boolean {
+    if(prefix == null || this.isNullOrEmpty()) return false
+    for( path in this) {
+        try {
+            if(prefix.relativize(path).getName(0).name == ".." ) {
+                return false
+            }
+        } catch (e: Exception) {
+            return false
+        }
+    }
+    return true
+}
+
+fun Collection<Path>?.findLongestPrefix(): Path? {
+
+    if(this.isNullOrEmpty()) return null
+    val paths = this.map { if(it.isDirectory()) it else it.parent }.toSet().also {
+        if(it.size <= 1 ) return null
+    }
+
+    var longest: Path? = null
+    val first = paths.first()
+    val root  = first.root
+
+    for( path in paths ) {
+        if( path.root != root ) {
+            return null
+        }
+    }
+    longest = root
+
+    for( i in 0 until first.nameCount ) {
+        val prefix = first.getName(i)
+        for( path in paths ) {
+            if( path == first ) continue
+            if( path.nameCount <= i )
+                return longest
+            if( path.getName(i) != prefix )
+                return longest
+        }
+        longest = longest!!.resolve(prefix)
+    }
+
+    return longest
+
+}
