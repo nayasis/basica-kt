@@ -18,8 +18,9 @@ class StopWatch: Serializable {
 
     var enable: Boolean = true
 
-    constructor(task: String = "") {
+    constructor(task: String = "", fn:((watcher:StopWatch) -> Unit)? = null) {
         tick(task)
+        fn?.invoke(this)
     }
 
     val elapsedNanos: Long

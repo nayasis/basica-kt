@@ -72,4 +72,16 @@ internal class StopWatchTest {
 
     }
 
+    @Test
+    fun lambda() {
+        StopWatch("task1") {
+            sleep(100)
+            it.tick("task2")
+            sleep(100)
+            it.tick("task3")
+        }.let { watch ->
+            log.debug{ "\n$watch" }
+        }
+    }
+
 }
