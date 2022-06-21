@@ -66,7 +66,7 @@ class Paths { companion object {
             Files.createTempFile(prefix, suffix, *attributes)
 
     /**
-     * create a empty directory in the default temporary directory (vary by OS).
+     * create an empty directory in the default temporary directory (vary by OS).
      *
      * @param directory base directory in which to create directory (default: OS's default temporary directory)
      * @param prefix temporary directory's prefix name
@@ -129,7 +129,7 @@ fun Path.toUrl(): URL = this.toUri().toURL()
  * @return the relative path from [base] to this.
  */
 fun Path.toRelative(base: Path): Path? = try {
-    PathRelativizer.tryRelativeTo(this, base)
+    PathRelatives.tryRelativeTo(this, base)
 } catch (e: IllegalArgumentException) {
     null
 }
@@ -168,7 +168,7 @@ fun Path.toRelativeOrSelf(base: String): Path = this.toRelativeOrSelf(base.toPat
  * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
  * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
  */
-private object PathRelativizer {
+private object PathRelatives {
     private val emptyPath = Paths.get("")
     private val parentPath = Paths.get("..")
 
@@ -211,8 +211,8 @@ fun Path?.isWritable(): Boolean = this != null && Files.isWritable(this)
 fun Path?.isSameFile(other: Path): Boolean = this != null && Files.isSameFile(this,other)
 
 val Path?.fileSize: Long
-    get() = Files.size(this)
-val Path?.fileStore: FileStore
+    get() = if(this == null) 0 else Files.size(this)
+val Path.fileStore: FileStore
     get() = Files.getFileStore(this)
 
 fun Path.getAttribute(key: String, vararg options: LinkOption): Any? = Files.getAttribute(this,key,*options)
@@ -229,7 +229,7 @@ inline fun <reified T: BasicFileAttributes> Path.getAttributes(vararg options: L
 inline fun <reified T: BasicFileAttributeView> Path.getAttributeView(vararg options: LinkOption): T = Files.getFileAttributeView(this,T::class.java,*options)
 fun Path.copyAttribute(target: Path) {
     val src = this.getAttributes<BasicFileAttributes>()
-    var trg = target.getAttributeView<BasicFileAttributeView>()
+    val trg = target.getAttributeView<BasicFileAttributeView>()
     trg.setTimes(
         src.lastModifiedTime(),
         src.lastAccessTime(),
@@ -252,7 +252,7 @@ fun Path.delete(recursive: Boolean = true): Boolean {
     if(notExists()) return false
     if( recursive && isDirectory() ) {
         Files.walkFileTree(this, object: SimpleFileVisitor<Path>() {
-            override fun postVisitDirectory(dir: Path, e: IOException?): FileVisitResult? {
+            override fun postVisitDirectory(dir: Path, e: IOException?): FileVisitResult {
                 if (e != null) throw e
                 Files.delete(dir)
                 return FileVisitResult.CONTINUE
@@ -351,17 +351,17 @@ fun Path.copyTree(target: Path, overwrite: Boolean = true, vararg options: CopyO
  * ** : ignore directory variation
  * *  : filename LIKE search
  *
- * 1. **.xml           : all files having "xml" extension below searchDir and it's all sub directories.
+ * 1. **.xml           : all files having "xml" extension below searchDir and it's all subdirectories.
  * 2. *.xml            : all files having "xml" extension in searchDir
  * 3. c:\home\*\*.xml  : all files having "xml" extension below 'c:\home\' and it's just 1 depth below directories.
- * 4. c:\home\**\*.xml : all files having "xml" extension below 'c:\home\' and it's all sub directories.
+ * 4. c:\home\**\*.xml : all files having "xml" extension below 'c:\home\' and it's all subdirectories.
  *
- * 1. *  It matches zero , one or more than one characters. While matching, it will not cross directories boundaries.
+ * 1. *  It matches zero , one or more than one character. While matching, it will not cross directories boundaries.
  * 2. ** It does the same as * but it crosses the directory boundaries.
  * 3. ?  It matches only one character for the given name.
  * 4. \  It helps to avoid characters to be interpreted as special characters.
- * 5. [] In a set of characters, only single character is matched. If (-) hyphen is used then, it matches a range of characters. Example: [efg] matches "e","f" or "g" . [a-d] matches a range from a to d.
- * 6. {} It helps to matches the group of sub patterns.
+ * 5. [] In a set of characters, only single character is matched. If (-) hyphen is used then, it matches a range of characters. Example: \[efg\] matches "e","f" or "g" . [a-d] matches a range from a to d.
+ * 6. {} It helps to match the group of sub patterns.
  *
  * 1. *.java when given path is java , we will get true by PathMatcher.matches(path).
  * 2. *.* if file contains a dot, pattern will be matched.
@@ -372,8 +372,8 @@ fun Path.copyTree(target: Path, overwrite: Boolean = true, vararg options: CopyO
  * <pre>
  *   -1 : infinite
  *    0 : in searchDir itself
- *    1 : from searchDir to 1 depth sub directory
- *    2 : from searchDir to 2 depth sub directory
+ *    1 : from searchDir to 1 depth subdirectory
+ *    2 : from searchDir to 2 depth subdirectory
  *    ...
  * </pre>
  * @param includeFile       include file
@@ -381,8 +381,8 @@ fun Path.copyTree(target: Path, overwrite: Boolean = true, vararg options: CopyO
  * @return file or directory paths via stream
  */
 fun Path.findToStream(glob: String = "*", depth: Int = -1, includeFile: Boolean = true, includeDirectory: Boolean = true): Stream<Path> {
-    var matcher = FileSystems.getDefault().getPathMatcher("glob:$glob")
-    return Files.walk(this, if(depth < 0) Int.MAX_VALUE else depth + 1 ).filter{ it: Path? ->
+    val matcher = FileSystems.getDefault().getPathMatcher("glob:$glob")
+    return Files.walk(this, if(depth < 0) Int.MAX_VALUE else depth + 1 ).filter{
         when {
             it == null -> false
             it == this -> false
@@ -402,17 +402,17 @@ fun Path.findToStream(glob: String = "*", depth: Int = -1, includeFile: Boolean 
  * ** : ignore directory variation
  * *  : filename LIKE search
  *
- * 1. **.xml           : all files having "xml" extension below searchDir and it's all sub directories.
+ * 1. **.xml           : all files having "xml" extension below searchDir and it's all subdirectories.
  * 2. *.xml            : all files having "xml" extension in searchDir
  * 3. c:\home\*\*.xml  : all files having "xml" extension below 'c:\home\' and it's just 1 depth below directories.
- * 4. c:\home\**\*.xml : all files having "xml" extension below 'c:\home\' and it's all sub directories.
+ * 4. c:\home\**\*.xml : all files having "xml" extension below 'c:\home\' and it's all subdirectories.
  *
- * 1. *  It matches zero , one or more than one characters. While matching, it will not cross directories boundaries.
+ * 1. *  It matches zero , one or more than one character. While matching, it will not cross directories boundaries.
  * 2. ** It does the same as * but it crosses the directory boundaries.
  * 3. ?  It matches only one character for the given name.
  * 4. \  It helps to avoid characters to be interpreted as special characters.
- * 5. [] In a set of characters, only single character is matched. If (-) hyphen is used then, it matches a range of characters. Example: [efg] matches "e","f" or "g" . [a-d] matches a range from a to d.
- * 6. {} It helps to matches the group of sub patterns.
+ * 5. [] In a set of characters, only single character is matched. If (-) hyphen is used then, it matches a range of characters. Example: \[efg\] matches "e","f" or "g" . [a-d] matches a range from a to d.
+ * 6. {} It helps to match the group of sub patterns.
  *
  * 1. *.java when given path is java , we will get true by PathMatcher.matches(path).
  * 2. *.* if file contains a dot, pattern will be matched.
@@ -423,8 +423,8 @@ fun Path.findToStream(glob: String = "*", depth: Int = -1, includeFile: Boolean 
  * <pre>
  *   -1 : infinite
  *    0 : in searchDir itself
- *    1 : from searchDir to 1 depth sub directory
- *    2 : from searchDir to 2 depth sub directory
+ *    1 : from searchDir to 1 depth subdirectory
+ *    2 : from searchDir to 2 depth subdirectory
  *    ...
  * </pre>
  * @param includeFile       include file
@@ -442,17 +442,17 @@ fun Path.find(glob: String = "*", depth: Int = -1, includeFile: Boolean = true, 
  * ** : ignore directory variation
  * *  : filename LIKE search
  *
- * 1. **.xml           : all files having "xml" extension below searchDir and it's all sub directories.
+ * 1. **.xml           : all files having "xml" extension below searchDir and it's all subdirectories.
  * 2. *.xml            : all files having "xml" extension in searchDir
  * 3. c:\home\*\*.xml  : all files having "xml" extension below 'c:\home\' and it's just 1 depth below directories.
- * 4. c:\home\**\*.xml : all files having "xml" extension below 'c:\home\' and it's all sub directories.
+ * 4. c:\home\**\*.xml : all files having "xml" extension below 'c:\home\' and it's all subdirectories.
  *
- * 1. *  It matches zero , one or more than one characters. While matching, it will not cross directories boundaries.
+ * 1. *  It matches zero , one or more than one character. While matching, it will not cross directories boundaries.
  * 2. ** It does the same as * but it crosses the directory boundaries.
  * 3. ?  It matches only one character for the given name.
  * 4. \  It helps to avoid characters to be interpreted as special characters.
- * 5. [] In a set of characters, only single character is matched. If (-) hyphen is used then, it matches a range of characters. Example: [efg] matches "e","f" or "g" . [a-d] matches a range from a to d.
- * 6. {} It helps to matches the group of sub patterns.
+ * 5. [] In a set of characters, only single character is matched. If (-) hyphen is used then, it matches a range of characters. Example: \[efg\] matches "e","f" or "g" . [a-d] matches a range from a to d.
+ * 6. {} It helps to match the group of sub patterns.
  *
  * 1. *.java when given path is java , we will get true by PathMatcher.matches(path).
  * 2. *.* if file contains a dot, pattern will be matched.
@@ -463,8 +463,8 @@ fun Path.find(glob: String = "*", depth: Int = -1, includeFile: Boolean = true, 
  * <pre>
  *   -1 : infinite
  *    0 : in searchDir itself
- *    1 : from searchDir to 1 depth sub directory
- *    2 : from searchDir to 2 depth sub directory
+ *    1 : from searchDir to 1 depth subdirectory
+ *    2 : from searchDir to 2 depth subdirectory
  *    ...
  * </pre>
  * @return file via stream
@@ -479,17 +479,17 @@ fun Path.findFilesToStream(glob: String = "*", depth: Int = -1): Stream<Path> = 
  * ** : ignore directory variation
  * *  : filename LIKE search
  *
- * 1. **.xml           : all files having "xml" extension below searchDir and it's all sub directories.
+ * 1. **.xml           : all files having "xml" extension below searchDir and it's all subdirectories.
  * 2. *.xml            : all files having "xml" extension in searchDir
  * 3. c:\home\*\*.xml  : all files having "xml" extension below 'c:\home\' and it's just 1 depth below directories.
- * 4. c:\home\**\*.xml : all files having "xml" extension below 'c:\home\' and it's all sub directories.
+ * 4. c:\home\**\*.xml : all files having "xml" extension below 'c:\home\' and it's all subdirectories.
  *
- * 1. *  It matches zero , one or more than one characters. While matching, it will not cross directories boundaries.
+ * 1. *  It matches zero , one or more than one character. While matching, it will not cross directories boundaries.
  * 2. ** It does the same as * but it crosses the directory boundaries.
  * 3. ?  It matches only one character for the given name.
  * 4. \  It helps to avoid characters to be interpreted as special characters.
- * 5. [] In a set of characters, only single character is matched. If (-) hyphen is used then, it matches a range of characters. Example: [efg] matches "e","f" or "g" . [a-d] matches a range from a to d.
- * 6. {} It helps to matches the group of sub patterns.
+ * 5. [] In a set of characters, only single character is matched. If (-) hyphen is used then, it matches a range of characters. Example: \[efg\] matches "e","f" or "g" . [a-d] matches a range from a to d.
+ * 6. {} It helps to match the group of sub patterns.
  *
  * 1. *.java when given path is java , we will get true by PathMatcher.matches(path).
  * 2. *.* if file contains a dot, pattern will be matched.
@@ -500,8 +500,8 @@ fun Path.findFilesToStream(glob: String = "*", depth: Int = -1): Stream<Path> = 
  * <pre>
  *   -1 : infinite
  *    0 : in searchDir itself
- *    1 : from searchDir to 1 depth sub directory
- *    2 : from searchDir to 2 depth sub directory
+ *    1 : from searchDir to 1 depth subdirectory
+ *    2 : from searchDir to 2 depth subdirectory
  *    ...
  * </pre>
  * @return  file paths
@@ -516,17 +516,17 @@ fun Path.findFiles(glob: String = "*", depth: Int = -1): List<Path> = find(glob,
  * ** : ignore directory variation
  * *  : filename LIKE search
  *
- * 1. **.xml           : all files having "xml" extension below searchDir and it's all sub directories.
+ * 1. **.xml           : all files having "xml" extension below searchDir and it's all subdirectories.
  * 2. *.xml            : all files having "xml" extension in searchDir
  * 3. c:\home\*\*.xml  : all files having "xml" extension below 'c:\home\' and it's just 1 depth below directories.
- * 4. c:\home\**\*.xml : all files having "xml" extension below 'c:\home\' and it's all sub directories.
+ * 4. c:\home\**\*.xml : all files having "xml" extension below 'c:\home\' and it's all subdirectories.
  *
- * 1. *  It matches zero , one or more than one characters. While matching, it will not cross directories boundaries.
+ * 1. *  It matches zero , one or more than one character. While matching, it will not cross directories boundaries.
  * 2. ** It does the same as * but it crosses the directory boundaries.
  * 3. ?  It matches only one character for the given name.
  * 4. \  It helps to avoid characters to be interpreted as special characters.
- * 5. [] In a set of characters, only single character is matched. If (-) hyphen is used then, it matches a range of characters. Example: [efg] matches "e","f" or "g" . [a-d] matches a range from a to d.
- * 6. {} It helps to matches the group of sub patterns.
+ * 5. [] In a set of characters, only single character is matched. If (-) hyphen is used then, it matches a range of characters. Example: \[efg\] matches "e","f" or "g" . [a-d] matches a range from a to d.
+ * 6. {} It helps to match the group of sub patterns.
  *
  * 1. *.java when given path is java , we will get true by PathMatcher.matches(path).
  * 2. *.* if file contains a dot, pattern will be matched.
@@ -537,8 +537,8 @@ fun Path.findFiles(glob: String = "*", depth: Int = -1): List<Path> = find(glob,
  * <pre>
  *   -1 : infinite
  *    0 : in searchDir itself
- *    1 : from searchDir to 1 depth sub directory
- *    2 : from searchDir to 2 depth sub directory
+ *    1 : from searchDir to 1 depth subdirectory
+ *    2 : from searchDir to 2 depth subdirectory
  *    ...
  * </pre>
  * @return directory paths via stream
@@ -553,17 +553,17 @@ fun Path.findDirsToStream(glob: String = "*", depth: Int = -1): Stream<Path> = f
  * ** : ignore directory variation
  * *  : filename LIKE search
  *
- * 1. **.xml           : all files having "xml" extension below searchDir and it's all sub directories.
+ * 1. **.xml           : all files having "xml" extension below searchDir and it's all subdirectories.
  * 2. *.xml            : all files having "xml" extension in searchDir
  * 3. c:\home\*\*.xml  : all files having "xml" extension below 'c:\home\' and it's just 1 depth below directories.
- * 4. c:\home\**\*.xml : all files having "xml" extension below 'c:\home\' and it's all sub directories.
+ * 4. c:\home\**\*.xml : all files having "xml" extension below 'c:\home\' and it's all subdirectories.
  *
- * 1. *  It matches zero , one or more than one characters. While matching, it will not cross directories boundaries.
+ * 1. *  It matches zero , one or more than one character. While matching, it will not cross directories boundaries.
  * 2. ** It does the same as * but it crosses the directory boundaries.
  * 3. ?  It matches only one character for the given name.
  * 4. \  It helps to avoid characters to be interpreted as special characters.
- * 5. [] In a set of characters, only single character is matched. If (-) hyphen is used then, it matches a range of characters. Example: [efg] matches "e","f" or "g" . [a-d] matches a range from a to d.
- * 6. {} It helps to matches the group of sub patterns.
+ * 5. [] In a set of characters, only single character is matched. If (-) hyphen is used then, it matches a range of characters. Example: \[efg\] matches "e","f" or "g" . [a-d] matches a range from a to d.
+ * 6. {} It helps to match the group of sub patterns.
  *
  * 1. *.java when given path is java , we will get true by PathMatcher.matches(path).
  * 2. *.* if file contains a dot, pattern will be matched.
@@ -574,8 +574,8 @@ fun Path.findDirsToStream(glob: String = "*", depth: Int = -1): Stream<Path> = f
  * <pre>
  *   -1 : infinite
  *    0 : in searchDir itself
- *    1 : from searchDir to 1 depth sub directory
- *    2 : from searchDir to 2 depth sub directory
+ *    1 : from searchDir to 1 depth subdirectory
+ *    2 : from searchDir to 2 depth subdirectory
  *    ...
  * </pre>
  * @return  directory paths
@@ -608,7 +608,7 @@ operator fun Path.plus(other: Path): Path = resolve(other)
  *
  * This operator is a shortcut for the [Path.resolve] function.
  */
-operator fun Path.plus(other: String): Path = resolve(other.trim().replace("^[\\/]".toRegex(),""))
+operator fun Path.plus(other: String): Path = resolve(other.trim().replace("^[/]".toRegex(),""))
 
 /**
  * Converts the provided [path] string to a [Path] object of the [default][FileSystems.getDefault] filesystem.
@@ -704,12 +704,12 @@ fun Path.detectCharset(default: Charset = Charsets.UTF_8): Charset {
 fun detectCharset(inputstream: InputStream, default: Charset = Charsets.UTF_8): Charset {
 
     val buffer = ByteArray(4096)
-    var detector: UniversalDetector = UniversalDetector(null)
+    val detector = UniversalDetector(null)
 
     inputstream.mark(1 shl 24)
-    var nread: Int
-    while (inputstream.read(buffer).also { nread = it } > 0 && !detector.isDone) {
-        detector.handleData(buffer, 0, nread)
+    var bytes: Int
+    while (inputstream.read(buffer).also { bytes = it } > 0 && ! detector.isDone) {
+        detector.handleData(buffer, 0, bytes)
     }
     detector.dataEnd()
 
@@ -787,8 +787,8 @@ fun Path.appendBytes(array: ByteArray) {
 /**
  * Gets the entire content of this file as a String using UTF-8 or the specified [charset].
  *
- * It's not recommended to use this function on huge files.
- * For reading large files or files of unknown size, open a [Reader][Path.reader1] and read blocks of text sequentially.
+ * It's not recommended using this function on huge files.
+ * For reading large files or files of unknown size, open a [Reader][Path.reader] and read blocks of text sequentially.
  *
  * @param charset character set to use for reading text, UTF-8 by default.
  * @return the entire content of this file as a String.
@@ -877,9 +877,9 @@ data class ResourceStatistics(
  */
 fun Collection<Path>?.isCommonPrefix(path: Path?): Boolean {
     if(path == null || this.isNullOrEmpty()) return false
-    for( path in this) {
+    for( p in this) {
         try {
-            if(path.relativize(path).getName(0).name == ".." ) {
+            if(p.relativize(p).getName(0).name == ".." ) {
                 return false
             }
         } catch (e: Exception) {
@@ -901,7 +901,7 @@ fun Collection<Path>?.findLongestPrefix(): Path? {
         if(it.size <= 1 ) return null
     }
 
-    var longest: Path? = null
+    var longest: Path?
     val first = paths.first()
     val root  = first.root
 
