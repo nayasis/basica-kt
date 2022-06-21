@@ -752,7 +752,7 @@ fun Path.appendLines(lines: Iterable<CharSequence>, charset: Charset = Charsets.
 /**
  * Gets the entire content of this file as a byte array.
  *
- * It's not recommended to use this function on huge files.
+ * It's not recommended using this function on huge files.
  * It has an internal limitation of approximately 2 GB byte array size.
  * For reading large files or files of unknown size, open an [InputStream][Path.inputStream] and read blocks sequentially.
  *
@@ -870,11 +870,16 @@ data class ResourceStatistics(
         get() = fileCount + dirCount
 }
 
-fun Collection<Path>?.isCommonPrefix(prefix: Path?): Boolean {
-    if(prefix == null || this.isNullOrEmpty()) return false
+/**
+ * determine given path is common prefix path
+ *
+ * @return true if given path is common prefix
+ */
+fun Collection<Path>?.isCommonPrefix(path: Path?): Boolean {
+    if(path == null || this.isNullOrEmpty()) return false
     for( path in this) {
         try {
-            if(prefix.relativize(path).getName(0).name == ".." ) {
+            if(path.relativize(path).getName(0).name == ".." ) {
                 return false
             }
         } catch (e: Exception) {
@@ -884,6 +889,11 @@ fun Collection<Path>?.isCommonPrefix(prefix: Path?): Boolean {
     return true
 }
 
+/**
+ * find the longest common prefix path
+ *
+ * @return Longest common prefix path
+ */
 fun Collection<Path>?.findLongestPrefix(): Path? {
 
     if(this.isNullOrEmpty()) return null
@@ -916,4 +926,18 @@ fun Collection<Path>?.findLongestPrefix(): Path? {
 
     return longest
 
+}
+
+/**
+ * create random access file stream. A new FileDescriptor is created to represent this connection.
+ *
+ * @param mode access mode
+ *
+ * - r   : read only
+ * - rw  : read and write
+ * - rws : read and write with synchronous update on file's content or metadata
+ * - rwd : read and write with synchronous update on file's content only
+ */
+fun Path.toRandomAccessFile(mode: String): RandomAccessFile {
+    return RandomAccessFile(this.toFile(),mode)
 }
