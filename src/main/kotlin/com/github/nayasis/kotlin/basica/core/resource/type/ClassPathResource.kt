@@ -17,7 +17,7 @@ package com.github.nayasis.kotlin.basica.core.resource.type
 
 import com.github.nayasis.kotlin.basica.core.klass.SEPARATOR_PACKAGE
 import com.github.nayasis.kotlin.basica.core.klass.SEPARATOR_PATH
-import com.github.nayasis.kotlin.basica.core.path.name
+import com.github.nayasis.kotlin.basica.core.io.name
 import com.github.nayasis.kotlin.basica.core.resource.type.abstracts.AbstractFileResolvingResource
 import com.github.nayasis.kotlin.basica.core.resource.type.interfaces.Resource
 import com.github.nayasis.kotlin.basica.core.resource.util.PathModifier

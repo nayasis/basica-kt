@@ -1,4 +1,4 @@
-package com.github.nayasis.kotlin.basica.core.path
+package com.github.nayasis.kotlin.basica.core.io
 
 import com.github.nayasis.kotlin.basica.core.string.toPath
 import mu.KotlinLogging
@@ -301,6 +301,64 @@ internal class PathsTest {
             println( "${it}")
             println( "${it.first()}")
             println( "${it.last()}")
+        }
+
+    }
+
+    @Test
+    fun isCommonPrefix() {
+
+        listOf(
+            "\\\\NAS2\\game\\pc\\_backup\\Fight\\",
+            "\\\\NAS2\\game\\pc\\_backup\\",
+            "\\\\NAS2\\game\\pc\\_backup\\Adult\\"
+        ).map{it.toPath()}.isCommonPrefix(
+            "//NAS2/game/pc/_backup".toPath()
+        ).let { assertTrue(it) }
+
+        listOf(
+            "\\\\NAS2\\game\\pc\\_backup\\Fight\\",
+            "\\\\NAS2\\game\\pc\\_backup\\",
+            "\\\\NAS1\\game\\pc\\_backup\\Adult\\"
+        ).map{it.toPath()}.isCommonPrefix(
+            "//NAS2/game/pc/_backup".toPath()
+        ).let { assertFalse(it) }
+
+        listOf(
+            "c:/NAS2/game/pc/_backup/Fight",
+            "c:/NAS2/game/pc/_backup/merong.txt",
+            "c:/NAS1/game/pc/_backup/Adult"
+        ).map{it.toPath()}.isCommonPrefix(
+            "c:/".toPath()
+        ).let { assertTrue(it) }
+
+    }
+
+    @Test
+    fun findLongestPrefix() {
+
+        listOf(
+            "\\\\NAS2\\game\\pc\\_backup\\Fight\\",
+            "\\\\NAS2\\game\\pc\\_backup\\",
+            "\\\\NAS2\\game\\pc\\_backup\\Adult\\"
+        ).map{it.toPath()}.findLongestPrefix().let {
+            assertEquals("//NAS2/game/pc/_backup".toPath(), it)
+        }
+
+        listOf(
+            "\\\\NAS2\\game\\pc\\_backup\\Fight\\",
+            "\\\\NAS2\\game\\pc\\_backup\\",
+            "\\\\NAS1\\game\\pc\\_backup\\Adult\\"
+        ).map{it.toPath()}.findLongestPrefix().let {
+            assertEquals(null, it)
+        }
+
+        listOf(
+            "c:/NAS2/game/pc/_backup/Fight",
+            "c:/NAS2/game/pc/_backup/merong.txt",
+            "c:/NAS1/game/pc/_backup/Adult"
+        ).map{it.toPath()}.findLongestPrefix().let {
+            assertEquals("c:/".toPath(), it)
         }
 
     }

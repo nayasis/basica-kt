@@ -1,6 +1,6 @@
 package com.github.nayasis.kotlin.basica.core.resource.finder
 
-import com.github.nayasis.kotlin.basica.core.path.invariantSeparators
+import com.github.nayasis.kotlin.basica.core.io.invariantSeparators
 import com.github.nayasis.kotlin.basica.core.resource.matcher.PathMatcher
 import com.github.nayasis.kotlin.basica.core.resource.type.FileSystemResource
 import com.github.nayasis.kotlin.basica.core.resource.type.interfaces.Resource
