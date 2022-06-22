@@ -72,4 +72,3 @@ fun Float.floor(scale: Int = 0): Float {
 fun Float.ceil(scale: Int = 0): Float {
     return BigDecimal(this.toDouble()).setScale(scale,RoundingMode.CEILING).toFloat()
 }
-
