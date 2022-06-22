@@ -1,6 +1,8 @@
 package com.github.nayasis.kotlin.basica.core.collection
 
 import com.github.nayasis.kotlin.basica.model.NGrid
+import java.math.BigDecimal
+import java.math.BigInteger
 
 fun <T> Iterator<T>.toList(): List<T> {
     return ArrayList<T>().apply {
@@ -11,6 +13,22 @@ fun <T> Iterator<T>.toList(): List<T> {
 
 inline fun <T> Iterable<T>.sumByLong(selector: (T) -> Long): Long {
     var sum = 0L
+    for (element in this) {
+        sum += selector(element)
+    }
+    return sum
+}
+
+inline fun <T> Iterable<T>.sumByBigDecimal(selector: (T) -> BigDecimal): BigDecimal {
+    var sum = BigDecimal.ZERO
+    for (element in this) {
+        sum += selector(element)
+    }
+    return sum
+}
+
+inline fun <T> Iterable<T>.sumByBigInteger(selector: (T) -> BigInteger): BigInteger {
+    var sum = BigInteger.ZERO
     for (element in this) {
         sum += selector(element)
     }
