@@ -2,6 +2,7 @@ package com.github.nayasis.kotlin.basica.core.number
 
 import java.math.BigDecimal
 import java.math.BigInteger
+import java.math.MathContext
 import java.math.RoundingMode
 import java.text.DecimalFormat
 import java.time.Duration
@@ -71,4 +72,18 @@ fun Float.floor(scale: Int = 0): Float {
 
 fun Float.ceil(scale: Int = 0): Float {
     return BigDecimal(this.toDouble()).setScale(scale,RoundingMode.CEILING).toFloat()
+}
+
+fun Number.toBigDecimal(): BigDecimal {
+    return when(this) {
+        is BigDecimal -> this.add(BigDecimal.ZERO)
+        is BigInteger -> BigDecimal(this)
+        is Short -> BigDecimal(this.toInt())
+        is Byte -> BigDecimal(this.toInt())
+        is Int -> BigDecimal(this)
+        is Long -> BigDecimal(this)
+        is Float -> BigDecimal(this.toDouble())
+        is Double -> BigDecimal(this)
+        else -> throw TypeCastException("Can not convert to BigDecimal (type:${this.javaClass}, value:$this)")
+    }
 }
