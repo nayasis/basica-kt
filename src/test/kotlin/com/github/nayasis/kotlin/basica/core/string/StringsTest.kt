@@ -154,12 +154,36 @@ internal class StringsTest {
 
         assertEquals("", word.mask(""))
         assertEquals("010_ABCD_1234", word.mask("###_####_####"))
+        assertEquals("010_ABCD_123", word.mask("###_####_###"))
         assertEquals("010-ABCD-123", word.mask("###-####-###"))
         assertEquals("010-****-1234", word.mask("###-****-####"))
         assertEquals("*010_ABCD_***", word.mask("\\*###_####_***"))
         assertEquals("010_ABCD_123*", word.mask("###_####_###\\*"))
         assertEquals("***-A**D-***", word.mask("***-#**#-***\\"))
         assertEquals("###-ABCD-####", word.mask("###-****-####", pass = '*', hide = '#'))
+
+    }
+
+    @Test
+    fun `isMasked`() {
+
+        assertTrue( "010_ABCD_1234".isMasked("###_####_####"))
+        assertFalse( "010_ABCD_1234".isMasked("###_####_###"))
+        assertTrue( "010_ABCD_123".isMasked("###_####_###"))
+        assertTrue( "010_ABCD_123".isMasked("###_####_####"))
+        assertTrue( "010-ABCD-123".isMasked("###-####-###"))
+        assertTrue( "010-****-1234".isMasked("###-****-####"))
+        assertTrue( "*010_ABCD_***".isMasked("\\*###_####_***"))
+        assertTrue( "010_ABCD_123*".isMasked("###_####_###\\*"))
+        assertTrue( "***-A**D-***".isMasked("***-#**#-***\\"))
+        assertTrue( "###-ABCD-####".isMasked("###-****-####", pass = '*', hide = '#'))
+
+        assertTrue( "".isMasked("") )
+        assertFalse( "AAA".isMasked("") )
+        assertTrue( "".isMasked("#*#", fullMasked = false) )
+        assertFalse( "".isMasked("#*#", fullMasked = true) )
+        assertTrue( "010_ABCD_123".isMasked("###_####_####", fullMasked = false))
+        assertFalse( "010_ABCD_123".isMasked("###_####_####", fullMasked = true))
 
     }
 
