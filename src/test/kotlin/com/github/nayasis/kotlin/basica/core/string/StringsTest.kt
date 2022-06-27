@@ -165,6 +165,18 @@ internal class StringsTest {
     }
 
     @Test
+    fun `unmask`() {
+        assertEquals("010ABCD1234", "010_ABCD_1234".unmask("###_####_####"))
+        assertEquals("010ABCD123", "010_ABCD_1234".unmask("###_####_###"))
+        assertEquals("010ABCD123", "010-ABCD-123".unmask("###-####-###"))
+        assertEquals("010****1234", "010-****-1234".unmask("###-****-####"))
+        assertEquals("010ABCD***", "*010_ABCD_***".unmask("\\*###_####_***"))
+        assertEquals("010ABCD123", "010_ABCD_123*".unmask("###_####_###\\*"))
+        assertEquals("***A**D***", "***-A**D-***".unmask("***-#**#-***\\"))
+        assertEquals("###ABCD####", "###-ABCD-####".unmask("###-****-####", pass = '*', hide = '#'))
+    }
+
+    @Test
     fun `isMasked`() {
 
         assertTrue( "010_ABCD_1234".isMasked("###_####_####"))
