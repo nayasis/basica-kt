@@ -807,3 +807,11 @@ fun String.isBigDecimal(mathContext: MathContext? = null): Boolean {
         toBigDecimalOrNull(mathContext)
     } != null
 }
+
+fun String?.add(text: String): String {
+    return if(this == null) {
+        text
+    } else {
+        "$this${text}"
+    }
+}
