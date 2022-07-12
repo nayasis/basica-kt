@@ -363,6 +363,15 @@ internal class PathsTest {
 
     }
 
+    @Test
+    fun `get file name`() {
+        "c:/test/dir v0.9.22.0".toPath().let {
+            assertEquals("dir v0.9.22.0", "${it.fileName}")
+            assertEquals("dir v0.9.22.0", "${it.name}")
+            assertEquals("dir v0.9.22", "${it.nameWithoutExtension}")
+        }
+    }
+
 }
 
 data class Person (
