@@ -879,7 +879,7 @@ fun Collection<Path>?.isCommonPrefix(path: Path?): Boolean {
     if(path == null || this.isNullOrEmpty()) return false
     for( p in this) {
         try {
-            if(p.relativize(p).getName(0).name == ".." ) {
+            if(path.relativize(p).getName(0).name == ".." ) {
                 return false
             }
         } catch (e: Exception) {
@@ -897,8 +897,12 @@ fun Collection<Path>?.isCommonPrefix(path: Path?): Boolean {
 fun Collection<Path>?.findLongestPrefix(): Path? {
 
     if(this.isNullOrEmpty()) return null
-    val paths = this.map { if(it.isDirectory()) it else it.parent }.toSet().also {
-        if(it.size <= 1 ) return null
+
+    val paths = this.toSet().also {
+        when {
+            it.isEmpty() -> return null
+            it.size == 1 -> return it.first()
+        }
     }
 
     var longest: Path?
