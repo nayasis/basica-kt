@@ -623,20 +623,13 @@ fun String?.ifNotBlank(fn: (String) -> Unit) {
  */
 @JvmOverloads
 fun String?.mask(pattern: String?, pass: Char = '#', hide: Char = '*' ): String {
-
     if(this.isNullOrEmpty() || pattern.isNullOrEmpty()) return ""
-
     val sb = StringBuilder()
-
     var p = 0; var w = 0
-
-    val lastMask = pattern.length - 1
-    val lastWord = this.length - 1
-
-    while ( p <= lastMask ) {
+    while ( w < this.length && p < pattern.length ) {
         when (pattern[p]) {
             '\\' -> {
-                if(p != lastMask)
+                if(p < pattern.length - 1)
                     sb.append(pattern[p+1])
                 p++
             }
@@ -652,14 +645,94 @@ fun String?.mask(pattern: String?, pass: Char = '#', hide: Char = '*' ): String 
                 sb.append(pattern[p])
             }
         }
-        if(w > lastWord) break
         p++
     }
-
     return sb.toString()
-
 }
 
+/**
+ * unmask original string according to pattern
+ *
+ * @param pattern mask pattern
+ *
+ * - #  : substitute from word
+ * - *  : hide word with '*'
+ * - \\ : escape pattern
+ *  @param pass     pattern character to substitute word
+ *  @param hide     pattern character to hide word
+ * @return unmasked string
+ */
+@JvmOverloads
+fun String?.unmask(pattern: String?, pass: Char = '#', hide: Char = '*'): String {
+    if(this.isNullOrEmpty() || pattern.isNullOrEmpty()) return ""
+    val sb = StringBuilder()
+    var p = 0; var w = 0
+    while ( w < this.length && p < pattern.length ) {
+        when (pattern[p]) {
+            '\\' -> {
+                p++
+            }
+            pass -> {
+                sb.append(this[w])
+            }
+            hide -> {
+                sb.append(hide)
+            }
+            else -> {}
+        }
+        p++
+        w++
+    }
+    return sb.toString()
+}
+
+/**
+ * check original string is masked
+ *
+ * @param pattern  mask pattern
+ *
+ * - #  : substitute from word
+ * - *  : hide word with '*'
+ * - \\ : escape pattern
+ *  @param pass     pattern character to substitute word
+ *  @param hide     pattern character to hide word
+ *  @param fullMasked check original string is fully masked or partially.
+ * @return true if original string is masked
+ */
+@JvmOverloads
+fun String?.isMasked(pattern: String?, pass: Char = '#', hide: Char = '*', fullMasked: Boolean = false): Boolean {
+    if( this.isNullOrEmpty() &&  pattern.isNullOrEmpty()) return true
+    if(fullMasked) {
+        if( this.isNullOrEmpty() && !pattern.isNullOrEmpty()) return false
+        if(!this.isNullOrEmpty() &&  pattern.isNullOrEmpty()) return false
+        if(this!!.length != pattern!!.replace("\\","").length ) return false
+    } else {
+        if( this.isNullOrEmpty() && !pattern.isNullOrEmpty()) return true
+        if(!this.isNullOrEmpty() &&  pattern.isNullOrEmpty()) return false
+        if(this!!.length > pattern!!.replace("\\","").length ) return false
+    }
+    var p = 0; var w = 0
+    while ( w < this.length && p < pattern.length ) {
+        when (pattern[p]) {
+            '\\' -> {
+                if(p < pattern.length - 1) {
+                    if(pattern[p+1] != this[w]) return false
+                }
+                p++
+            }
+            pass -> {}
+            hide -> {
+                if(this[w] != hide) return false
+            }
+            else -> {
+                if(pattern[p] != this[w]) return false
+            }
+        }
+        p++
+        w++
+    }
+    return true
+}
 
 /**
  * get Levenshtein distance
@@ -733,4 +806,12 @@ fun String.isBigDecimal(mathContext: MathContext? = null): Boolean {
     } else {
         toBigDecimalOrNull(mathContext)
     } != null
+}
+
+fun String?.add(text: String): String {
+    return if(this == null) {
+        text
+    } else {
+        "$this${text}"
+    }
 }
