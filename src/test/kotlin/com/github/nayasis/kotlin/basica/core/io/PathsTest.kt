@@ -372,6 +372,13 @@ internal class PathsTest {
         }
     }
 
+    @Test
+    fun `get extension`() {
+        "e:\\download\\Hypseus.Singe.v2.8.2a.win64".toPath().let {
+            assertEquals("win64", it.extension)
+        }
+    }
+
 }
 
 data class Person (
