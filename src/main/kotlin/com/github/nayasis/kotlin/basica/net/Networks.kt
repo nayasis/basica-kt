@@ -27,7 +27,7 @@ class Networks { companion object {
         try {
             SSLContext.getInstance("SSL").apply {
                 init(null, allCerts, SecureRandom())
-                HttpsURLConnection.setDefaultHostnameVerifier { hostname,session -> true }
+                HttpsURLConnection.setDefaultHostnameVerifier { _, _ -> true }
                 HttpsURLConnection.setDefaultSSLSocketFactory(socketFactory)
             }
         } catch (e: GeneralSecurityException) {}
