@@ -1,6 +1,6 @@
 package com.github.nayasis.kotlin.basica.model
 
-import com.github.nayasis.kotlin.basica.core.character.fontwidth
+import com.github.nayasis.kotlin.basica.core.character.fontWidth
 import com.github.nayasis.kotlin.basica.core.character.repeat
 import com.github.nayasis.kotlin.basica.core.string.displaySubstr
 import com.github.nayasis.kotlin.basica.core.string.dpadEnd
@@ -8,11 +8,9 @@ import com.github.nayasis.kotlin.basica.core.string.dpadStart
 import kotlin.math.ceil
 import kotlin.math.log10
 import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.round
 
 private const val INDEX_COLUMN_NAME = "index"
-private const val NO_DATA = "NO DATA"
 
 private fun toString(value: Any?, maxWidth: Int): String {
     when (value) {
@@ -33,7 +31,7 @@ private fun toDisplayString(value: Any?, maxWidth: Int): String {
         val w: Double = when(c) {
             '\n' -> 2.0
             '\r' -> 2.0
-            else -> c.fontwidth()
+            else -> c.fontWidth
         }
 
         if( size + w > maxWidth )
@@ -57,7 +55,7 @@ private fun toDisplayString(value: Any?, maxWidth: Int): String {
 private fun getDisplayWidth(value: Any?, max: Double): Double {
     var width = 0.0
     for( c in toString(value,max.toInt()) ) {
-        val w = c.fontwidth()
+        val w = c.fontWidth
         when {
             width + w >  max -> return width
             width     == max -> return max
@@ -109,7 +107,7 @@ class NGridPrinter(
 
     private fun toString(header : ArrayList<*>, showIndexColumn: Boolean): String {
 
-        var line = StringBuilder().append('|')
+        val line = StringBuilder().append('|')
 
         if( showIndexColumn )
             line.append(INDEX_COLUMN_NAME.dpadStart(meta.indexWidth,' ')).append('|')
@@ -126,7 +124,7 @@ class NGridPrinter(
 
     private fun toString(row : Map<Any,Any?>, index: Int? = null): String {
 
-        var line = StringBuilder().append('|')
+        val line = StringBuilder().append('|')
 
         if( index != null )
             line.append(index.toString().dpadStart(meta.indexWidth,' ')).append('|')
@@ -150,14 +148,14 @@ class NGridPrinter(
 
 }
 
-private class PrintMeta {
+private class PrintMeta(grid: NGrid, maxColumnWidth: Int) {
 
     val header     = ArrayList<Any>()
     val alias      = ArrayList<String>()
     val width      = ArrayList<Int>()
     var indexWidth = INDEX_COLUMN_NAME.length
 
-    constructor(grid: NGrid, maxColumnWidth: Int) {
+    init {
         for( key in grid.header.keys() ) {
             header.add(key)
             alias.add(grid.header.getAlias(key))
@@ -167,7 +165,7 @@ private class PrintMeta {
     }
 
     private fun maxwidth(grid: NGrid, key: Any, maxColumnWidth: Double): Int {
-        var width = listOf(
+        val width = listOf(
             getDisplayWidth(key, maxColumnWidth),
             getDisplayWidth(grid.header.getAlias(key), maxColumnWidth),
             grid.body.values.map { row ->
@@ -178,7 +176,7 @@ private class PrintMeta {
     }
 
     fun line(lineCh: Char, delimiter: Char, indexColumn: Boolean): String {
-        var line = StringBuilder().append(delimiter)
+        val line = StringBuilder().append(delimiter)
         if( indexColumn )
             line.append( lineCh.repeat(indexWidth) ).append(delimiter)
         if( width.isEmpty() ) {

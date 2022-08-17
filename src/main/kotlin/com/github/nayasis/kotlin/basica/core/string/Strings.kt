@@ -3,17 +3,17 @@
 package com.github.nayasis.kotlin.basica.core.string
 
 import com.github.nayasis.kotlin.basica.core.character.Characters
-import com.github.nayasis.kotlin.basica.core.character.fontwidth
+import com.github.nayasis.kotlin.basica.core.character.fontWidth
 import com.github.nayasis.kotlin.basica.core.character.isCJK
 import com.github.nayasis.kotlin.basica.core.extention.ifEmpty
 import com.github.nayasis.kotlin.basica.core.extention.isEmpty
 import com.github.nayasis.kotlin.basica.core.extention.then
-import com.github.nayasis.kotlin.basica.core.klass.Classes
-import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
-import com.github.nayasis.kotlin.basica.core.number.cast
 import com.github.nayasis.kotlin.basica.core.io.*
 import com.github.nayasis.kotlin.basica.core.io.Paths.Companion.FOLDER_SEPARATOR
 import com.github.nayasis.kotlin.basica.core.io.Paths.Companion.FOLDER_SEPARATOR_UNIX
+import com.github.nayasis.kotlin.basica.core.klass.Classes
+import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
+import com.github.nayasis.kotlin.basica.core.number.cast
 import com.github.nayasis.kotlin.basica.core.url.URLCodec
 import com.github.nayasis.kotlin.basica.model.Messages
 import com.github.nayasis.kotlin.basica.reflection.Reflector
@@ -61,10 +61,10 @@ fun String.message(locale: Locale? = null): String = Messages[locale, this]
 
 fun String.toPath(): Path = Path(this)
 
-fun String.toDir(filecheck: Boolean = true): Path? {
+fun String.toDir(fileCheck: Boolean = true): Path? {
     val path = this.toPath()
     return when {
-        ! filecheck -> path.parent
+        ! fileCheck -> path.parent
         path.isDirectory() -> path
         else -> path.parent
     }
@@ -139,8 +139,7 @@ fun String?.dpadEnd(length: Int, padChar: Char = ' ' ): String {
     val repeat = length - this.displayLength
     return when {
         repeat > 0 -> {
-            var sb = StringBuilder()
-            sb.append(this?:"")
+            val sb = StringBuilder(this ?: "")
             for( n in 1..repeat )
                 sb.append(padChar)
             sb.toString()
@@ -165,7 +164,7 @@ val String?.displayLength : Int
         if( ! Characters.isFontWidthModified() ) return this.length
         var length = 0.0
         for( c in this )
-            length += c.fontwidth()
+            length += c.fontWidth
         return round(length).toInt()
     }
 
@@ -175,7 +174,7 @@ fun String?.displaySubstr(startIndex: Int, length: Int): String {
     var total = 0.0
     for( i in startIndex until this.length ) {
         val c = this[i]
-        total += c.fontwidth()
+        total += c.fontWidth
         if( round(total) >= length )
             return bf.toString()
         bf.append(c)
@@ -185,10 +184,10 @@ fun String?.displaySubstr(startIndex: Int, length: Int): String {
 
 fun String?.toCamel(): String {
     if( this.isNullOrEmpty() ) return ""
-    var sb = StringBuffer()
+    val sb = StringBuffer()
     val matcher = REGEX_CAMEL.matcher(this.lowercase())
     while(matcher.find()) {
-        var r = matcher.group().substring(1)
+        val r = matcher.group().substring(1)
         matcher.appendReplacement(sb, if(matcher.start() == 0) r else r.uppercase())
     }
     matcher.appendTail(sb)
@@ -197,11 +196,11 @@ fun String?.toCamel(): String {
 
 fun String?.toSnake(): String {
     if( this.isNullOrEmpty() ) return ""
-    var sb = StringBuffer()
+    val sb = StringBuffer()
     val matcher = REGEX_SNAKE.matcher(this.lowercase())
     while(matcher.find()) {
         if(matcher.start() == 0) continue
-        var r = matcher.group()
+        val r = matcher.group()
         matcher.appendReplacement(sb, "_${r.lowercase()}")
     }
     matcher.appendTail(sb)
@@ -210,7 +209,7 @@ fun String?.toSnake(): String {
 
 fun String?.escape(): String {
     if(this.isNullOrEmpty()) return ""
-    var sb = StringBuilder()
+    val sb = StringBuilder()
     for( ch in this ) {
         when (ch) {
             '"' -> sb.append("\\\"")

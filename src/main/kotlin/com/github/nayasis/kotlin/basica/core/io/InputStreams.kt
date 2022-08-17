@@ -77,7 +77,7 @@ fun InputStream.copyTo(out: OutputStream, start: Long, end: Long, bufferSize: In
  */
 fun InputStream.drain(bufferSize: Int = DEFAULT_BUFFER_SIZE): Long {
     val buffer = ByteArray(bufferSize)
-    var read  = 0
+    var read: Int
     var total = 0L
     while (read(buffer).also { read = it } >= 0) {
         total += read
