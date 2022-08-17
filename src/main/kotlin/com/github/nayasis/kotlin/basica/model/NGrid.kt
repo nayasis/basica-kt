@@ -1,6 +1,7 @@
 package com.github.nayasis.kotlin.basica.model
 
 import com.fasterxml.jackson.core.type.TypeReference
+import com.github.nayasis.kotlin.basica.core.character.Characters
 import com.github.nayasis.kotlin.basica.core.number.cast
 import com.github.nayasis.kotlin.basica.core.string.toNumber
 import com.github.nayasis.kotlin.basica.reflection.Reflector
@@ -14,7 +15,21 @@ import kotlin.reflect.full.isSubclassOf
 class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
 
     companion object {
+
         private const val serialVersionUID = 4570402963506233953L
+
+        var fullFontWidth: Double
+            get() = Characters.fullwidth
+            set(value) {
+                Characters.fullwidth = value
+            }
+
+        var halfFontWidth: Double
+            get() = Characters.halfwidth
+            set(value) {
+                Characters.halfwidth = value
+            }
+
     }
 
     val header: NGridHeader
