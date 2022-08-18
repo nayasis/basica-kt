@@ -32,7 +32,7 @@ import com.github.nayasis.kotlin.basica.core.resource.util.URL_PREFIX_CLASSPATH
 import mu.KotlinLogging
 import java.io.IOException
 
-val log = KotlinLogging.logger {}
+private val log = KotlinLogging.logger {}
 
 class PathMatchingResourceLoader: ResourcePatternResolver {
 
