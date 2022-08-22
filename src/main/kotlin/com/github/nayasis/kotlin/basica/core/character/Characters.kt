@@ -107,7 +107,7 @@ fun Char?.hasHangulJongsung(): Boolean {
  * @see [http://unicode.org/reports/tr11](http://unicode.org/reports/tr11)
  * @see [http://unicode.org/charts/PDF/UFF00.pdf](http://unicode.org/charts/PDF/UFF00.pdf)
  */
-fun Char?.isHalfwidth(): Boolean {
+fun Char?.isHalfWidth(): Boolean {
     if( this == null ) return false
     val c = this.code
     if (c < 0x0020) return true // special character
@@ -125,9 +125,10 @@ fun Char?.isHalfwidth(): Boolean {
  *
  * @return font width to print
  */
-fun Char?.fontwidth(): Double {
-    return if (isHalfwidth()) Characters.halfwidth else if (isCJK()) Characters.fullwidth else 1.0
-}
+val Char?.fontWidth: Double
+    get() {
+        return if (isHalfWidth()) Characters.halfwidth else if (isCJK()) Characters.fullwidth else 1.0
+    }
 
 /**
  * check if character is korean

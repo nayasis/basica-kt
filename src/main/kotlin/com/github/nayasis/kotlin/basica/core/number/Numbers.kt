@@ -43,9 +43,11 @@ val Number.minutes: Duration
 val Number.hours: Duration
     get() = Duration.ofHours(this.toLong())
 
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 operator fun Duration.plus(duration: Duration): Duration
     = this.plus(duration)
 
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 operator fun Duration.minus(duration: Duration): Duration
     = this.minus(duration)
 

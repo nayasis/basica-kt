@@ -2,6 +2,7 @@ package com.github.nayasis.kotlin.basica.exception
 
 import ch.qos.logback.classic.spi.ThrowableProxy
 import ch.qos.logback.classic.spi.ThrowableProxyUtil
+import kotlin.reflect.KClass
 
 private var enableLogback = true
 
@@ -12,6 +13,19 @@ fun Throwable.filterStackTrace(pattern: Regex? = null): Throwable {
         stackTrace = self.stackTrace.filter { pattern.find("$it") == null }.toTypedArray()
         self.cause?.let { initCause(it.filterStackTrace(pattern)) }
     }
+}
+
+fun <T: Exception> Throwable.findCause(klass: KClass<T>): T? {
+    var cause: Throwable? = this
+    while(cause != null) {
+        if(cause.javaClass == klass.java) {
+            @Suppress("UNCHECKED_CAST")
+            return cause as T
+        } else {
+            cause = cause.cause
+        }
+    }
+    return null
 }
 
 fun Throwable.toString(pattern: Regex? = null): String {
