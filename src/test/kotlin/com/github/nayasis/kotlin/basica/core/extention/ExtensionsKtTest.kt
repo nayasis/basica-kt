@@ -23,13 +23,24 @@ internal class ExtensionsKtTest {
     @Test
     fun ifNotEmptyNull() {
 
-        var a = mutableListOf(1,2,3,4)
+        val a = mutableListOf(1,2,3,4)
 
         assertEquals(10, a.ifNotEmpty { it.sum() })
 
         a.clear()
 
         assertEquals(null, a.ifNotEmpty { it.sum() })
+
+    }
+
+    @Test
+    fun `return in lambda`() {
+
+        assertEquals("AA", "A".ifEmpty { "B" }.plus("A") )
+
+        "".ifEmpty { return }
+
+        throw Exception("must not run this code")
 
     }
 

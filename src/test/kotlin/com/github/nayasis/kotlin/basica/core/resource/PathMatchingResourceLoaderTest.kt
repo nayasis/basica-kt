@@ -1,9 +1,12 @@
 package com.github.nayasis.kotlin.basica.core.resource
 
 import com.github.nayasis.kotlin.basica.core.resource.util.Resources
+import mu.KotlinLogging
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.io.IOException
+
+private val log = KotlinLogging.logger {}
 
 internal class PathMatchingResourceLoaderTest {
 
