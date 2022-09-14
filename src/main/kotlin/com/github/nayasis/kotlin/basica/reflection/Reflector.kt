@@ -250,8 +250,8 @@ class Reflector { companion object {
     }
 
     @JvmStatic
-    inline fun <reified T> clone(source: T?): T? {
-        return source?.let { toObject(toJson(it)) }
+    inline fun <reified T> clone(source: T?): T {
+        return toObject(toJson(source))
     }
 
 }}
