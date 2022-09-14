@@ -40,6 +40,7 @@ class Reflector { companion object {
     private val mapper = createJsonMapper()
     private val nullMapper = createJsonMapper(ignoreNull = false)
 
+    @JvmStatic
     fun createJsonMapper(
         ignoreNull: Boolean     = true,
         sort: Boolean           = false,
@@ -89,13 +90,12 @@ class Reflector { companion object {
             addModule(kotlinModule{})
 
         }
-
     }
 
     private fun mapper(ignoreNull: Boolean = true) : ObjectMapper = if( ignoreNull ) mapper else nullMapper
 
     @JvmStatic
-    fun toJson( obj: Any?, pretty: Boolean = false, ignoreNull: Boolean = true, view: Class<*>? = null ): String {
+    fun toJson(obj: Any?, pretty: Boolean = false, ignoreNull: Boolean = true, view: Class<*>? = null): String {
         return when (obj) {
             null -> ""
             else -> {
@@ -133,7 +133,7 @@ class Reflector { companion object {
     }
 
     @JvmStatic
-    fun <T:Any> toObject(src: Any?, typeClass: KClass<T>, ignoreNull: Boolean = true): T {
+    fun <T: Any> toObject(src: Any?, typeClass: KClass<T>, ignoreNull: Boolean = true): T {
         val mapper  = mapper(ignoreNull)
         val typeref = typeClass.java
         return when (src) {
@@ -149,7 +149,7 @@ class Reflector { companion object {
     }
 
     @JvmStatic
-    fun <T:Any> toObject(src: Any?, typeref: TypeReference<T>, ignoreNull: Boolean = true): T {
+    fun <T: Any> toObject(src: Any?, typeref: TypeReference<T>, ignoreNull: Boolean = true): T {
         val mapper = mapper(ignoreNull)
         return when (src) {
             null            -> mapper.readValue(emptyJson(typeref.type::class), typeref)
@@ -247,6 +247,11 @@ class Reflector { companion object {
     @JvmStatic
     inline fun <reified T> merge(from: Any?, to: T?, skipEmpty: Boolean = true): T {
         return Merger.merge(from,to,skipEmpty)
+    }
+
+    @JvmStatic
+    inline fun <reified T> clone(source: T?): T? {
+        return source?.let { toObject(toJson(it)) }
     }
 
 }}

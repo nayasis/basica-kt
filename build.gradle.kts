@@ -51,8 +51,8 @@ dependencies {
 
 	// test
 	testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.1")
-	testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
-	testImplementation("org.junit.jupiter:junit-jupiter-engine:5.7.1")
+	testImplementation("org.junit.jupiter:junit-jupiter-api:5.3.1")
+	testImplementation("org.junit.jupiter:junit-jupiter-engine:5.3.1")
 
 }
 

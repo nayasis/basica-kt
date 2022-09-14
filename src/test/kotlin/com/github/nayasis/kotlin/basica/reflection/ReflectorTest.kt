@@ -202,6 +202,13 @@ internal class ReflectorTest {
         assertEquals( emptyList<String>(), Reflector.toObject<List<String>>(null) )
     }
 
+    @Test
+    fun `clone test`() {
+        val p1 = Person(name="nayasis", age = 14, address = "sungnam", etc = "merong")
+        val p2 = Reflector.clone(p1)
+        assertEquals(p1,p2)
+    }
+
 }
 
 data class Dummy(
