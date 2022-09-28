@@ -48,3 +48,14 @@ inline fun <T,R> T?.ifNotEmpty(fn: (T) -> R): R? {
 inline fun <T,R> T?.ifNotNull(fn: (T) -> R): R? {
     return if(this != null) fn(this) else null
 }
+
+inline fun Boolean.ifTrue(fn: () -> Unit): Boolean {
+    if(this) fn()
+    return this
+}
+
+inline fun Boolean.ifFalse(fn: () -> Unit): Boolean {
+    if(!this) fn()
+    return this
+}
+
