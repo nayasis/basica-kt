@@ -88,3 +88,15 @@ fun Number.toBigDecimal(): BigDecimal {
         else -> throw TypeCastException("Can not convert to BigDecimal (type:${this.javaClass}, value:$this)")
     }
 }
+
+fun BigDecimal.isEqual(other: BigDecimal?): Boolean {
+    return this.compareTo(other) == 0
+}
+
+fun BigDecimal.isNotEqual(other: BigDecimal?): Boolean {
+    return this.compareTo(other) != 0
+}
+
+fun BigDecimal.div(other: BigDecimal, scale: Int = 6): BigDecimal {
+    return this.divide(other,scale,RoundingMode.DOWN)
+}
