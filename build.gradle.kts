@@ -46,11 +46,11 @@ dependencies {
 	// kotlin
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-	implementation("io.github.microutils:kotlin-logging:2.0.10")
+	implementation("io.github.microutils:kotlin-logging:3.0.0")
 	implementation("au.com.console:kassava:2.1.0")
 
 	// test
-	testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.1")
+	testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0")
 	testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
 	testImplementation("org.junit.jupiter:junit-jupiter-engine:5.7.1")
 
