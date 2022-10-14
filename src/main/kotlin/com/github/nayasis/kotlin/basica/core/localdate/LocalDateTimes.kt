@@ -4,6 +4,7 @@ package com.github.nayasis.kotlin.basica.core.localdate
 
 import com.github.nayasis.kotlin.basica.core.string.capture
 import com.github.nayasis.kotlin.basica.core.string.extractDigit
+import java.nio.file.attribute.FileTime
 import java.time.*
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
@@ -210,6 +211,8 @@ fun Date.toSqlDate(zoneId: ZoneId = ZoneId.systemDefault()): SqlDate =
     SqlDate.valueOf(this.toLocalDate(zoneId))
 
 fun LocalDateTime.toLong(): Long = this.toZonedDateTime().toInstant().toEpochMilli()
+
+fun LocalDateTime.toFileTime(): FileTime = FileTime.fromMillis(this.toLong())
 
 fun LocalDate.toLong(): Long = this.toLocalDateTime().toLong()
 
