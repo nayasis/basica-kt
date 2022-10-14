@@ -21,6 +21,7 @@ import com.fasterxml.jackson.module.kotlin.addSerializer
 import com.fasterxml.jackson.module.kotlin.jacksonTypeRef
 import com.fasterxml.jackson.module.kotlin.jsonMapper
 import com.fasterxml.jackson.module.kotlin.kotlinModule
+import com.github.nayasis.kotlin.basica.core.string.escapeRegex
 import com.github.nayasis.kotlin.basica.core.validator.isEmpty
 import com.github.nayasis.kotlin.basica.reflection.serializer.DateDeserializer
 import com.github.nayasis.kotlin.basica.reflection.serializer.DateSerializer
@@ -198,7 +199,7 @@ class Reflector { companion object {
     private fun unflattenKeys(pathParent: String, value: Any?, result: MutableMap<String,Any?>) {
 
         val key     = pathParent.replaceFirst("""\[.*?]""".toRegex(), "").replaceFirst("""\..*?$""".toRegex(), "")
-        val index   = pathParent.replaceFirst("""^($key)\[(.*?)](.*?)$""".toRegex(), "$2").let{ if(it==pathParent) "" else it}
+        val index   = pathParent.replaceFirst("""^(${key.escapeRegex()})\[(.*?)](.*?)$""".toRegex(), "$2").let{ if(it==pathParent) "" else it}
         val isArray = index.isNotEmpty()
 
         val pathCurr = "$key${if(isArray)"[$index]" else ""}"
