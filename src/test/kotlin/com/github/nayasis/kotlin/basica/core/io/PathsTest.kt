@@ -239,21 +239,23 @@ internal class PathsTest {
 
         val src = TEST_DIR / "src"
         val trg = TEST_DIR / "trg"
+        val existDir = (TEST_DIR / "existed").also { it.makeDir() }
 
-        val file1 = src / "sample1.txt"
-        val file2 = src / "sample2.txt"
-
-        file1.writeText("merong")
-        file2.writeText("merong")
+        val file1 = (src / "sample1.txt").also { it.writeText("merong 1") }
+        val file2 = (src / "sample2.txt").also { it.writeText("merong 2") }
+        val file3 = (src / "sample3.txt").also { it.writeText("merong 3") }
 
         val moved1 = file1.move(trg + "/sample.txt")
         val moved2 = file2.move(trg + "/children/sample2.txt")
+        val moved3 = file3.move(existDir)
 
         assertEquals( trg + "/sample.txt", moved1 )
         assertEquals( trg + "/children/sample2.txt", moved2 )
+        assertEquals( existDir + "/sample3.txt", moved3 )
 
         assertTrue( moved1.isFile() )
         assertTrue( moved2.isFile() )
+        assertTrue( moved3.isFile() )
 
     }
 

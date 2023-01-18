@@ -305,13 +305,23 @@ fun Path.copy(target: Path, overwrite: Boolean = true, vararg options: CopyOptio
 fun Path.move(target: Path, overwrite: Boolean = true, vararg options: CopyOption): Path {
     if( this.notExists() )
         throw IOException("source($this) must exist.")
-    return if( this.isDirectory() && target.exists() ) {
-        if( target.isFile() )
-            throw IOException("cannot overwrite directory($this) to file($target)")
-        Files.move(this,target.resolve(this.fileName),*toCopyOptions(overwrite, options))
+    return if( this.isDirectory() ) {
+         if( target.exists() ) {
+           if( ! target.isDirectory() )
+                throw IOException("cannot overwrite directory($this) to file($target)")
+            else
+                Files.move(this,target.resolve(this.fileName),*toCopyOptions(overwrite, options))
+        } else {
+            target.parent.makeDir()
+            Files.move(this,target,*toCopyOptions(overwrite, options))
+        }
     } else {
-        target.parent.makeDir()
-        Files.move(this,target,*toCopyOptions(overwrite, options))
+        if( target.isDirectory() ) {
+            Files.move(this,target.resolve(this.name),*toCopyOptions(overwrite, options))
+        } else {
+            target.parent.makeDir()
+            Files.move(this,target,*toCopyOptions(overwrite, options))
+        }
     }
 }
 
