@@ -1,11 +1,12 @@
 package com.github.nayasis.kotlin.basica.exec
 
 import com.github.nayasis.kotlin.basica.core.extention.ifNotEmpty
-import com.github.nayasis.kotlin.basica.core.extention.isNotEmpty
-import com.github.nayasis.kotlin.basica.core.io.isFile
+import com.github.nayasis.kotlin.basica.core.io.exists
 import com.github.nayasis.kotlin.basica.core.string.toFile
 import com.github.nayasis.kotlin.basica.core.string.toPath
 import com.github.nayasis.kotlin.basica.core.string.tokenize
+import java.io.File
+import java.nio.file.Path
 import java.security.InvalidParameterException
 
 /**
@@ -21,40 +22,37 @@ class Command {
         this.workingDirectory = workingDirectory
         this.environment.putAll(environment)
         this.command.clear()
-        appendParsing(cli)
+        append(cli)
     }
 
     fun isEmpty(): Boolean = command.isEmpty()
 
-    fun append(command: String?): Command {
-        if(command.isNotEmpty())
-            this.command.add(command!!)
+    fun appendRaw(command: String?): Command {
+        command.ifNotEmpty { this.command.add(it) }
         return this
     }
 
-    fun appendParsing(command: String?): Command {
+    fun append(path: Path): Command {
+        command.add("\"$path\"")
+        return this
+    }
 
+    fun append(file: File): Command {
+        command.add("\"$file\"")
+        return this
+    }
+
+    fun append(command: String?): Command {
         if(command.isNullOrEmpty()) return this
-
         runCatching {
-            if(command.toPath().isFile()) {
-                this.command.add(command)
-                return this
+            command.toPath().let { path ->
+                if(path.exists())
+                    return append(path)
             }
         }
 
         val buf = StringBuilder()
-
-        fun StringBuilder.appendCommand(): Boolean {
-            if(isNotEmpty()) {
-                this@Command.command.add(toString())
-                clear()
-            }
-            return true
-        }
-
         var status = NONE
-
         for( token in command.tokenize("${SINGLE}${DOUBLE}${SPACE}", true) ) {
             if( status != NONE || token !in SPACE)
                 buf.append(token)
@@ -66,14 +64,20 @@ class Command {
                         SINGLE -> status = SINGLE
                         DOUBLE -> status = DOUBLE
                         in SPACE -> {
-                            buf.appendCommand()
+                            buf.ifNotEmpty {
+                                this.command.add(it.toString())
+                                it.clear()
+                            }
                         }
                     }
                 }
             }
         }
 
-        buf.appendCommand()
+        buf.ifNotEmpty {
+            this.command.add(it.toString())
+            it.clear()
+        }
 
         return this
 
