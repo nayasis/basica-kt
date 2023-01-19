@@ -33,13 +33,13 @@ internal class PathsTest {
 
     @Test
     fun invariantSeparators() {
-        assertEquals( "c:/documents/merong", "c:\\documents\\merong\\".toPath().invariantSeparators )
+        assertEquals( "c:/documents/merong", "c:\\documents\\merong\\".toPath().invariantPath )
     }
 
     @Test
     fun glob() {
 
-        val homeDir = Paths.userHome.invariantSeparators
+        val homeDir = Paths.userHome.invariantPath
 
         homeDir.toPath().findToStream("*",0).forEach {
             log.debug { it }
@@ -143,9 +143,9 @@ internal class PathsTest {
 
     @Test
     fun invariantPath() {
-        assertEquals( "//NAS/Game & Watch - Zelda", "\\\\NAS\\Game & Watch - Zelda".toPath().invariantSeparators )
-        assertEquals( "a", "a\\".toPath().invariantSeparators )
-        assertEquals( "/", "\\".toPath().invariantSeparators )
+        assertEquals( "//NAS/Game & Watch - Zelda", "\\\\NAS\\Game & Watch - Zelda".toPath().invariantPath )
+        assertEquals( "a", "a\\".toPath().invariantPath )
+        assertEquals( "/", "\\".toPath().invariantPath )
     }
 
     @Test
@@ -158,10 +158,10 @@ internal class PathsTest {
     @Test
     fun normalize() {
         val root = "/root/bin/".toPath()
-        assertEquals( "/root/temp", root.resolve(".././temp").normalize().invariantSeparators)
-        assertEquals( "/root/bin/temp", root.resolve("./temp").normalize().invariantSeparators)
-        assertEquals( "/root/bin/temp", root.resolve("temp").normalize().invariantSeparators)
-        assertEquals( "/temp", root.resolve("/./temp").normalize().invariantSeparators)
+        assertEquals( "/root/temp", root.resolve(".././temp").normalize().invariantPath)
+        assertEquals( "/root/bin/temp", root.resolve("./temp").normalize().invariantPath)
+        assertEquals( "/root/bin/temp", root.resolve("temp").normalize().invariantPath)
+        assertEquals( "/temp", root.resolve("/./temp").normalize().invariantPath)
     }
 
     @Test
@@ -366,12 +366,23 @@ internal class PathsTest {
     }
 
     @Test
-    fun `get file name`() {
+    fun `get name`() {
         "c:/test/dir v0.9.22.0".toPath().let {
             assertEquals("dir v0.9.22.0", "${it.fileName}")
             assertEquals("dir v0.9.22.0", "${it.name}")
             assertEquals("dir v0.9.22", "${it.nameWithoutExtension}")
         }
+    }
+
+    @Test
+    fun `get name without extension`() {
+        "c:/test/file v0.9.22.0 .txt".toPath().let {
+            assertEquals("file v0.9.22.0 .txt", "${it.name}")
+            assertEquals("file v0.9.22.0 ", "${it.nameWithoutExtension}")
+            assertEquals("c:\\test\\file v0.9.22.0 ", "${it.pathWithoutExtension}")
+            assertEquals("c:/test/file v0.9.22.0 ", "${it.invariantPathWithoutExtension}")
+        }
+
     }
 
     @Test
