@@ -112,12 +112,43 @@ fun Char?.isHalfWidth(): Boolean {
     val c = this.code
     if (c < 0x0020) return true // special character
     if (c in 0x0020..0x007F) return true // ASCII (Latin characters, symbols, punctuation,numbers)
-    // FF61 ~ FF64 : Halfwidth CJK punctuation
-    // FF65 ~ FF9F : Halfwidth Katakanana variants
-    // FFA0 ~ FFDC : Halfwidth Hangul variants
-    if (c in 0xFF61..0xFFDC) return true
+    if (c in 0xFF61..0xFF64) return true // Halfwidth CJK punctuation
+    if (c in 0xFF65..0xFF9F) return true // Halfwidth Katakanana variants
+    if (c in 0xFFA0..0xFFDC) return true // Halfwidth Hangul variants
     // FFE8 ~ FFEE : Halfwidth symbol variants
     return c in 0xFFE8..0xFFEE
+}
+
+/**
+ * convert double byte character to half-width.
+ *
+ * target :
+ * - ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ
+ * - ａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚ
+ * - ０１２３４５６７８９
+ * - ！＃＄％＆（）＊＋，－．／：；＜＝＞？＠［］＾＿｀｛｜｝”’￥～
+ * - ー、。・「」
+ * - 「　」
+ */
+fun Char.toHalfWidth(): Char {
+    return when(this.code) {
+        in 0xFF21..0XFF5A -> this - 65248 // Ａ~Ｚ,ａ~ｚ
+        in 0xFF01..0XFF5D -> this - 65248 // ０~９, ！~～
+        else -> when(this) {
+            '”' -> '"'
+            '’' -> '\''
+            '￥' -> '\\'
+            '～' -> '~'
+            '・' -> '･'
+            'ー' -> 'ｰ'
+            '、' -> '､'
+            '。' -> '｡'
+            '「' -> '｢'
+            '」' -> '｣'
+            '　' -> ' '
+            else -> this
+        }
+    }
 }
 
 /**
