@@ -82,7 +82,7 @@ class Paths { companion object {
 }}
 
 val Path.name: String
-    get() = fileName?.toString().orEmpty()
+    get() = fileName?.toString() ?: ""
 
 val Path.nameWithoutExtension: String
     get() = fileName?.toString()?.substringBeforeLast(".") ?: ""
@@ -91,9 +91,12 @@ val Path.extension: String
     get() = fileName?.toString()?.substringAfterLast('.', "") ?: ""
 
 val Path.pathWithoutExtension: String
-    get() = pathWithoutExtension().pathString
+    get() = pathString.substringBeforeLast(".")
 
-val Path.invariantSeparators: String
+val Path.invariantPathWithoutExtension: String
+    get() = invariantPath.substringBeforeLast(".")
+
+val Path.invariantPath: String
     get() = pathString.invariantSeparators()
 
 val Path.pathString: String
@@ -115,8 +118,6 @@ val Path.directory: Path
             this.parent
         }
     }
-
-fun Path.pathWithoutExtension(): Path = parent / nameWithoutExtension
 
 fun Path.toUrl(): URL = this.toUri().toURL()
 
@@ -305,13 +306,23 @@ fun Path.copy(target: Path, overwrite: Boolean = true, vararg options: CopyOptio
 fun Path.move(target: Path, overwrite: Boolean = true, vararg options: CopyOption): Path {
     if( this.notExists() )
         throw IOException("source($this) must exist.")
-    return if( this.isDirectory() && target.exists() ) {
-        if( target.isFile() )
-            throw IOException("cannot overwrite directory($this) to file($target)")
-        Files.move(this,target.resolve(this.fileName),*toCopyOptions(overwrite, options))
+    return if( this.isDirectory() ) {
+         if( target.exists() ) {
+           if( ! target.isDirectory() )
+                throw IOException("cannot overwrite directory($this) to file($target)")
+            else
+                Files.move(this,target.resolve(this.fileName),*toCopyOptions(overwrite, options))
+        } else {
+            target.parent.makeDir()
+            Files.move(this,target,*toCopyOptions(overwrite, options))
+        }
     } else {
-        target.parent.makeDir()
-        Files.move(this,target,*toCopyOptions(overwrite, options))
+        if( target.isDirectory() ) {
+            Files.move(this,target.resolve(this.name),*toCopyOptions(overwrite, options))
+        } else {
+            target.parent.makeDir()
+            Files.move(this,target,*toCopyOptions(overwrite, options))
+        }
     }
 }
 

@@ -1,6 +1,6 @@
 package com.github.nayasis.kotlin.basica.core.resource.finder
 
-import com.github.nayasis.kotlin.basica.core.io.invariantSeparators
+import com.github.nayasis.kotlin.basica.core.io.invariantPath
 import com.github.nayasis.kotlin.basica.core.resource.matcher.PathMatcher
 import com.github.nayasis.kotlin.basica.core.resource.type.FileSystemResource
 import com.github.nayasis.kotlin.basica.core.resource.type.interfaces.Resource
@@ -53,7 +53,7 @@ class FileResourceFinder(private var pathMatcher: PathMatcher) {
     @Throws(IOException::class)
     private fun findFiles(rootDir: File, pattern: String): Set<File> {
         if(! rootDir.exists() || !rootDir.isDirectory() || !rootDir.canRead()) return emptySet()
-        var fullPattern = rootDir.toPath().toAbsolutePath().invariantSeparators
+        var fullPattern = rootDir.toPath().toAbsolutePath().invariantPath
         if (!pattern.startsWith("/")) {
             fullPattern += "/"
         }
@@ -72,7 +72,7 @@ class FileResourceFinder(private var pathMatcher: PathMatcher) {
      */
     private fun findFiles(pattern: String, dir: File?, result: MutableSet<File>) {
         for (content in listDirectory(dir)) {
-            val currPath = content.toPath().toAbsolutePath().invariantSeparators
+            val currPath = content.toPath().toAbsolutePath().invariantPath
             if (content.isDirectory() && pathMatcher.matchStart(pattern, "$currPath/")) {
                 if (content.canRead()) {
                     findFiles(pattern, content, result)

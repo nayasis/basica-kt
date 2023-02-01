@@ -43,7 +43,7 @@ internal class CommandTest {
     fun append() {
 
         val cli = Command("run")
-        cli.appendParsing("'merong.txt'")
+        cli.append("'merong.txt'")
 
         assertEquals("run 'merong.txt'", cli.toString() )
 
