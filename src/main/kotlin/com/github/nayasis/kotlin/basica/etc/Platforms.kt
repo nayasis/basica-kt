@@ -29,7 +29,7 @@ class Platforms { companion object {
     /** is MAC O/S  */
     val isMac = os.name.contains("mac")
 
-    /** is MAC O/S  */
+    /** is Android  */
     val isAndroid = System.getProperty("java.vm.name") == "Dalvik"
 
 }}

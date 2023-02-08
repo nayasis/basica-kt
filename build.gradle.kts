@@ -2,8 +2,9 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
 	`maven`
-	kotlin("jvm") version "1.6.10"
-	kotlin("plugin.noarg") version "1.6.10"
+	kotlin("jvm") version "1.8.10"
+	kotlin("plugin.noarg") version "1.8.10"
+	id("org.jetbrains.dokka") version "1.7.20"
 }
 
 noArg {
@@ -16,7 +17,6 @@ version = "0.1.12-SNAPSHOT"
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 
 configurations.all {
-	resolutionStrategy.cacheChangingModulesFor(0, "seconds")
 	resolutionStrategy.cacheDynamicVersionsFor(5, "minutes")
 }
 
@@ -41,7 +41,7 @@ dependencies {
 	implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.2")
 	implementation("org.objenesis:objenesis:3.2")
 
-	"supportImplementation"("ch.qos.logback:logback-classic:1.2.3")
+	"supportImplementation"("ch.qos.logback:logback-classic:1.2.9")
 
 	// kotlin
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
