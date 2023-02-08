@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 import java.lang.Thread.sleep
 import kotlin.concurrent.thread
 
-fun main(arg: Array<String>) {
+fun main() {
     CommandExecutorTestRaw().buildChd()
 }
 

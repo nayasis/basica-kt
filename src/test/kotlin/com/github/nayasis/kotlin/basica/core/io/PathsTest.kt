@@ -32,11 +32,6 @@ internal class PathsTest {
     }
 
     @Test
-    fun invariantSeparators() {
-        assertEquals( "c:/documents/merong", "c:\\documents\\merong\\".toPath().invariantPath )
-    }
-
-    @Test
     fun glob() {
 
         val homeDir = Paths.userHome.invariantPath
@@ -143,6 +138,7 @@ internal class PathsTest {
 
     @Test
     fun invariantPath() {
+        assertEquals( "c:/documents/merong", "c:\\documents\\merong\\".toPath().invariantPath )
         assertEquals( "//NAS/Game & Watch - Zelda", "\\\\NAS\\Game & Watch - Zelda".toPath().invariantPath )
         assertEquals( "a", "a\\".toPath().invariantPath )
         assertEquals( "/", "\\".toPath().invariantPath )
@@ -207,7 +203,7 @@ internal class PathsTest {
         // existed dir !!
         trg.makeDir()
 
-        var moved = src.move(trg)
+        val moved = src.move(trg)
 
         assertTrue(src.notExists())
         assertTrue(moved.exists())
@@ -369,18 +365,18 @@ internal class PathsTest {
     fun `get name`() {
         "c:/test/dir v0.9.22.0".toPath().let {
             assertEquals("dir v0.9.22.0", "${it.fileName}")
-            assertEquals("dir v0.9.22.0", "${it.name}")
-            assertEquals("dir v0.9.22", "${it.nameWithoutExtension}")
+            assertEquals("dir v0.9.22.0", it.name)
+            assertEquals("dir v0.9.22", it.nameWithoutExtension)
         }
     }
 
     @Test
     fun `get name without extension`() {
         "c:/test/file v0.9.22.0 .txt".toPath().let {
-            assertEquals("file v0.9.22.0 .txt", "${it.name}")
-            assertEquals("file v0.9.22.0 ", "${it.nameWithoutExtension}")
-            assertEquals("c:\\test\\file v0.9.22.0 ", "${it.pathWithoutExtension}")
-            assertEquals("c:/test/file v0.9.22.0 ", "${it.invariantPathWithoutExtension}")
+            assertEquals("file v0.9.22.0 .txt", it.name)
+            assertEquals("file v0.9.22.0 ", it.nameWithoutExtension)
+            assertEquals("c:\\test\\file v0.9.22.0 ", it.pathWithoutExtension)
+            assertEquals("c:/test/file v0.9.22.0 ", it.invariantPathWithoutExtension)
         }
 
     }
