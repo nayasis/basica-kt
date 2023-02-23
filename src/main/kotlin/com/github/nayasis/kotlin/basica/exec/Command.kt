@@ -5,6 +5,7 @@ import com.github.nayasis.kotlin.basica.core.io.exists
 import com.github.nayasis.kotlin.basica.core.string.toFile
 import com.github.nayasis.kotlin.basica.core.string.toPath
 import com.github.nayasis.kotlin.basica.core.string.tokenize
+import com.github.nayasis.kotlin.basica.etc.Platforms
 import java.io.File
 import java.nio.file.Path
 import java.security.InvalidParameterException
@@ -17,11 +18,27 @@ class Command {
     val command = ArrayList<String>()
     val environment = HashMap<String,String>()
     var workingDirectory: String? = null
+    var charset: String = Platforms.os.charset
 
-    constructor(cli: String? = null, workingDirectory: String? = null, environment: Map<String,String> = HashMap()) {
+    /**
+     * default constructor
+     *
+     * @param cli               command
+     * @param workingDirectory  process's working directory
+     * @param environment       environment executing process
+     * @param charset           supported character-set
+     * @constructor
+     */
+    constructor(
+        cli: String? = null,
+        workingDirectory: String? = null,
+        environment: Map<String,String> = HashMap(),
+        charset: String = Platforms.os.charset,
+    ) {
         this.workingDirectory = workingDirectory
         this.environment.putAll(environment)
         this.command.clear()
+        this.charset = charset
         append(cli)
     }
 
@@ -73,14 +90,12 @@ class Command {
                 }
             }
         }
-
         buf.ifNotEmpty {
             this.command.add(it.toString())
             it.clear()
         }
 
         return this
-
     }
 
     override fun toString(): String = command.joinToString(" ")
@@ -106,7 +121,7 @@ class Command {
      * run command
      */
     fun run(): CommandExecutor {
-        return CommandExecutor(this, null,null)
+        return CommandExecutor(command = this, outputReader = null, errorReader = null)
     }
 
     /**
@@ -115,7 +130,7 @@ class Command {
      * @param outputReader  output reader (include error)
      */
     fun run(outputReader: ((line: String) -> Unit)): CommandExecutor {
-        return CommandExecutor(this, outputReader,null)
+        return CommandExecutor(this, charset, outputReader,null)
     }
 
     /**
@@ -125,26 +140,26 @@ class Command {
      * @param errorReader   error reader
      */
     fun run(outputReader: ((line: String) -> Unit), errorReader: ((line: String) -> Unit)): CommandExecutor {
-        return CommandExecutor(this, outputReader,errorReader)
+        return CommandExecutor(this, charset, outputReader,errorReader)
     }
 
     /**
      * run command
      *
-     * @param output printed output
-     * @param error  printed error
+     * @param output    printed output
+     * @param error     printed error
      */
     fun run(output: StringBuffer, error: StringBuffer): CommandExecutor {
-        return run({output.append(it)}, {error.append(it)})
+        return run( {output.append(it)}, {error.append(it)})
     }
 
     /**
      * run command
      *
-     * @param output printed output (include error)
+     * @param output    printed output (include error)
      */
     fun run(output: StringBuffer): CommandExecutor {
-        return run { output.append(it) }
+        return run() { output.append(it) }
     }
 
     /**
@@ -153,9 +168,9 @@ class Command {
      * @param timeout max wait time (milli-seconds)
      * @return output
      */
-    fun captureOutput(timeout: Long = -1): List<String> {
+    fun captureOutput(charset: String = Platforms.os.charset, timeout: Long = -1): List<String> {
         val lines = ArrayList<String>()
-        run { line -> lines.add(line) }.waitFor(timeout)
+        run() { line -> lines.add(line) }.waitFor(timeout)
         return lines
     }
 

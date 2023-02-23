@@ -6,6 +6,9 @@ import java.io.InputStreamReader
 import java.io.OutputStream
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets.UTF_8
+import java.nio.file.CopyOption
+import java.nio.file.Files
+import java.nio.file.Path
 
 /**
  * copy contents to given output stream
@@ -67,6 +70,18 @@ fun InputStream.copyTo(out: OutputStream, start: Long, end: Long, bufferSize: In
     }
     return end - start + 1 - remainToCopy
 
+}
+
+/**
+ * copy contents to given target file
+ *
+ * @receiver InputStream
+ * @param target file path
+ * @param option options how the copy should be done
+ * @return written number of bytes
+ */
+fun InputStream.copyTo(target: Path, vararg option: CopyOption): Long {
+    return Files.copy(this, target, *option )
 }
 
 /**
