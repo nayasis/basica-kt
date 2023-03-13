@@ -120,7 +120,6 @@ class CommandExecutor {
      * @return	process termination code ( 0 : success )
      */
     fun waitFor(timeout: Long = -1): Int {
-
         try {
             process.let {
                 if( timeout < 0) {
@@ -129,7 +128,6 @@ class CommandExecutor {
                     it.waitFor(timeout,TimeUnit.MILLISECONDS)
                 }
             }
-
             latch?.let {
                 if(timeout < 0) {
                     it.await()
@@ -137,12 +135,10 @@ class CommandExecutor {
                     it.await(timeout,TimeUnit.MILLISECONDS)
                 }
             }
-
             return process.exitValue()
         } finally {
             destroy()
         }
-
     }
 
     /**
