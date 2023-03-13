@@ -25,43 +25,49 @@ class CommandExecutor {
     var process: Process
         private set
 
-    private var outputGobbler: ProcessOutputThread? = null
-    private var errorGobbler:  ProcessOutputThread? = null
-    private var latch: CountDownLatch? = null
-
-    private var inputPipe: BufferedWriter? = null
+    private var inputGobbler: ProcessOutputThread? = null
+    private var errorGobbler: ProcessOutputThread? = null
+    private var countdownLatch: CountDownLatch? = null
+    private val commandWriter: BufferedWriter
         get() {
-            if(field == null)
-                field = BufferedWriter(OutputStreamWriter(input, Platforms.os.charset))
-            return field
+            if(_writer == null)
+                _writer = BufferedWriter(OutputStreamWriter(outputStream, Platforms.os.charset))
+            return _writer!!
         }
+        private var _writer: BufferedWriter? = null
 
     /**
-     * normal output of process
+     * normal input stream (receiving printed output from process)
      */
-    val output: InputStream
+    val inputStream: InputStream
         get() = process.inputStream
 
     /**
-     * error output of process
+     * error input stream (pipe receiving error from process)
      */
-    val error: InputStream
+    val errorStream: InputStream
         get() = process.errorStream
 
     /**
-     * normal input stream of process
+     * process output stream (pipe sending command to process)
      */
-    val input: OutputStream
+    val outputStream: OutputStream
         get() = process.outputStream
 
     /**
      * run command
      *
      * @param command       command to execute
+     * @param charset       supported character set (default: OS default)
      * @param outputReader  output reader
      * @param errorReader   error reader
      */
-    constructor(command: Command, outputReader: ((String) -> Unit)? = null, errorReader: ((String) -> Unit)? = null) {
+    constructor(
+        command: Command,
+        charset: String = Platforms.os.charset,
+        outputReader: ((String) -> Unit)? = null,
+        errorReader: ((String) -> Unit)? = null,
+    ) {
 
         if(command.isEmpty())
             throw InvalidParameterException("command is empty.")
@@ -85,18 +91,17 @@ class CommandExecutor {
 
         process = builder.start()
 
-        latch = listOfNotNull(outputReader, errorReader).size.let { if(it > 0) CountDownLatch(it) else null }
-
+        countdownLatch = listOfNotNull(outputReader, errorReader).ifNotEmpty { CountDownLatch(it.size) }
         when {
             outputReader != null && errorReader != null -> {
-                outputReader.let { outputGobbler = ProcessOutputThread(output,it,latch!!).apply { start() } }
-                errorReader.let { errorGobbler = ProcessOutputThread(error,it,latch!!).apply { start() } }
+                outputReader.let { inputGobbler = ProcessOutputThread(inputStream,it,countdownLatch,charset).apply { start() } }
+                errorReader.let { errorGobbler = ProcessOutputThread(errorStream,it,countdownLatch,charset).apply { start() } }
             }
             outputReader != null -> {
-                outputReader.let { outputGobbler = ProcessOutputThread(output,it,latch!!).apply { start() } }
+                outputReader.let { inputGobbler = ProcessOutputThread(inputStream,it,countdownLatch,charset).apply { start() } }
             }
             errorReader != null -> {
-                errorReader.let { errorGobbler = ProcessOutputThread(error,it,latch!!).apply { start() } }
+                errorReader.let { errorGobbler = ProcessOutputThread(errorStream,it,countdownLatch,charset).apply { start() } }
             }
         }
 
@@ -105,10 +110,10 @@ class CommandExecutor {
     /**
      * process is alive or not
      */
-    val alive: Boolean
+    val isAlive: Boolean
         get() = when {
             process.isAlive -> true
-            outputGobbler?.isAlive == true -> true
+            inputGobbler?.isAlive == true -> true
             errorGobbler?.isAlive == true -> true
             else -> false
         }
@@ -121,14 +126,12 @@ class CommandExecutor {
      */
     fun waitFor(timeout: Long = -1): Int {
         try {
-            process.let {
-                if( timeout < 0) {
-                    it.waitFor()
-                } else {
-                    it.waitFor(timeout,TimeUnit.MILLISECONDS)
-                }
+            if( timeout < 0) {
+                process.waitFor()
+            } else {
+                process.waitFor(timeout,TimeUnit.MILLISECONDS)
             }
-            latch?.let {
+            countdownLatch?.let {
                 if(timeout < 0) {
                     it.await()
                 } else {
@@ -144,29 +147,31 @@ class CommandExecutor {
     /**
      * terminate process forcibly.
      */
+    @Suppress("MemberVisibilityCanBePrivate")
     fun destroy() {
         runCatching { process.destroyForcibly() };
-        runCatching { outputGobbler?.interrupt() }; outputGobbler = null
+        runCatching { inputGobbler?.interrupt() }; inputGobbler = null
         runCatching { errorGobbler?.interrupt() }; errorGobbler = null
-        runCatching { inputPipe?.close() }; inputPipe = null
-        runCatching { input.close() }
-        runCatching { output.close() }
-        runCatching { error.close() }
-        latch = null
+        runCatching { _writer?.run{
+            commandWriter.close()
+            _writer = null
+        }}
+        runCatching { outputStream.close() }
+        runCatching { inputStream.close() }
+        runCatching { errorStream.close() }
+        countdownLatch = null
     }
 
     /**
      * send command to process
      *
      * @param command command
-     * @return true if command is sent to process.
      */
-    fun sendCommand(command: String): Boolean {
-        return inputPipe?.let {
+    fun sendCommand(command: String) {
+        commandWriter.let {
             it.write(command)
             it.flush()
-            true
-        } ?: false
+        }
     }
 
 }
