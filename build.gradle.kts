@@ -44,7 +44,7 @@ dependencies {
 	implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.2")
 	implementation("org.objenesis:objenesis:3.2")
 
-//	"supportImplementation"("ch.qos.logback:logback-classic:1.2.9")
+	"supportImplementation"("ch.qos.logback:logback-classic:1.3.5")
 
 	// kotlin
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
@@ -56,10 +56,7 @@ dependencies {
 	testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0")
 	testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
 	testImplementation("org.junit.jupiter:junit-jupiter-engine:5.7.1")
-//	implementation("ch.qos.logback:logback-core:1.2.3")
-//	implementation("ch.qos.logback:logback-classic:1.2.9")
-	implementation("ch.qos.logback:logback-classic:1.4.5")
-	implementation("org.slf4j:slf4j-api:2.0.3")
+	testImplementation("ch.qos.logback:logback-classic:1.3.5")
 
 }
 

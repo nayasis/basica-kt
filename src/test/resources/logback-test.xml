@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <statusListener class="ch.qos.logback.core.status.NopStatusListener" />
+  <property name="pattern.console" value="%d{HH:mm:ss.SSS} %highlight(%-5level) [%green(%t)] %blue(%50(\(%F:%L\))) %msg%n"/>
+  <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>${pattern.console}</pattern>
+    </encoder>
+  </appender>
+  <logger name="io.undertow.request" level="off"/>
+  <logger name="com.ulisesbocchio.jasyptspringboot" level="error"/>
+  <root level="debug" includeLocation="true">
+    <appender-ref ref="console" />
+  </root>
+</configuration>
