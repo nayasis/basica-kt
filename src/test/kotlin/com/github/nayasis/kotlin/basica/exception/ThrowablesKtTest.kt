@@ -24,7 +24,7 @@ class ThrowablesKtTest {
             logger.debug(">> filtered")
             logger.error(e.filterStackTrace(pattern))
 
-            assertEquals(4,e.filterStackTrace(pattern).stackTrace.size)
+            assertEquals(4, e.filterStackTrace(pattern).stackTrace.size)
 
         }
 
