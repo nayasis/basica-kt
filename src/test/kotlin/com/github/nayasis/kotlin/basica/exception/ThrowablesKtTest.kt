@@ -13,7 +13,7 @@ class ThrowablesKtTest {
     @Test
     fun filterStackTrace() {
 
-        val pattern = "^java\\.util|^sun\\.reflect|^java\\.lang|^org\\.junit|^org\\.gradle|^com\\.sun".toRegex()
+        val pattern = """^java\.util|^sun\.reflect|^java\.lang|^org\.junit|^org\.gradle|^com\.sun|^worker\.org\.gradle""".toRegex()
 
         try {
             stack1()
@@ -24,7 +24,7 @@ class ThrowablesKtTest {
             logger.debug(">> filtered")
             logger.error(e.filterStackTrace(pattern))
 
-            assertEquals(4,e.filterStackTrace(pattern).stackTrace.size)
+            assertEquals(4, e.filterStackTrace(pattern).stackTrace.size)
 
         }
 
@@ -41,6 +41,5 @@ class ThrowablesKtTest {
     private fun stack3() {
         throw InvalidParameterException("merong")
     }
-
 
 }
