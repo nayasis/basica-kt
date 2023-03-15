@@ -38,10 +38,8 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
     val body: Map<Int,Map<Any,Any?>>
         get() = _body
 
-    private val _header = Header(this)
+    private val _header = Header()
     private val _body   = TreeMap<Int,HashMap<Any,Any?>>()
-
-    internal var printer: NGridPrinter? = null
 
     constructor(header: KClass<*>? = null) {
         this._header.addAll(header)
@@ -95,7 +93,6 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
             }
             else -> setRow( index, Reflector.toMap(value) )
         }
-        printer = null
     }
 
     private fun setMap(index: Int, map: Map<*,*>) {
@@ -155,7 +152,6 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
         if( _body[row] == null )
             _body[row] = HashMap()
         _body[row]!![key] = value
-        printer = null
     }
 
     fun getCell(row: Int, col: Int): Any? {
@@ -266,10 +262,7 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
     override fun toString(): String = toString(true)
 
     fun toString(showHeader: Boolean = true, rowcount:Int = 500, showIndexColumn: Boolean = false, useAlias: Boolean = true, maxColumnWidth: Int = 100): String {
-        if( printer == null || printer!!.maxColumnWidth != maxColumnWidth ) {
-            printer = NGridPrinter(this,maxColumnWidth)
-        }
-        return printer!!.toString(showHeader,useAlias,rowcount,showIndexColumn)
+        return NGridPrinter(this,maxColumnWidth.toDouble()).toString(showHeader,useAlias,rowcount,showIndexColumn)
     }
 
     override fun iterator(): Iterator<Map<Any,Any?>> {
