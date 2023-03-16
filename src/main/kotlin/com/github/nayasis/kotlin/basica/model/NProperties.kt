@@ -4,7 +4,7 @@ import com.github.nayasis.kotlin.basica.core.io.detectCharset
 import com.github.nayasis.kotlin.basica.core.io.inputStream
 import com.github.nayasis.kotlin.basica.core.string.toPath
 import com.github.nayasis.kotlin.basica.core.url.detectCharset
-import com.github.nayasis.kotlin.basica.core.url.inStream
+import com.github.nayasis.kotlin.basica.core.url.toInputStream
 import java.io.File
 import java.io.InputStream
 import java.net.URL
@@ -27,7 +27,7 @@ class NProperties: Properties {
     }
 
     constructor(url: URL, charset: Charset = url.detectCharset()) {
-        load(url.inStream(), charset)
+        load(url.toInputStream(), charset)
     }
 
     constructor(defaults: Properties?): super(defaults)
