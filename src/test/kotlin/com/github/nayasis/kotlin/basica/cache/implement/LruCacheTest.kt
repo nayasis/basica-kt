@@ -75,7 +75,7 @@ internal class LruCacheTest {
     @Test
     fun extendByAccessing() {
 
-        val cache = LruCache<Int,Int>().apply { flushMiliseconds = 500 }
+        val cache = LruCache<Int,Int>().apply { flushMiliseconds = 1000 }
 
         for( i in 1..10)
             cache.put(i,i)
@@ -86,7 +86,7 @@ internal class LruCacheTest {
                 cache[i]
         }
 
-        sleep(200)
+        sleep(500)
 
         for( i in 1..10)
             log.debug { "$i : ${cache[i]}" }
