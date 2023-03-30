@@ -2,20 +2,28 @@
 
 package com.github.nayasis.kotlin.basica.core.localdate
 
+import com.github.nayasis.kotlin.basica.core.extention.isEmpty
 import com.github.nayasis.kotlin.basica.core.string.capture
 import com.github.nayasis.kotlin.basica.core.string.extractDigit
 import java.nio.file.attribute.FileTime
 import java.time.*
 import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE
-import java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME
+import java.time.format.DateTimeFormatter.*
 import java.time.temporal.ChronoField
 import java.time.temporal.Temporal
 import java.util.*
 import kotlin.math.min
 import java.sql.Date as SqlDate
 
-private val PATTERN_OFFSET = "(.*)([+-])(\\d{2}):?(\\d{2})(.*)".toRegex()
+private val REGEX_OFFSET    = "(.*)([+-])(\\d{2}):?(\\d{2})(.*)".toRegex()
+private val REGEX_USER_TEXT = "'.*?'".toRegex()
+private val REGEX_YEAR      = "YYYY".toRegex()
+private val REGEX_MONTH     = "(^|[^M])MM([^M]|$)".toRegex()
+private val REGEX_DATE      = "(^|[^D])DD([^D]|$)".toRegex()
+private val REGEX_MIN       = "MI".toRegex()
+private val REGEX_SEC       = "(^|[^S])SS([^S]|$)".toRegex()
+private val REGEX_MILISEC   = "(^|[^F])FFF([^F]|$)".toRegex()
+private val REGEX_REMAINS   = "[^yMdHmsSZ]".toRegex()
 
 /**
  * convert string to LocalDateTime
@@ -25,14 +33,15 @@ private val PATTERN_OFFSET = "(.*)([+-])(\\d{2}):?(\\d{2})(.*)".toRegex()
  * @param native use input format itself
  * @return LocalDateTime
  */
+@Suppress("DuplicatedCode")
 fun String.toLocalDateTime(format: String = "", native: Boolean = false): LocalDateTime {
 
     if( format.isNotEmpty() && native )
-        return parse(this, format)
+        return toLocalDateTime(this, format)
 
-    val fmt = parseFormat(format)
+    val fmt = toDateTimeFormat(format)
 
-    val (body,offset) = this.capture(PATTERN_OFFSET).let {
+    val (body,offset) = this.capture(REGEX_OFFSET).let {
         if(it.isEmpty()) {
             Pair(this.extractDigit(),"")
         } else {
@@ -43,28 +52,25 @@ fun String.toLocalDateTime(format: String = "", native: Boolean = false): LocalD
     val pattern = StringBuilder()
     val value   = StringBuilder()
 
-    var d = 0
-    var pre: Char? = null
-
-    for( f in 0 until min(fmt.length,body.length) ) {
-        val cur = fmt[f]
+    for( i in 0 until min(fmt.length, body.length) ) {
+        val curr = fmt[i]
+        val next = fmt.getOrNull(i+1)
         // avoid bug(JDK-8031085) in Java8
-        if( cur == 'S' && pre != 'S' ) {
+        if( curr != 'S' && next == 'S' ) {
             pattern.append('.')
             value.append('.')
         }
-        pattern.append(cur)
-        value.append( body[d++] )
-        pre = cur
+        pattern.append(curr)
+        value.append( body[i] )
     }
 
-    return parse(value.toString(),pattern.toString()).let {
+    return toLocalDateTime(value.toString(),pattern.toString()).let {
         if( offset.isEmpty() ) it else it.withOffset(ZoneOffset.of(offset))
     }
 
 }
 
-private fun parse(value: String, pattern: String): LocalDateTime {
+private fun toLocalDateTime(value: String, pattern: String): LocalDateTime {
     val ofPattern = DateTimeFormatter.ofPattern(pattern)
     return try {
         LocalDateTime.parse( value, ofPattern)
@@ -85,51 +91,126 @@ private fun parse(value: String, pattern: String): LocalDateTime {
     }
 }
 
-private fun parseFormat(format: String): String {
+/**
+ * convert string to LocalTime
+ *
+ * @receiver String
+ * @param format date format
+ * @param native use input format itself
+ * @return LocalDateTime
+ */
+@Suppress("DuplicatedCode")
+fun String.toLocalTime(format: String = "", native: Boolean = false): LocalTime {
+    if( format.isNotEmpty() && native )
+        return toLocalTime(this, format)
+
+    val fmt  = toTimeFormat(format)
+    val body = this.extractDigit()
+
+    val pattern = StringBuilder()
+    val value   = StringBuilder()
+
+    for( i in 0 until min(fmt.length, body.length) ) {
+        val curr = fmt[i]
+        val next = fmt.getOrNull(i+1)
+        // avoid bug(JDK-8031085) in Java8
+        if( curr != 'S' && next == 'S' ) {
+            pattern.append('.')
+            value.append('.')
+        }
+        pattern.append(curr)
+        value.append( body[i] )
+    }
+
+    return toLocalTime(value.toString(),pattern.toString())
+}
+
+private fun toLocalTime(value: String, pattern: String): LocalTime {
+    return LocalTime.parse(value, DateTimeFormatter.ofPattern(pattern))
+}
+
+private fun toDateTimeFormat(format: String): String {
     if( format.isEmpty() ) return "yyyyMMddHHmmssSSS"
-    return format
-        .replace("'.*?'".toRegex(), "") // remove user text
-        .replace("YYYY".toRegex(), "yyyy")
-        .replace("(^|[^D])DD([^D]|$)".toRegex(), "$1dd$2")
-        .replace("MI".toRegex(), "mm")
-        .replace("(^|[^S])SS([^S]|$)".toRegex(), "$1ss$2")
-        .replace("(^|[^F])FFF([^F]|$)".toRegex(), "$1SSS$2")
-        .replace("[^yMdHmsSZ]".toRegex(), "")
+    return try { format
+        .replace(REGEX_USER_TEXT, "") // remove user text
+        .replace(REGEX_YEAR, "yyyy")
+        .replace(REGEX_DATE, "$1dd$2")
+        .replace(REGEX_MIN, "mm")
+        .replace(REGEX_SEC, "$1ss$2")
+        .replace(REGEX_MILISEC, "$1SSS$2")
+        .replace(REGEX_REMAINS, "")
+    } catch (e : Exception) {
+        throw IllegalArgumentException("Invalid pattern : $format", e)
+    }
 }
 
-private fun printFormat(format: String, default: DateTimeFormatter): DateTimeFormatter {
+private fun toPrintingDateTimeFormat(format: String, native: Boolean = false, default: DateTimeFormatter): DateTimeFormatter {
     if( format.isEmpty() ) return default
-    return DateTimeFormatter.ofPattern( format
-        .replace("YYYY".toRegex(), "yyyy")
-        .replace("(^|[^D])DD([^D]|$)".toRegex(), "$1dd$2")
-        .replace("MI".toRegex(), "mm")
-        .replace("(^|[^S])SS([^S]|$)".toRegex(), "$1ss$2")
-        .replace("(^|[^F])FFF([^F]|$)".toRegex(), "$1SSS$2")
-    )
+    return try { (if(native) format else format
+        .replace(REGEX_YEAR, "yyyy")
+        .replace(REGEX_DATE, "$1dd$2")
+        .replace(REGEX_MIN, "mm")
+        .replace(REGEX_SEC, "$1ss$2")
+        .replace(REGEX_MILISEC, "$1SSS$2")
+        ).let { ofPattern(it)  }
+    } catch (e: Exception) {
+        throw IllegalArgumentException("Invalid pattern : $format", e)
+    }
 }
 
-fun String.toLocalDateTime(): LocalDateTime = toLocalDateTime("",false)
+private fun toTimeFormat(format: String): String {
+    if(format.isEmpty()) return "HHmmssSSS"
+    return try { format
+        .replace(REGEX_USER_TEXT, "") // remove user text
+        .replace(REGEX_YEAR, "")
+        .replace(REGEX_MONTH, "")
+        .replace(REGEX_DATE, "")
+        .replace(REGEX_MIN, "mm")
+        .replace(REGEX_SEC, "$1ss$2")
+        .replace(REGEX_MILISEC, "$1SSS$2")
+        .replace(REGEX_REMAINS, "")
+    } catch (e : Exception) {
+        throw IllegalArgumentException("Invalid pattern : $format", e)
+    }
+}
+
+private fun toPrintingTimeFormat(format: String, native: Boolean = false, default: DateTimeFormatter): DateTimeFormatter {
+    if( format.isEmpty() ) return default
+    return try { (if(native) format else format
+            .replace(REGEX_YEAR, "")
+            .replace(REGEX_MONTH, "")
+            .replace(REGEX_DATE, "")
+            .replace(REGEX_MIN, "mm")
+            .replace(REGEX_SEC, "$1ss$2")
+            .replace(REGEX_MILISEC, "$1SSS$2")
+        ).let { ofPattern(it)  }
+    } catch (e: Exception) {
+        throw IllegalArgumentException("Invalid pattern : $format", e)
+    }
+}
 
 fun String.toLocalDateTime(format: DateTimeFormatter): LocalDateTime = LocalDateTime.parse(this, format)
 
-fun String.toLocalDate(format: String = ""): LocalDate = this.toLocalDateTime(format).toLocalDate()
+fun String.toLocalDate(format: String = "", native: Boolean = false): LocalDate = this.toLocalDateTime(format,native).toLocalDate()
 
 fun String.toLocalDate(format: DateTimeFormatter): LocalDate = this.toLocalDateTime(format).toLocalDate()
 
-fun String.toZonedDateTime(format: String = "", zoneId: ZoneId = ZoneId.systemDefault()): ZonedDateTime =
-    ZonedDateTime.of( this.toLocalDateTime(format), zoneId )
+fun String.toLocalTime(format: DateTimeFormatter): LocalTime = LocalTime.parse(this, format)
+
+fun String.toZonedDateTime(format: String = "", native: Boolean = false, zoneId: ZoneId = ZoneId.systemDefault()): ZonedDateTime =
+    ZonedDateTime.of( this.toLocalDateTime(format,native), zoneId )
 
 fun String.toZonedDateTime(format: DateTimeFormatter, zoneId: ZoneId = ZoneId.systemDefault()): ZonedDateTime =
     ZonedDateTime.of( this.toLocalDateTime(format), zoneId )
 
-fun String.toDate(format: String = "", zoneId: ZoneId = ZoneId.systemDefault()): Date =
-    Date.from( this.toZonedDateTime(format,zoneId).toInstant() )
+fun String.toDate(format: String = "", native: Boolean = false, zoneId: ZoneId = ZoneId.systemDefault()): Date =
+    Date.from( this.toZonedDateTime(format,native,zoneId).toInstant() )
 
 fun String.toDate(format: DateTimeFormatter, zoneId: ZoneId = ZoneId.systemDefault()): Date =
     Date.from( this.toZonedDateTime(format,zoneId).toInstant() )
 
-fun String.toSqlDate(format: String = ""): java.sql.Date =
-    java.sql.Date.valueOf(this.toLocalDate(format))
+fun String.toSqlDate(format: String = "", native: Boolean = false): java.sql.Date =
+    java.sql.Date.valueOf(this.toLocalDate(format,native))
 
 fun String.toSqlDate(format: DateTimeFormatter): java.sql.Date =
     java.sql.Date.valueOf(this.toLocalDate(format))
@@ -154,23 +235,28 @@ fun LocalDate.atEndOfDay(): LocalDateTime = LocalDateTime.of(this, LocalTime.MAX
 
 // format, toString
 
-fun LocalDateTime.format(format: String = ""): String =
-    this.format( printFormat(format, ISO_LOCAL_DATE_TIME) )
+fun LocalDateTime.format(format: String = "", native: Boolean = false): String =
+    this.format(toPrintingDateTimeFormat(format, native, ISO_LOCAL_DATE_TIME))
 
-fun LocalDate.format(format: String = ""): String =
-    this.format( printFormat(format, ISO_LOCAL_DATE) )
+fun LocalDate.format(format: String = "", native: Boolean = false): String =
+    this.format(toPrintingDateTimeFormat(format, native, ISO_LOCAL_DATE))
 
-fun Date.format(format: String = "", zoneId: ZoneId = ZoneId.systemDefault()): String =
-    this.toLocalDateTime(zoneId).format( printFormat(format, ISO_LOCAL_DATE_TIME) )
+fun LocalTime.format(format: String = "", native: Boolean = false): String =
+    this.format(toPrintingTimeFormat(format, native, ISO_LOCAL_TIME))
 
-fun SqlDate.format(format: String = ""): String =
-    this.toLocalDate().format( printFormat(format, ISO_LOCAL_DATE_TIME) )
+fun Date.format(format: String = "", native: Boolean = false, zoneId: ZoneId = ZoneId.systemDefault()): String =
+    this.toLocalDateTime(zoneId).format(toPrintingDateTimeFormat(format, native, ISO_LOCAL_DATE_TIME))
+
+fun SqlDate.format(format: String = "", native: Boolean = false): String =
+    this.toLocalDate().format(toPrintingDateTimeFormat(format, native, ISO_LOCAL_DATE_TIME))
 
 fun LocalDateTime.toString(format: String = ""): String = this.format(format)
 
 fun LocalDate.toString(format: String = ""): String = this.format(format)
 
-fun Date.toString(format: String = "", zoneId: ZoneId = ZoneId.systemDefault()): String = this.format(format,zoneId)
+//fun LocalTime.toString(format: String = ""): String = this.for
+
+fun Date.toString(format: String = "", native: Boolean = false, zoneId: ZoneId = ZoneId.systemDefault()): String = this.format(format,native,zoneId)
 
 fun SqlDate.toString(format: String = ""): String = this.format(format)
 
