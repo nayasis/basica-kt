@@ -2,12 +2,16 @@ package com.github.nayasis.kotlin.basica.core.string
 
 import com.github.nayasis.kotlin.basica.core.collection.toUrlParam
 import com.github.nayasis.kotlin.basica.core.extention.isNotEmpty
+import com.github.nayasis.kotlin.basica.core.localdate.format
 import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
+import com.github.nayasis.kotlin.basica.core.localdate.toLocalTime
 import mu.KotlinLogging
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.io.Serializable
 import java.net.URLEncoder
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 private val log = KotlinLogging.logger {}
 
@@ -229,18 +233,18 @@ internal class StringsTest {
     @Test
     fun `isNumeric`() {
         assertTrue("1.2".isNumeric())
-        assertTrue( "${Int.MAX_VALUE}".isNumeric())
-        assertTrue( "${Int.MIN_VALUE}".isNumeric())
-        assertTrue( "${Long.MAX_VALUE}".isNumeric())
-        assertTrue( "${Long.MIN_VALUE}".isNumeric())
-        assertTrue( "${Float.MAX_VALUE}".isNumeric())
-        assertTrue( "${Float.MAX_VALUE}".isNumeric())
-        assertTrue( "${Double.MAX_VALUE}".isNumeric())
-        assertTrue( "${Double.MAX_VALUE}".isNumeric())
-        assertTrue( "${Short.MAX_VALUE}".isNumeric())
-        assertTrue( "${Short.MAX_VALUE}".isNumeric())
-        assertTrue( "${Byte.MAX_VALUE}".isNumeric())
-        assertTrue( "${Byte.MAX_VALUE}".isNumeric())
+        assertTrue("${Int.MAX_VALUE}".isNumeric())
+        assertTrue("${Int.MIN_VALUE}".isNumeric())
+        assertTrue("${Long.MAX_VALUE}".isNumeric())
+        assertTrue("${Long.MIN_VALUE}".isNumeric())
+        assertTrue("${Float.MAX_VALUE}".isNumeric())
+        assertTrue("${Float.MAX_VALUE}".isNumeric())
+        assertTrue("${Double.MAX_VALUE}".isNumeric())
+        assertTrue("${Double.MAX_VALUE}".isNumeric())
+        assertTrue("${Short.MAX_VALUE}".isNumeric())
+        assertTrue("${Short.MAX_VALUE}".isNumeric())
+        assertTrue("${Byte.MAX_VALUE}".isNumeric())
+        assertTrue("${Byte.MAX_VALUE}".isNumeric())
         assertTrue("5.67892E+04".isNumeric())
         assertTrue("5.67892e+04".isNumeric())
         assertTrue("1.23456E-05".isNumeric())
@@ -249,6 +253,45 @@ internal class StringsTest {
         assertFalse("1.2.2".isNumeric())
         assertFalse("5.67892+04".isNumeric())
         assertFalse("1.23456-05".isNumeric())
+    }
+
+    @Test
+    fun `LocalTime to String`() {
+
+//        println( "22:40:30.222".toDate("HHMISSFFF"))
+
+//        val time = LocalTime.now()
+//
+//        val milisecFormat = time.format(DateTimeFormatter.ofPattern("HH:mm:ss.SS"))
+//        println(milisecFormat)
+//        val nanoFormat    = time.format(DateTimeFormatter.ofPattern("HH:mm:ss.nnnnnnnnn"))
+//        println(nanoFormat)
+
+        val time = LocalTime.of(12, 23, 42 )
+
+        println(time)
+
+        assertThrows(IllegalArgumentException::class.java) {
+            println(time.format("MM:HI"))
+        }
+
+        assertEquals("23:12", time.format("MI:HH"))
+        assertEquals("12:23:42", time.format())
+        assertEquals("000", time.format("FFF"))
+        assertEquals("000", time.format("SSS", native = true))
+        assertEquals("00", time.format("SS", native = true))
+
+    }
+
+    @Test
+    fun `String to LocalTime`() {
+        val time = "12:23:42".toLocalTime("HH:MI:SS")
+        println(time)
+        assertEquals("23:12", time.format("MI:HH"))
+        assertEquals("12:23:42", time.format())
+        assertEquals("000", time.format("FFF"))
+        assertEquals("000", time.format("SSS", native = true))
+        assertEquals("00", time.format("SS", native = true))
     }
 
 }
