@@ -37,4 +37,14 @@ internal class LocalDatesKtTest{
 
     }
 
+    @Test
+    fun oldTime() {
+        Assertions.assertEquals("0423-01-01", "0423-01-01".toDate().format("YYYY-MM-DD") )
+        Assertions.assertEquals(-48818622472000, "0423-01-01".toDate().time )
+        Assertions.assertEquals("0423-01-01", "0423-01-01".toLocalDate().format("YYYY-MM-DD") )
+        Assertions.assertEquals(-48818622472000, "0423-01-01".toLocalDate().toLong() )
+        Assertions.assertEquals("0423-01-01", "0423-01-01".toLocalDateTime().format("YYYY-MM-DD") )
+        Assertions.assertEquals(-48818622472000, "0423-01-01".toLocalDateTime().toLong() )
+    }
+
 }
