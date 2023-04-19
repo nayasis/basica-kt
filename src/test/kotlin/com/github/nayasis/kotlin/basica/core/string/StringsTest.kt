@@ -12,6 +12,7 @@ import java.io.Serializable
 import java.net.URLEncoder
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import java.time.temporal.UnsupportedTemporalTypeException
 
 private val log = KotlinLogging.logger {}
 
@@ -268,8 +269,6 @@ internal class StringsTest {
 //        println(nanoFormat)
 
         val time = LocalTime.of(12, 23, 42 )
-
-        println(time)
 
         assertThrows(IllegalArgumentException::class.java) {
             println(time.format("MM:HI"))
