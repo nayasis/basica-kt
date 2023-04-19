@@ -9,7 +9,7 @@ interface NGridHeader: Serializable, Cloneable {
 
     fun add(key: Any)
     fun addAll(header: KClass<*>?)
-    fun addAll(header: Set<Any>?)
+    fun addAll(header: Collection<Any>?)
     fun keys(): List<Any>
     fun aliases(): List<String>
     fun size(key: Any): Int
@@ -55,7 +55,7 @@ class Header: NGridHeader {
         header.memberProperties.forEach { add(it.name) }
     }
 
-    override fun addAll(header: Set<Any>?) {
+    override fun addAll(header: Collection<Any>?) {
         if( header == null ) return
         header.forEach { add(it) }
     }
