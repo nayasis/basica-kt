@@ -230,6 +230,15 @@ fun LocalDate.toSqlDate(): SqlDate = SqlDate.valueOf(this)
 
 fun LocalDate.between(other: Temporal): Duration = Duration.between(this,other)
 
+fun Date.toCalendar(zoneId: ZoneId? = null): Calendar {
+    val t = this
+    return if(zoneId == null) {
+        Calendar.getInstance()
+    } else {
+        Calendar.getInstance(TimeZone.getTimeZone(zoneId))
+    }.apply { this.time = t }
+}
+
 fun Date.toLocalDateTime(zoneId: ZoneId = ZoneId.systemDefault()): LocalDateTime =
     this.toZonedDateTime(zoneId).toLocalDateTime()
 
@@ -257,3 +266,5 @@ fun Long.toLocalDate(): LocalDate = this.toLocalDateTime().toLocalDate()
 
 fun LocalDateTime.withOffset(offset: ZoneOffset): LocalDateTime =
     this.atOffset(ZoneOffset.UTC).withOffsetSameInstant(offset).toLocalDateTime()
+
+fun Calendar.toDate(): Date = this.time
