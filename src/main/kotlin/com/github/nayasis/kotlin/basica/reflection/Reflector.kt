@@ -150,7 +150,7 @@ class Reflector { companion object {
     }
 
     @JvmStatic
-    fun <T: Any> toObject(src: Any?, typeref: TypeReference<T>, ignoreNull: Boolean = true): T {
+    fun <T> toObject(src: Any?, typeref: TypeReference<T>, ignoreNull: Boolean = true): T {
         val mapper = mapper(ignoreNull)
         return when (src) {
             null            -> mapper.readValue(emptyJson(typeref.type::class), typeref)
@@ -163,6 +163,22 @@ class Reflector { companion object {
             else            -> mapper.convertValue(src,typeref)
         }
     }
+
+    @JvmStatic
+    fun <T> convert(src: Any?, typeref: TypeReference<T>, ignoreNull: Boolean = true): T {
+        val mapper = mapper(ignoreNull)
+        return when (src) {
+            null            -> mapper.readValue(emptyJson(typeref.type::class), typeref)
+            is CharSequence -> mapper.readValue(src.toString().let { it.ifEmpty { emptyJson(typeref.type::class) } }, typeref)
+            is File         -> mapper.readValue(src, typeref)
+            is URL          -> mapper.readValue(src, typeref)
+            is Reader       -> mapper.readValue(src, typeref)
+            is InputStream  -> mapper.readValue(src, typeref)
+            is ByteArray    -> mapper.readValue(src, typeref)
+            else            -> mapper.convertValue(src,typeref)
+        }
+    }
+
 
     @JvmStatic
     fun toMap(src: Any?, ignoreNull: Boolean = true): Map<String,Any?> = toObject(src,ignoreNull)
@@ -264,3 +280,4 @@ private fun emptyJson(typeref: TypeReference<*>): String {
 
 private fun emptyJson(klass: KClass<*>): String =
     if( klass.isSubclassOf(Collection::class) || klass.isSubclassOf(Array::class) ) "[]" else "{}"
+
