@@ -218,7 +218,7 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
         return list
     }
 
-    fun <T:Any> toListFrom(key: Any, typeRef: TypeReference<T>, ignoreError: Boolean = true): List<T?> {
+    fun <T> toListFrom(key: Any, typeRef: TypeReference<T>, ignoreError: Boolean = true): List<T?> {
         val list = ArrayList<T?>()
         for( (_,row) in _body) {
             list.add( row[key].let {
