@@ -248,6 +248,9 @@ fun Date.toLocalDate(zoneId: ZoneId = ZoneId.systemDefault()): LocalDate =
 fun Date.toZonedDateTime(zoneId: ZoneId = ZoneId.systemDefault()): ZonedDateTime =
     ZonedDateTime.ofInstant(this.toInstant(),zoneId)
 
+fun Date.toLocalTime(zoneId: ZoneId = ZoneId.systemDefault()): LocalTime =
+    this.toLocalDateTime(zoneId).toLocalTime()
+
 fun Date.toSqlDate(zoneId: ZoneId = ZoneId.systemDefault()): SqlDate =
     SqlDate.valueOf(this.toLocalDate(zoneId))
 
