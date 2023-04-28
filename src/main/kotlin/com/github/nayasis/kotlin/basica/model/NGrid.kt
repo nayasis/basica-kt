@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.github.nayasis.kotlin.basica.core.character.Characters
 import com.github.nayasis.kotlin.basica.core.number.cast
 import com.github.nayasis.kotlin.basica.core.string.toNumber
+import com.github.nayasis.kotlin.basica.core.validator.Types
 import com.github.nayasis.kotlin.basica.reflection.Reflector
 import java.io.Serializable
 import java.util.*
@@ -167,7 +168,7 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
         return toList(T::class,ignoreError)
     }
 
-    fun <T:Any> toList(typeClass: KClass<T>, ignoreError: Boolean = true): List<T?> {
+    fun <T: Any> toList(typeClass: KClass<T>, ignoreError: Boolean = true): List<T?> {
         val list = ArrayList<T?>()
         for( i in 0 until maxindex()) {
             try {
@@ -183,37 +184,11 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
         return list
     }
 
-    private fun <T:Any> cast(value: Any?, typeClass: KClass<T>, ignoreError: Boolean): T? {
-        return if( value == null ) {
-            null
-        } else if( typeClass == String::class ) {
-            value.toString() as T
-        } else if( (value is CharSequence || value is Char) && typeClass.isSubclassOf(Number::class) ) {
-            value.toString().toNumber(typeClass as KClass<Number>) as T
-        } else if( value is Number ) {
-            value.cast(typeClass as KClass<Number>) as T
-        } else {
-            try {
-                typeClass.cast(value)
-            } catch (e: Exception) {
-                try {
-                    Reflector.toObject(value, typeClass)
-                } catch (e1: Exception) {
-                    if( ignoreError ) {
-                        null
-                    } else {
-                        throw e1
-                    }
-                }
-            }
-        }
-    }
-
-    fun <T:Any> toListFrom(key: Any, typeClass: KClass<T>, ignoreError: Boolean = true): List<T?> {
+    fun <T: Any> toListFrom(key: Any, typeClass: KClass<T>, ignoreError: Boolean = true): List<T?> {
         val list = ArrayList<T?>()
         for( (_,row) in _body) {
             val v = row[key]
-            list.add(cast(v,typeClass,ignoreError))
+            list.add(Types.cast(v,typeClass,ignoreError))
         }
         return list
     }
