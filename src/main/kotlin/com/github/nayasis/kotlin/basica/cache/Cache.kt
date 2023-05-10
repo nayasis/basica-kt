@@ -10,9 +10,7 @@ package com.github.nayasis.kotlin.basica.cache
  */
 interface Cache<K,V> {
 
-    fun size(): Int
-
-    fun setCapacity(capacity: Int)
+    val size: Int
 
     operator fun contains(key: K): Boolean
 
@@ -32,10 +30,14 @@ interface Cache<K,V> {
 
     fun evict()
 
-    fun keySet(): Set<K>
+    val keys: Set<K>
 
     fun putAll(map: Map<K,V>)
 
     fun putAll(cache: Cache<K,V>)
+
+    operator fun set(key: K, value: V) {
+        put(key,value)
+    }
 
 }
