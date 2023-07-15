@@ -25,11 +25,11 @@ import com.github.nayasis.kotlin.basica.core.string.escapeRegex
 import com.github.nayasis.kotlin.basica.core.validator.isEmpty
 import com.github.nayasis.kotlin.basica.reflection.serializer.DateDeserializer
 import com.github.nayasis.kotlin.basica.reflection.serializer.DateSerializer
-import sun.reflect.generics.reflectiveObjects.ParameterizedTypeImpl
 import java.beans.Transient
 import java.io.File
 import java.io.InputStream
 import java.io.Reader
+import java.lang.reflect.ParameterizedType
 import java.net.URL
 import java.util.*
 import kotlin.reflect.KClass
@@ -258,8 +258,12 @@ class Reflector { companion object {
 }}
 
 private fun emptyJson(typeref: TypeReference<*>): String {
-    val klass = (typeref.type as ParameterizedTypeImpl).rawType.kotlin
-    return emptyJson(klass)
+    return try {
+        val klass = (typeref.type as ParameterizedType).rawType as Class<*>
+        emptyJson(klass.kotlin)
+    } catch (e: Exception) {
+        "{}"
+    }
 }
 
 private fun emptyJson(klass: KClass<*>): String =

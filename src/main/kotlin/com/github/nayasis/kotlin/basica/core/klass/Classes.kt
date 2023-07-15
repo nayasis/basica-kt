@@ -4,7 +4,6 @@ import com.github.nayasis.kotlin.basica.core.resource.PathMatchingResourceLoader
 import com.github.nayasis.kotlin.basica.core.resource.util.URL_PREFIX_CLASSPATH
 import com.github.nayasis.kotlin.basica.core.url.toFile
 import mu.KotlinLogging
-import org.objenesis.ObjenesisStd
 import java.io.IOException
 import java.io.InputStream
 import java.lang.reflect.Array
@@ -23,7 +22,6 @@ import java.time.LocalDateTime
 import java.util.*
 import java.util.regex.Pattern
 import kotlin.reflect.KClass
-import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.isSubclassOf
 
 private val log = KotlinLogging.logger {}
@@ -247,14 +245,6 @@ class Classes { companion object{
                 }
             }
             throw ex
-        }
-    }
-
-    fun <T:Any> newInstance(klass: KClass<T>) : T {
-        return try {
-            klass.createInstance()
-        } catch (e: Exception) {
-            ObjenesisStd().newInstance(klass.java)
         }
     }
 
