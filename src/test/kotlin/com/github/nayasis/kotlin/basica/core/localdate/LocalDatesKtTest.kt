@@ -2,6 +2,7 @@ package com.github.nayasis.kotlin.basica.core.localdate
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
+import java.time.format.DateTimeFormatter
 
 internal class LocalDatesKtTest{
 
@@ -35,6 +36,23 @@ internal class LocalDatesKtTest{
         Assertions.assertEquals("2020-01-01T16:00:00", "2020-01-01 13:00:00 +03:00".toLocalDateTime().format())
         Assertions.assertEquals("2020-01-01T16:00:00", "2020-01-01 13:00:00 +0300".toLocalDateTime().format())
 
+    }
+
+    @Test
+    fun oldTime() {
+        Assertions.assertEquals("0423-01-01", "0423-01-01".toDate().format("YYYY-MM-DD") )
+        Assertions.assertEquals(-48818622472000, "0423-01-01".toDate().time )
+        Assertions.assertEquals("0423-01-01", "0423-01-01".toLocalDate().format("YYYY-MM-DD") )
+        Assertions.assertEquals(-48818622472000, "0423-01-01".toLocalDate().toLong() )
+        Assertions.assertEquals("0423-01-01", "0423-01-01".toLocalDateTime().format("YYYY-MM-DD") )
+        Assertions.assertEquals(-48818622472000, "0423-01-01".toLocalDateTime().toLong() )
+    }
+
+    @Test
+    fun formatting() {
+        println(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+        println(DateTimeFormatter.ISO_LOCAL_DATE)
+        println(DateTimeFormatter.ISO_LOCAL_TIME)
     }
 
 }

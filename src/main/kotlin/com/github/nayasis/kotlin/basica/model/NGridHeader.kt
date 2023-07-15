@@ -2,7 +2,6 @@ package com.github.nayasis.kotlin.basica.model
 
 import java.io.Serializable
 import java.util.*
-import kotlin.collections.HashMap
 import kotlin.reflect.KClass
 import kotlin.reflect.full.memberProperties
 
@@ -10,7 +9,7 @@ interface NGridHeader: Serializable, Cloneable {
 
     fun add(key: Any)
     fun addAll(header: KClass<*>?)
-    fun addAll(header: Set<Any>?)
+    fun addAll(header: Collection<Any>?)
     fun keys(): List<Any>
     fun aliases(): List<String>
     fun size(key: Any): Int
@@ -22,9 +21,7 @@ interface NGridHeader: Serializable, Cloneable {
 
 }
 
-class Header(
-    private val grid: NGrid
-): NGridHeader {
+class Header: NGridHeader {
 
     companion object {
         private const val serialVersionUID = 4570402963506233954L
@@ -44,14 +41,12 @@ class Header(
     fun merge(header: Header) {
         header.keys.forEach { add(it.key) }
         aliases.putAll( header.aliases )
-        grid.printer = null
     }
 
     override fun add(key: Any) {
         if( ! keys.containsKey(key) ) {
             keys[key] = TreeSet()
             indexes[nextCol()] = key
-            grid.printer = null
         }
     }
 
@@ -60,7 +55,7 @@ class Header(
         header.memberProperties.forEach { add(it.name) }
     }
 
-    override fun addAll(header: Set<Any>?) {
+    override fun addAll(header: Collection<Any>?) {
         if( header == null ) return
         header.forEach { add(it) }
     }
@@ -70,7 +65,6 @@ class Header(
             throw IndexOutOfBoundsException("$rowindex")
         add(key)
         keys[key]!!.add(rowindex)
-        grid.printer = null
     }
 
     fun next(key: Any): Int {
@@ -85,7 +79,6 @@ class Header(
             if( it.isEmpty() ) {
                 remove(key)
             }
-            grid.printer = null
         }
     }
 
@@ -96,7 +89,6 @@ class Header(
         indexes.mapNotNull { if(it.value == key) it.key else null }.firstOrNull().let {
             indexes.remove(it)
         }
-        grid.printer = null
     }
 
     override fun size(key: Any): Int {
@@ -118,7 +110,6 @@ class Header(
     override fun setAlias(key: Any, alias: String ) {
         if( keys.containsKey(key) ) {
             aliases[key] = alias
-            grid.printer = null
         }
     }
 
@@ -131,7 +122,6 @@ class Header(
         keys.clear()
         indexes.clear()
         aliases.clear()
-        grid.printer = null
     }
 
 }

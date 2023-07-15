@@ -2,87 +2,37 @@ package com.github.nayasis.kotlin.basica.model
 
 import com.github.nayasis.kotlin.basica.core.character.fontWidth
 import com.github.nayasis.kotlin.basica.core.character.repeat
-import com.github.nayasis.kotlin.basica.core.string.displaySubstr
 import com.github.nayasis.kotlin.basica.core.string.dpadEnd
 import com.github.nayasis.kotlin.basica.core.string.dpadStart
 import kotlin.math.ceil
 import kotlin.math.log10
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.round
+import kotlin.math.roundToInt
 
 private const val INDEX_COLUMN_NAME = "index"
 
-private fun toString(value: Any?, maxWidth: Int): String {
-    when (value) {
-        null -> return ""
-        is Map<*, *> -> if (value.isEmpty()) return "{}"
-        is Collection<*> -> if (value.isEmpty()) return "[]"
-    }
-    return value.toString().displaySubstr(0,maxWidth)
-}
 
-private fun toDisplayString(value: Any?, maxWidth: Int): String {
-
-    val sb = StringBuilder()
-    var size = 0.0
-
-    for( c in toString(value,maxWidth) ) {
-
-        val w: Double = when(c) {
-            '\n' -> 2.0
-            '\r' -> 2.0
-            else -> c.fontWidth
-        }
-
-        if( size + w > maxWidth )
-            return "${sb.substring(0, maxWidth -(4-round(w).toInt()))}..."
-
-        size += w
-        sb.append( when(c) {
-            '\n' -> "\\n"
-            '\r' -> "\\r"
-            else -> c
-        })
-        if( size == maxWidth.toDouble() )
-            return sb.toString()
-
-    }
-
-    return sb.toString()
-
-}
-
-private fun getDisplayWidth(value: Any?, max: Double): Double {
-    var width = 0.0
-    for( c in toString(value,max.toInt()) ) {
-        val w = c.fontWidth
-        when {
-            width + w >  max -> return width
-            width     == max -> return max
-            else             -> width += w
-        }
-    }
-    return width
-}
 
 class NGridPrinter(
-    private val grid: NGrid,
-    val maxColumnWidth: Int = 100,
+    val grid: NGrid,
+    val maxColumnWidth: Double = 100.0,
 ) {
 
-    private val meta = PrintMeta(grid, maxColumnWidth)
+    private val meta = HeaderMeta(grid, maxColumnWidth)
 
     fun toString(showHeader: Boolean, useAlias: Boolean, rowcount:Int, showIndexColumn: Boolean): String {
 
-        val line  = meta.line('-','+',showIndexColumn)
-        val empty = meta.line(' ','|',showIndexColumn)
+        val line  = meta.makeLine('-','+',showIndexColumn)
+        val empty = meta.makeLine(' ','|',showIndexColumn)
         val body  = StringBuilder().append(line)
 
         if( showHeader && ! grid.header.isEmpty() ) {
             if( useAlias ) {
-                body.append('\n').append(toString(meta.alias,showIndexColumn))
+                body.append('\n').append(toString(grid.header.aliases(),showIndexColumn))
             } else {
-                body.append('\n').append(toString(meta.header,showIndexColumn))
+                body.append('\n').append(toString(meta.key,showIndexColumn))
             }
             body.append('\n').append(line)
         }
@@ -105,17 +55,17 @@ class NGridPrinter(
 
     }
 
-    private fun toString(header : ArrayList<*>, showIndexColumn: Boolean): String {
+    private fun toString(header : List<*>, showIndexColumn: Boolean): String {
 
         val line = StringBuilder().append('|')
 
         if( showIndexColumn )
-            line.append(INDEX_COLUMN_NAME.dpadStart(meta.indexWidth,' ')).append('|')
+            line.append(INDEX_COLUMN_NAME.dpadStart(meta.indexColumnWidth,' ')).append('|')
 
-        for( i in 0 until meta.header.size ) {
+        for( i in 0 until meta.key.size ) {
             val value  = header[i]
             val width  = meta.width[i]
-            line.append(toDisplayString(value,maxColumnWidth).dpadEnd(width, ' ')).append('|')
+            line.append(value.toDisplayString(maxColumnWidth).dpadEnd(width, ' ')).append('|')
         }
 
         return line.toString()
@@ -127,13 +77,13 @@ class NGridPrinter(
         val line = StringBuilder().append('|')
 
         if( index != null )
-            line.append(index.toString().dpadStart(meta.indexWidth,' ')).append('|')
+            line.append(index.toString().dpadStart(meta.indexColumnWidth,' ')).append('|')
 
-        for( i in 0 until meta.header.size ) {
-            val key    = meta.header[i]
+        for( i in 0 until meta.key.size ) {
+            val key    = meta.key[i]
             val value  = row[key]
             val width  = meta.width[i]
-            line.append(toString(value,maxColumnWidth).let {
+            line.append(value.toDisplayString(maxColumnWidth).let {
                 if( value is Number ) {
                     it.dpadStart(width,' ')
                 } else {
@@ -148,45 +98,120 @@ class NGridPrinter(
 
 }
 
-private class PrintMeta(grid: NGrid, maxColumnWidth: Int) {
+private class HeaderMeta(grid: NGrid, maxColumnWidth: Double) {
 
-    val header     = ArrayList<Any>()
-    val alias      = ArrayList<String>()
-    val width      = ArrayList<Int>()
-    var indexWidth = INDEX_COLUMN_NAME.length
+    val key   = ArrayList<Any>()
+    val width = ArrayList<Int>()
+
+    val indexColumnWidth = max(ceil(log10(grid.size.toDouble())).toInt(),INDEX_COLUMN_NAME.length)
 
     init {
-        for( key in grid.header.keys() ) {
-            header.add(key)
-            alias.add(grid.header.getAlias(key))
-            width.add(maxwidth(grid,key,maxColumnWidth.toDouble()))
-        }
-        indexWidth = max(ceil(log10(grid.size.toDouble())).toInt(),indexWidth)
-    }
-
-    private fun maxwidth(grid: NGrid, key: Any, maxColumnWidth: Double): Int {
-        val width = listOf(
-            getDisplayWidth(key, maxColumnWidth),
-            getDisplayWidth(grid.header.getAlias(key), maxColumnWidth),
-            grid.body.values.map { row ->
-                row[key]?.let { getDisplayWidth(it,maxColumnWidth) } ?: 0.0
-            }.maxOrNull() ?: 0.0
-        ).maxOrNull() ?: 0.0
-        return round(width).toInt()
-    }
-
-    fun line(lineCh: Char, delimiter: Char, indexColumn: Boolean): String {
-        val line = StringBuilder().append(delimiter)
-        if( indexColumn )
-            line.append( lineCh.repeat(indexWidth) ).append(delimiter)
-        if( width.isEmpty() ) {
-            line.append( lineCh.repeat(3) ).append(delimiter)
-        } else {
-            for( w in width ) {
-                line.append( lineCh.repeat(w) ).append(delimiter)
+        val bodyWidth = HashMap<Any,Double>()
+        grid.body.values.forEach { row ->
+            row.forEach { (key, value) ->
+                bodyWidth[key] = max(bodyWidth[key] ?: 0.0,value.getDisplayWidth(maxColumnWidth))
             }
         }
-        return line.toString()
+        for( key in grid.header.keys() ) {
+            this.key.add(key)
+            this.width.add(
+                listOf(
+                    key.getDisplayWidth(maxColumnWidth),
+                    grid.header.getAlias(key).getDisplayWidth(maxColumnWidth),
+                    bodyWidth[key] ?: 0.0
+                ).maxOrNull()?.roundToInt() ?: 0
+            )
+        }
     }
 
+    fun makeLine(base: Char, delimiter: Char, showIndexColumn: Boolean): String {
+        val sb = StringBuilder().append(delimiter)
+        if( showIndexColumn )
+            sb.append( base.repeat(indexColumnWidth) ).append(delimiter)
+        if( width.isEmpty() ) {
+            sb.append( base.repeat(3) ).append(delimiter)
+        } else {
+            for( w in width ) {
+                sb.append( base.repeat(w) ).append(delimiter)
+            }
+        }
+        return sb.toString()
+    }
+
+
 }
+
+private fun Any?.toDisplayString(maxWidth: Double): String {
+
+    val value = when {
+        this == null -> ""
+        this is Map<*,*> && this.isEmpty() -> "{}"
+        this is Collection<*> && this.isEmpty() -> "[]"
+        this is Array<*> && this.isEmpty() -> "[]"
+        else -> this.toString()
+    }
+
+    val sb = StringBuilder()
+    var size = 0.0
+
+    value.forEachIndexed { i, c ->
+        val w = c.displayWidth
+        if(size + w > maxWidth) {
+            val remainSpace = maxWidth - sb.getDisplayWidth(maxWidth)
+            return if( remainSpace <= 1.0) {
+                "${sb.substring(0,sb.length - 1)}.."
+            } else {
+                "${sb}.."
+            }
+        } else if(size + w == maxWidth && i < value.length - 1) {
+            return if(w >= 2.0) {
+                "${sb}.."
+            } else {
+                "${sb.substring(0,sb.length - 1)}.."
+            }
+        }
+        sb.append( when(c) {
+            '\n' -> "\\n"
+            '\r' -> "\\r"
+            '\b' -> "\\b"
+            else -> c
+        })
+        size += c.displayWidth
+    }
+
+    return sb.toString()
+
+}
+
+private fun Any?.getDisplayWidth(max: Double): Double {
+    when {
+        this == null -> return 0.0
+        this is Map<*,*> && this.isEmpty() -> return min(2.0, max)
+        this is Collection<*> && this.isEmpty() -> return min(2.0, max)
+        this is Array<*> && this.isEmpty() -> return min(2.0, max)
+        else -> {
+            var width = 0.0
+            val stringVal = this.toString().also { if (it.length >= max) return max }
+            for (c in stringVal) {
+                val w = c.displayWidth
+                when {
+                    width + w > max -> return width
+                    width == max -> return max
+                    else -> width += w
+                }
+            }
+            return width
+        }
+    }
+}
+
+
+private val Char.displayWidth: Double
+    get() {
+        return when(this) {
+            '\n' -> 2.0
+            '\r' -> 2.0
+            '\b' -> 2.0
+            else -> this.fontWidth
+        }
+    }

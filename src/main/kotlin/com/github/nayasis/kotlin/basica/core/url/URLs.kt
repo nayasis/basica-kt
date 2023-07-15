@@ -19,9 +19,9 @@ fun URL.toFile(): File {
     }
 }
 
-fun URL.inStream(): InputStream = this.openStream()
+fun URL.toInputStream(): InputStream = this.openStream()
 
 fun URL.detectCharset(default: Charset = Charsets.UTF_8): Charset =
-    this.inStream().use { detectCharset(it,default) }
+    this.toInputStream().use { detectCharset(it,default) }
 
 fun URI.toFile(): File = File(this.schemeSpecificPart)

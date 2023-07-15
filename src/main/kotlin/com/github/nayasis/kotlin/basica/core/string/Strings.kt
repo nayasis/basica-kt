@@ -497,11 +497,15 @@ fun <T:Number> String?.toNumber(type: KClass<T>): T {
             else              -> 0.cast(type)
         } as T
     } catch (e: Exception) {
-        when(type) {
-            BigDecimal::class -> BigDecimal.ZERO
-            BigInteger::class -> BigInteger.ZERO
-            else              -> 0.cast(type)
-        } as T
+        try {
+            BigDecimal(this).cast(type)
+        } catch (e1: Exception) {
+            when(type) {
+                BigDecimal::class -> BigDecimal.ZERO
+                BigInteger::class -> BigInteger.ZERO
+                else              -> 0.cast(type)
+            } as T
+        }
     }
 }
 

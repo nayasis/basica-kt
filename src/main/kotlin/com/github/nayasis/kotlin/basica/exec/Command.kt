@@ -18,7 +18,7 @@ class Command {
     val command = ArrayList<String>()
     val environment = HashMap<String,String>()
     var workingDirectory: String? = null
-    var charset: String = Platforms.os.charset
+    var charset = Platforms.os.charset
 
     /**
      * default constructor
@@ -168,7 +168,7 @@ class Command {
      * @param timeout max wait time (milli-seconds)
      * @return output
      */
-    fun captureOutput(charset: String = Platforms.os.charset, timeout: Long = -1): List<String> {
+    fun captureOutput(timeout: Long = -1): List<String> {
         val lines = ArrayList<String>()
         run() { line -> lines.add(line) }.waitFor(timeout)
         return lines
