@@ -2,7 +2,7 @@
 
 package com.github.nayasis.kotlin.basica.xml
 
-import com.github.nayasis.kotlin.basica.core.extention.ifNull
+import com.github.nayasis.kotlin.basica.core.extension.ifNull
 import com.github.nayasis.kotlin.basica.xml.NodeType.*
 import com.sun.org.apache.xml.internal.serialize.OutputFormat
 import com.sun.org.apache.xml.internal.serialize.XMLSerializer

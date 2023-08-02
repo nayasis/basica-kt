@@ -5,9 +5,9 @@ package com.github.nayasis.kotlin.basica.core.string
 import com.github.nayasis.kotlin.basica.core.character.Characters
 import com.github.nayasis.kotlin.basica.core.character.fontWidth
 import com.github.nayasis.kotlin.basica.core.character.isCJK
-import com.github.nayasis.kotlin.basica.core.extention.ifEmpty
-import com.github.nayasis.kotlin.basica.core.extention.isEmpty
-import com.github.nayasis.kotlin.basica.core.extention.then
+import com.github.nayasis.kotlin.basica.core.extension.ifEmpty
+import com.github.nayasis.kotlin.basica.core.extension.isEmpty
+import com.github.nayasis.kotlin.basica.core.extension.then
 import com.github.nayasis.kotlin.basica.core.io.*
 import com.github.nayasis.kotlin.basica.core.io.Paths.Companion.FOLDER_SEPARATOR
 import com.github.nayasis.kotlin.basica.core.io.Paths.Companion.FOLDER_SEPARATOR_UNIX

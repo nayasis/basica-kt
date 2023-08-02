@@ -1,32 +1,35 @@
 package com.github.nayasis.kotlin.basica.core.character
 
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
+import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
 
-internal class CharactersTest {
+class CharactersTest: StringSpec({
 
-    @Test
-    fun `convert full-width to half-width`() {
+    "convert full-width to half-width" {
 
-        assertEquals('2','２'.toHalfWidth())
-        assertEquals('2','2'.toHalfWidth())
-        assertEquals('한','한'.toHalfWidth())
-        assertEquals('ア','ア'.toHalfWidth())
-        assertEquals('ガ','ガ'.toHalfWidth())
+        '２'.toHalfWidth() shouldBe '2'
+        '2'.toHalfWidth() shouldBe '2'
+        '한'.toHalfWidth() shouldBe '한'
+        'ア'.toHalfWidth() shouldBe 'ア'
+        'ガ'.toHalfWidth() shouldBe 'ガ'
 
-        assertEquals('A','Ａ'.toHalfWidth())
-        assertEquals('Z','Ｚ'.toHalfWidth())
-        assertEquals('a','ａ'.toHalfWidth())
-        assertEquals('z','ｚ'.toHalfWidth())
-        assertEquals('0','０'.toHalfWidth())
-        assertEquals('9','９'.toHalfWidth())
-        assertEquals('!','！'.toHalfWidth())
-        assertEquals('~','～'.toHalfWidth())
-        assertEquals('･','・'.toHalfWidth())
-        assertEquals('｡','。'.toHalfWidth())
-        assertEquals('｢','「'.toHalfWidth())
-        assertEquals('｣','」'.toHalfWidth())
-        assertEquals(' ','　'.toHalfWidth())
+        'Ａ'.toHalfWidth() shouldBe 'A'
+        'Ｚ'.toHalfWidth() shouldBe 'Z'
+        'ａ'.toHalfWidth() shouldBe 'a'
+        'ｚ'.toHalfWidth() shouldBe 'z'
+        '０'.toHalfWidth() shouldBe '0'
+        '９'.toHalfWidth() shouldBe '9'
+        '！'.toHalfWidth() shouldBe '!'
+        '～'.toHalfWidth() shouldBe '~'
+        '・'.toHalfWidth() shouldBe '･'
+        '。'.toHalfWidth() shouldBe '｡'
+        '「'.toHalfWidth() shouldBe '｢'
+        '」'.toHalfWidth() shouldBe '｣'
+        '　'.toHalfWidth() shouldBe ' '
+
+        fun toCodeTable(c: Char): String {
+            return "[$c]\t${c.code.toString(16)} (${c.code})"
+        }
 
         listOf(
             "ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ",
@@ -42,10 +45,8 @@ internal class CharactersTest {
             "･ｰ､｡･｢｣",
             " ",
         ).joinToString("").forEach { c ->
-            val halfC = c.toHalfWidth()
-            println("[$c]\t${c.code.toString(16)} (${c.code}) -> [$halfC]\t${halfC.code.toString(16)} (${halfC.code})")
+            println("${toCodeTable(c)} -> ${toCodeTable(c.toHalfWidth())}")
         }
-
     }
 
-}
+})

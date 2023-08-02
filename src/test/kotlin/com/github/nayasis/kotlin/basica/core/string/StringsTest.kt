@@ -1,7 +1,7 @@
 package com.github.nayasis.kotlin.basica.core.string
 
 import com.github.nayasis.kotlin.basica.core.collection.toUrlParam
-import com.github.nayasis.kotlin.basica.core.extention.isNotEmpty
+import com.github.nayasis.kotlin.basica.core.extension.isNotEmpty
 import com.github.nayasis.kotlin.basica.core.localdate.format
 import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
 import com.github.nayasis.kotlin.basica.core.localdate.toLocalTime
@@ -11,8 +11,6 @@ import org.junit.jupiter.api.Test
 import java.io.Serializable
 import java.net.URLEncoder
 import java.time.LocalTime
-import java.time.format.DateTimeFormatter
-import java.time.temporal.UnsupportedTemporalTypeException
 
 private val log = KotlinLogging.logger {}
 

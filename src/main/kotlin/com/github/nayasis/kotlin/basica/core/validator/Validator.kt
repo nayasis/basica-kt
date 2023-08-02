@@ -2,7 +2,6 @@
 
 package com.github.nayasis.kotlin.basica.core.validator
 
-import com.github.nayasis.kotlin.basica.core.extention.isEmpty as isEmptyExtension /* DO NOT DELETE */
 import com.github.nayasis.kotlin.basica.model.NGrid
 import java.io.InputStream
 

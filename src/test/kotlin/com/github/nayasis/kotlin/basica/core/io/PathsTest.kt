@@ -1,101 +1,83 @@
 package com.github.nayasis.kotlin.basica.core.io
 
 import com.github.nayasis.kotlin.basica.core.string.toPath
+import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.ints.shouldBeGreaterThan
+import io.kotest.matchers.shouldBe
 import mu.KotlinLogging
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import java.io.Serializable
 
-private val log = KotlinLogging.logger {}
+private val logger = KotlinLogging.logger {}
 
-internal class PathsTest {
 
+class PathsTest: StringSpec({
+
+    @Suppress("PrivatePropertyName", "LocalVariableName")
     val TEST_DIR = Paths.userHome / "basica-file-test"
 
-    @BeforeEach
-    fun makeTemp() {
+    beforeAny {
         TEST_DIR.makeDir()
     }
 
-    @AfterEach
-    fun clearTemp() {
+    afterAny {
         TEST_DIR.delete()
     }
 
-    @Test
-    fun filename() {
-        assertEquals( "c", "/a/b/c".toPath().name )
-        assertEquals( "c.txt", "/a/b/c.txt".toPath().name )
+    "filename" {
+        "/a/b/c".toPath().name shouldBe "c"
+        "/a/b/c.txt".toPath().name shouldBe "c.txt"
     }
-
-    @Test
-    fun glob() {
-
+    "glob" {
         val homeDir = Paths.userHome.invariantPath
-
+        var count = 0
         homeDir.toPath().findToStream("*",0).forEach {
-            log.debug { it }
+            logger.debug { it }
+            count++
         }
+        count shouldBeGreaterThan 0
     }
-
-    @Test
-    fun exists() {
-        log.debug { "a".toPath().exists() }
-        log.debug { "a".toPath().isFile() }
+    "exists" {
+        val path = "a".toPath().also { println(it) }
+        path.exists() shouldBe false
+        path.isFile() shouldBe false
     }
-
-    @Test
-    fun convertFromString() {
-        assertEquals( "a", Path("a       ").pathString )
+    "path from string" {
+        Path("a       ").pathString shouldBe "a"
     }
-
-    @Test
-    fun makeFile() {
+    "make file" {
         (TEST_DIR/"merong.txt").makeFile()
     }
-
-    @Test
-    fun objectWriter() {
-
+    "write object" {
         val person = Person("nayasis",45)
-
         val path = TEST_DIR / "person"
+
         path.writeObject(person)
 
-        val written = path.readObject<Person>()
+        val written = path.readObject<Person>().also { println(it) }
 
-        log.debug { written }
-
-        assertEquals( person.name, written?.name )
-        assertEquals( person.age, written?.age )
-
+        written?.name shouldBe person.name
+        written?.age shouldBe person.age
     }
-
-    @Test
-    fun `read & write`() {
-
+    "read and write" {
         val path = TEST_DIR / "file.txt"
-
         path.writeLines(listOf("1","23","456","7890"))
 
         var cnt = 0
-
         path.readLines {
             cnt++
-            log.debug { it }
+            logger.debug { it }
         }
+        cnt shouldBe 4
 
-        assertEquals( 4, cnt )
-
-        assertEquals("""
+        path.readLines() shouldBe """
             1
             23
             456
             7890
-        """.trimIndent(), path.readLines())
+        """.trimIndent()
 
         path.delete()
 
@@ -104,67 +86,39 @@ internal class PathsTest {
             it.append("-nayasis")
         }
 
-        assertEquals("merong-nayasis", path.readText())
+        path.readText() shouldBe "merong-nayasis"
 
         path.appender().use {
             it.append("-0666")
         }
 
-        assertEquals("merong-nayasis-0666", path.readText())
-
-//        path.writer{ writer -> }
-
-
+        path.readText() shouldBe "merong-nayasis-0666"
     }
-
-    @Test
-    fun readLines() {
-
-        val path = Paths.userHome + "/build/resources/test/xml/Grammar.xml"
-            log.debug { path }
-
-        try {
-            path.writeText("AAA")
-
-            val txt = path.readLines()
-            log.debug { txt }
-
-            assertFalse(txt.isEmpty())
-        } finally {
-            path.delete()
-        }
-
+    "read lines" {
+        val path = TEST_DIR + "/build/resources/test/xml/Grammar.xml"
+        path.writeText("AAA")
+        val txt = path.readLines().also { println(it) }
+        txt.isEmpty() shouldBe false
     }
-
-    @Test
-    fun invariantPath() {
-        assertEquals( "c:/documents/merong", "c:\\documents\\merong\\".toPath().invariantPath )
-        assertEquals( "//NAS/Game & Watch - Zelda", "\\\\NAS\\Game & Watch - Zelda".toPath().invariantPath )
-        assertEquals( "a", "a\\".toPath().invariantPath )
-        assertEquals( "/", "\\".toPath().invariantPath )
+    "invariant path" {
+        "c:\\documents\\merong\\".toPath().invariantPath shouldBe "c:/documents/merong"
+        "\\\\NAS\\Game & Watch - Zelda".toPath().invariantPath shouldBe  "//NAS/Game & Watch - Zelda"
+        "a\\".toPath().invariantPath shouldBe "a"
+        "\\".toPath().invariantPath shouldBe "/"
     }
-
-    @Test
-    fun relativePath() {
+    "relative path" {
         val relative = "\\\\NAS\\emul\\ArcadeMame\\Game & Watch - Zelda".toPath().toRelative("//NAS/emul/ArcadeMame")
-            log.debug { relative }
-        assertEquals("Game & Watch - Zelda",relative.toString())
+        relative.toString() shouldBe "Game & Watch - Zelda"
     }
-
-    @Test
-    fun normalize() {
+    "normalize" {
         val root = "/root/bin/".toPath()
-        assertEquals( "/root/temp", root.resolve(".././temp").normalize().invariantPath)
-        assertEquals( "/root/bin/temp", root.resolve("./temp").normalize().invariantPath)
-        assertEquals( "/root/bin/temp", root.resolve("temp").normalize().invariantPath)
-        assertEquals( "/temp", root.resolve("/./temp").normalize().invariantPath)
+        root.resolve(".././temp").normalize().invariantPath shouldBe "/root/temp"
+        root.resolve("./temp").normalize().invariantPath    shouldBe "/root/bin/temp"
+        root.resolve("temp").normalize().invariantPath      shouldBe "/root/bin/temp"
+        root.resolve("/./temp").normalize().invariantPath   shouldBe "/temp"
     }
-
-    @Test
-    fun copy() {
-
+    "copy" {
         val root = TEST_DIR / "copy"
-
         val src = root / "src"
         val trg = root / "trg"
         val file = src / "sample.txt"
@@ -173,48 +127,40 @@ internal class PathsTest {
         trg.makeDir()
 
         file.copy(trg)
-        assertTrue( (root + "/trg/sample.txt").isFile() )
+        (root + "/trg/sample.txt").isFile() shouldBe true
 
         src.copy(trg)
-        assertTrue( (root + "/trg/src").isDirectory() )
-        assertTrue( (root + "/trg/src/sample.txt").isFile() )
+        (root + "/trg/src").isDirectory() shouldBe true
+        (root + "/trg/src/sample.txt").isFile() shouldBe true
 
         src.copy(root / "trg2")
-        assertTrue( (root + "/trg2").isDirectory() )
-        assertTrue( (root + "/trg2/sample.txt").isFile() )
+        (root + "/trg2").isDirectory() shouldBe true
+        (root + "/trg2/sample.txt").isFile() shouldBe true
 
         file.copy(root / "sample2.txt")
-        assertTrue( (root + "/sample2.txt").isFile() )
+        (root + "/sample2.txt").isFile() shouldBe true
 
         file.copy( root + "/new/child/clone.txt")
-        assertTrue( (root + "/new/child/clone.txt").isFile() )
-
+        (root + "/new/child/clone.txt").isFile() shouldBe true
     }
-
-    @Test
-    fun moveDir() {
-
+    "move dir" {
         val src = TEST_DIR / "src"
         val trg = TEST_DIR / "trg"
 
-        val file = src / "sample.txt"
-        file.writeText("merong")
+        (src / "sample.txt").writeText("merong")
 
         // existed dir !!
         trg.makeDir()
 
         val moved = src.move(trg)
 
-        assertTrue(src.notExists())
-        assertTrue(moved.exists())
-        assertTrue((trg + "/src/sample.txt").isFile())
-        assertEquals(trg + "/src", moved)
+        src.notExists() shouldBe true
+        moved.exists() shouldBe true
+        (trg + "/src/sample.txt").isFile() shouldBe true
+        moved shouldBe trg + "/src"
 
     }
-
-    @Test
-    fun moveDirNotExist() {
-
+    "move dir not exist" {
         val src = TEST_DIR / "src"
         val trg = TEST_DIR / "trg"
 
@@ -223,16 +169,13 @@ internal class PathsTest {
 
         val moved = src.move(trg)
 
-        assertTrue(src.notExists())
-        assertTrue(moved.exists())
-        assertTrue((trg + "/sample.txt").isFile())
-        assertEquals(trg, moved)
+        src.notExists() shouldBe true
+        moved.exists() shouldBe true
+        (trg + "/sample.txt").isFile() shouldBe true
+        moved shouldBe trg
 
     }
-
-    @Test
-    fun moveFile() {
-
+    "move file" {
         val src = TEST_DIR / "src"
         val trg = TEST_DIR / "trg"
         val existDir = (TEST_DIR / "existed").also { it.makeDir() }
@@ -245,74 +188,55 @@ internal class PathsTest {
         val moved2 = file2.move(trg + "/children/sample2.txt")
         val moved3 = file3.move(existDir)
 
-        assertEquals( trg + "/sample.txt", moved1 )
-        assertEquals( trg + "/children/sample2.txt", moved2 )
-        assertEquals( existDir + "/sample3.txt", moved3 )
+        moved1 shouldBe trg + "/sample.txt"
+        moved2 shouldBe trg + "/children/sample2.txt"
+        moved3 shouldBe existDir + "/sample3.txt"
 
-        assertTrue( moved1.isFile() )
-        assertTrue( moved2.isFile() )
-        assertTrue( moved3.isFile() )
-
+        moved1.isFile() shouldBe true
+        moved2.isFile() shouldBe true
+        moved3.isFile() shouldBe true
     }
-
-    @Test
-    @Disabled
-    fun symbolicLink() {
-
+    "symbolic link".config(false) {
         val src = TEST_DIR + "/src/sample.txt"
         val trg = TEST_DIR + "/trg/sample.txt"
 
         src.writeText("merong")
         src.makeSymbolicLink(trg)
 
-        assertTrue(trg.exists())
-        assertTrue(trg.isSymbolicLink())
-        assertEquals("merong", trg.readText())
-
+        trg.exists() shouldBe true
+        trg.isSymbolicLink() shouldBe true
+        trg.readText() shouldBe "merong"
     }
-
-    @Test
-    @Disabled
-    fun hardLink() {
-
+    "hard link".config(false) {
         val src = TEST_DIR + "/src/sample.txt"
         val trg = TEST_DIR + "/trg/sample.txt"
 
         src.writeText("merong")
         src.makeHardLink(trg)
 
-        assertTrue(trg.exists())
-        assertEquals("merong", trg.readText())
-
+        trg.exists() shouldBe true
+        trg.readText() shouldBe "merong"
     }
-
-    @Test
-    fun last() {
-
+    "last path" {
         Paths.applicationRoot.let {
             println( "${it}")
             println( "${it.first()}")
             println( "${it.last()}")
         }
-
         "merong/11".toPath().let {
-            println( "${it}")
-            println( "${it.first()}")
-            println( "${it.last()}")
+            it.invariantPath shouldBe "merong/11"
+            "${it.first()}" shouldBe "merong"
+            "${it.last()}" shouldBe "11"
         }
-
     }
-
-    @Test
-    fun isCommonPrefix() {
-
+    "isCommonPrefix" {
         listOf(
             "\\\\NAS2\\game\\pc\\_backup\\Fight\\",
             "\\\\NAS2\\game\\pc\\_backup\\",
             "\\\\NAS2\\game\\pc\\_backup\\Adult\\"
         ).map{it.toPath()}.isCommonPrefix(
             "//NAS2/game/pc/_backup".toPath()
-        ).let { assertTrue(it) }
+        ) shouldBe true
 
         listOf(
             "\\\\NAS2\\game\\pc\\_backup\\Fight\\",
@@ -320,7 +244,7 @@ internal class PathsTest {
             "\\\\NAS1\\game\\pc\\_backup\\Adult\\"
         ).map{it.toPath()}.isCommonPrefix(
             "//NAS2/game/pc/_backup".toPath()
-        ).let { assertFalse(it) }
+        ) shouldBe false
 
         listOf(
             "c:/NAS2/game/pc/_backup/Fight",
@@ -328,67 +252,48 @@ internal class PathsTest {
             "c:/NAS1/game/pc/_backup/Adult"
         ).map{it.toPath()}.isCommonPrefix(
             "c:/".toPath()
-        ).let { assertTrue(it) }
-
+        ) shouldBe true
     }
-
-    @Test
-    fun findLongestPrefix() {
-
+    "findLongestPrefix" {
         listOf(
             "\\\\NAS2\\game\\pc\\_backup\\Fight\\",
             "\\\\NAS2\\game\\pc\\_backup\\",
             "\\\\NAS2\\game\\pc\\_backup\\Adult\\"
-        ).map{it.toPath()}.findLongestPrefix().let {
-            assertEquals("//NAS2/game/pc/_backup".toPath(), it)
-        }
+        ).map{it.toPath()}.findLongestPrefix() shouldBe "//NAS2/game/pc/_backup".toPath()
 
         listOf(
             "\\\\NAS2\\game\\pc\\_backup\\Fight\\",
             "\\\\NAS2\\game\\pc\\_backup\\",
             "\\\\NAS1\\game\\pc\\_backup\\Adult\\"
-        ).map{it.toPath()}.findLongestPrefix().let {
-            assertEquals(null, it)
-        }
+        ).map{it.toPath()}.findLongestPrefix() shouldBe null
 
         listOf(
             "c:/NAS2/game/pc/_backup/Fight",
             "c:/NAS2/game/pc/_backup/merong.txt",
             "c:/NAS1/game/pc/_backup/Adult"
-        ).map{it.toPath()}.findLongestPrefix().let {
-            assertEquals("c:/".toPath(), it)
-        }
-
+        ).map{it.toPath()}.findLongestPrefix() shouldBe "c:/".toPath()
     }
-
-    @Test
-    fun `get name`() {
+    "get name" {
         "c:/test/dir v0.9.22.0".toPath().let {
-            assertEquals("dir v0.9.22.0", "${it.fileName}")
-            assertEquals("dir v0.9.22.0", it.name)
-            assertEquals("dir v0.9.22", it.nameWithoutExtension)
+            "${it.fileName}" shouldBe "dir v0.9.22.0"
+            it.name shouldBe "dir v0.9.22.0"
+            it.nameWithoutExtension shouldBe "dir v0.9.22"
         }
     }
-
-    @Test
-    fun `get name without extension`() {
+    "get name without extension" {
         "c:/test/file v0.9.22.0 .txt".toPath().let {
-            assertEquals("file v0.9.22.0 .txt", it.name)
-            assertEquals("file v0.9.22.0 ", it.nameWithoutExtension)
-            assertEquals("c:\\test\\file v0.9.22.0 ", it.pathWithoutExtension)
-            assertEquals("c:/test/file v0.9.22.0 ", it.invariantPathWithoutExtension)
+            it.name shouldBe "file v0.9.22.0 .txt"
+            it.nameWithoutExtension shouldBe "file v0.9.22.0 "
+            it.pathWithoutExtension shouldBe "c:\\test\\file v0.9.22.0 "
+            it.invariantPathWithoutExtension shouldBe "c:/test/file v0.9.22.0 "
         }
-
     }
-
-    @Test
-    fun `get extension`() {
+    "get extension" {
         "e:\\download\\Hypseus.Singe.v2.8.2a.win64".toPath().let {
-            assertEquals("win64", it.extension)
+            it.extension shouldBe "win64"
         }
     }
-
-}
+})
 
 data class Person (
     val name: String,

@@ -3,7 +3,7 @@
 
 package com.github.nayasis.kotlin.basica.core.localdate
 
-import com.github.nayasis.kotlin.basica.core.extention.isEmpty
+import com.github.nayasis.kotlin.basica.core.extension.isEmpty
 import com.github.nayasis.kotlin.basica.core.string.capture
 import com.github.nayasis.kotlin.basica.core.string.extractDigit
 import java.nio.file.attribute.FileTime

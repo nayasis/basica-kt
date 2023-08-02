@@ -2,7 +2,7 @@
 
 package com.github.nayasis.kotlin.basica.model
 
-import com.github.nayasis.kotlin.basica.core.extention.ifEmpty
+import com.github.nayasis.kotlin.basica.core.extension.ifEmpty
 import com.github.nayasis.kotlin.basica.core.klass.Classes
 import com.github.nayasis.kotlin.basica.core.io.toUrl
 import com.github.nayasis.kotlin.basica.core.string.extractLowers
