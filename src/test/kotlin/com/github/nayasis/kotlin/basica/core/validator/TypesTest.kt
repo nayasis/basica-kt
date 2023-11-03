@@ -1,6 +1,8 @@
 package com.github.nayasis.kotlin.basica.core.validator
 
 import com.github.nayasis.kotlin.basica.core.io.Path
+import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.io.File
@@ -12,15 +14,16 @@ import java.time.LocalDateTime
 import java.util.Calendar
 import java.util.Date
 
-class TypesTest {
+class TypesTest: StringSpec({
 
-    @Test
-    fun isPojo() {
-        assertEquals(true, Types.isPojo(TestDataClass("nobody")))
-        assertEquals(true, Types.isPojo(TestNormalClass("nobody")))
-        assertEquals(false, Types.isPojo("nobody"))
-        assertEquals(false, Types.isPojo(StringBuffer("nobody")))
-        assertEquals(false, Types.isPojo(StringBuilder("nobody")))
+    "detect pojo" {
+
+        Types.isPojo(TestDataClass("nobody")) shouldBe true
+        Types.isPojo(TestNormalClass("nobody")) shouldBe true
+        Types.isPojo("nobody") shouldBe false
+        Types.isPojo(StringBuffer("nobody")) shouldBe false
+        Types.isPojo(StringBuilder("nobody")) shouldBe false
+
         assertEquals(false, Types.isPojo(1.toByte()))
         assertEquals(false, Types.isPojo(true))
         assertEquals(false, Types.isPojo(false))
@@ -39,8 +42,7 @@ class TypesTest {
         assertEquals(false, Types.isPojo(URL("https://www.google.com")))
     }
 
-    @Test
-    fun cast() {
+    "type cast" {
 
         assertEquals("A", Types.cast<String>("A"))
         assertEquals(1, Types.cast(1))
@@ -60,7 +62,7 @@ class TypesTest {
         assertEquals("1", Types.cast<String>(BigInteger.valueOf(1)))
     }
 
-}
+})
 
 data class TestDataClass(
     val name: String

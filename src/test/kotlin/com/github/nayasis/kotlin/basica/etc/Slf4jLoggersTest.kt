@@ -1,14 +1,14 @@
 package com.github.nayasis.kotlin.basica.etc
 
+import io.kotest.core.spec.style.StringSpec
 import mu.KotlinLogging
 import org.junit.jupiter.api.Test
 
 private val logger = KotlinLogging.logger {}
 
-internal class Slf4jLoggersTest {
+internal class Slf4jLoggersTest: StringSpec({
 
-    @Test
-    fun `no error raised`() {
+    "no error raised" {
 
         logger.error(RuntimeException("test"))
 
@@ -17,4 +17,4 @@ internal class Slf4jLoggersTest {
         logger.error(emptyException)
 
     }
-}
+})
