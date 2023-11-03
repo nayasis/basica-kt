@@ -69,7 +69,7 @@ internal class StopWatchTest: StringSpec({
         logger.debug{ "\n${stopwatch.toString(DurationUnit.NANOSECONDS)}" }
     }
 
-    "edge case" {
+    "no error without ticking" {
         val stopwatch = StopWatch()
         stopwatch.toString().let { logger.debug { "\n$it" } }
     }
