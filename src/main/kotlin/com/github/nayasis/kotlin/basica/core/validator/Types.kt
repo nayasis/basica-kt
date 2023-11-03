@@ -14,29 +14,30 @@ import java.util.*
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
 
-fun Any?.isPojo(): Boolean {
-    if( this == null ) return false
-    val klass = this::class
-    return when {
-        klass.isPrimitive -> false
-        klass.java.isAnnotation -> false
-        klass.isEnum -> false
-        klass.isValue -> false
-        klass.isData -> true
-        this is Boolean -> false
-        this is CharSequence -> false
-        this is Char -> false
-        this is Number -> false
-        this is Date -> false
-        this is Calendar -> false
-        this is Temporal -> false
-        this is URI -> false
-        this is URL -> false
-        this is File -> false
-        this is Path -> false
-        else -> true
+val Any?.isPojo: Boolean
+    get() {
+        if( this == null ) return false
+        val klass = this::class
+        return when {
+            klass.isPrimitive -> false
+            klass.java.isAnnotation -> false
+            klass.isEnum -> false
+            klass.isValue -> false
+            klass.isData -> true
+            this is Boolean -> false
+            this is CharSequence -> false
+            this is Char -> false
+            this is Number -> false
+            this is Date -> false
+            this is Calendar -> false
+            this is Temporal -> false
+            this is URI -> false
+            this is URL -> false
+            this is File -> false
+            this is Path -> false
+            else -> true
+        }
     }
-}
 
 @Suppress("UNCHECKED_CAST")
 fun <T: Any> Any?.cast(typeClass: KClass<T>, ignoreError: Boolean = true): T? {

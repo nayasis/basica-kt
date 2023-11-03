@@ -17,49 +17,42 @@ import java.util.Date
 class TypesTest: StringSpec({
 
     "detect pojo" {
-
-        Types.isPojo(TestDataClass("nobody")) shouldBe true
-        Types.isPojo(TestNormalClass("nobody")) shouldBe true
-        Types.isPojo("nobody") shouldBe false
-        Types.isPojo(StringBuffer("nobody")) shouldBe false
-        Types.isPojo(StringBuilder("nobody")) shouldBe false
-
-        assertEquals(false, Types.isPojo(1.toByte()))
-        assertEquals(false, Types.isPojo(true))
-        assertEquals(false, Types.isPojo(false))
-        assertEquals(false, Types.isPojo(0.1))
-        assertEquals(false, Types.isPojo(0.1F))
-        assertEquals(false, Types.isPojo(1))
-        assertEquals(false, Types.isPojo(1L))
-        assertEquals(false, Types.isPojo(BigDecimal.valueOf(1)))
-        assertEquals(false, Types.isPojo(BigInteger.valueOf(1)))
-        assertEquals(false, Types.isPojo(LocalDateTime.now()))
-        assertEquals(false, Types.isPojo(Date()))
-        assertEquals(false, Types.isPojo(Calendar.getInstance()))
-        assertEquals(false, Types.isPojo(File("/a/b")))
-        assertEquals(false, Types.isPojo(Path("/a/b")))
-        assertEquals(false, Types.isPojo(URI("/a/b")))
-        assertEquals(false, Types.isPojo(URL("https://www.google.com")))
+        TestDataClass("nobody").isPojo shouldBe true
+        TestNormalClass("nobody").isPojo shouldBe true
+        "nobody".isPojo shouldBe false
+        StringBuffer("nobody").isPojo shouldBe false
+        StringBuilder("nobody").isPojo shouldBe false
+        1.toByte().isPojo shouldBe false
+        true.isPojo shouldBe false
+        false.isPojo shouldBe false
+        0.1.isPojo shouldBe false
+        0.1F.isPojo shouldBe false
+        1.isPojo shouldBe false
+        1L.isPojo shouldBe false
+        BigDecimal.valueOf(1).isPojo shouldBe false
+        BigInteger.valueOf(1).isPojo shouldBe false
+        LocalDateTime.now().isPojo shouldBe false
+        Date().isPojo shouldBe false
+        Calendar.getInstance().isPojo shouldBe false
+        File("/a/b").isPojo shouldBe false
+        Path("/a/b").isPojo shouldBe false
+        URI("/a/b").isPojo shouldBe false
+        URL("https://www.google.com").isPojo shouldBe false
     }
 
     "type cast" {
-
-        assertEquals("A", Types.cast<String>("A"))
-        assertEquals(1, Types.cast(1))
-        assertEquals(1.0, Types.cast(1.0))
-        assertEquals(1.0F, Types.cast(1.0F))
-
-        assertEquals(1, Types.cast(1.0))
-        assertEquals(1, Types.cast(1.0F))
-        assertEquals(1, Types.cast(1L))
-        assertEquals(1, Types.cast(BigDecimal.valueOf(1)))
-        assertEquals(1, Types.cast(BigInteger.valueOf(1)))
-        assertEquals(1, Types.cast("1"))
-        assertEquals(1, Types.cast("1.0"))
-
-        assertEquals("1", Types.cast<String>(1))
-        assertEquals("1", Types.cast<String>(BigDecimal.valueOf(1)))
-        assertEquals("1", Types.cast<String>(BigInteger.valueOf(1)))
+        "A".cast<String>() shouldBe "A"
+        1.cast<Int>() shouldBe 1
+        1.0.cast<Int>() shouldBe 1
+        1.0F.cast<Int>() shouldBe 1
+        1L.cast<Int>() shouldBe 1
+        BigDecimal.valueOf(1).cast<Int>() shouldBe 1
+        BigInteger.valueOf(1).cast<Int>() shouldBe 1
+        "1".cast<Int>() shouldBe 1
+        "1.0".cast<Int>() shouldBe 1
+        1.cast<String>() shouldBe "1"
+        BigDecimal.valueOf(1).cast<String>() shouldBe "1"
+        BigInteger.valueOf(1).cast<String>() shouldBe "1"
     }
 
 })
