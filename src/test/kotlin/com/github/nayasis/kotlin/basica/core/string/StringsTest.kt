@@ -5,6 +5,8 @@ import com.github.nayasis.kotlin.basica.core.extension.isNotEmpty
 import com.github.nayasis.kotlin.basica.core.localdate.format
 import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
 import com.github.nayasis.kotlin.basica.core.localdate.toLocalTime
+import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
 import mu.KotlinLogging
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -14,7 +16,7 @@ import java.time.LocalTime
 
 private val log = KotlinLogging.logger {}
 
-internal class StringsTest {
+internal class StringsTest: StringSpec({
 
     @Test
     fun `glob test`() {
@@ -224,9 +226,9 @@ internal class StringsTest {
 
     @Test
     fun `capitalize`() {
-        assertEquals("Capitalize", "capitalize".capitalize())
-        assertEquals("Merong", "merong".capitalize())
-        assertEquals("능력자", "능력자".capitalize())
+        assertEquals("Capitalize", "capitalize".toCapitalize())
+        assertEquals("Merong", "merong".toCapitalize())
+        assertEquals("능력자", "능력자".toCapitalize())
     }
 
     @Test
@@ -291,7 +293,25 @@ internal class StringsTest {
         assertEquals("00", time.format("SS", native = true))
     }
 
-}
+    "wrap" {
+        "1234".wrap() shouldBe """
+            "1234"
+        """.trimIndent().trim()
+        "12\"34".wrap() shouldBe """
+            "12\"34"
+        """.trimIndent().trim()
+        "1234".wrap("'") shouldBe """
+            '1234'
+        """.trimIndent().trim()
+        "12\"34".wrap("'") shouldBe """
+            '12"34'
+        """.trimIndent().trim()
+        "12'34".wrap("'") shouldBe """
+            '12\'34'
+        """.trimIndent().trim()
+    }
+
+})
 
 data class Dummy(
     val name: String,

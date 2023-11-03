@@ -6,186 +6,139 @@ import com.github.nayasis.kotlin.basica.core.character.Characters
 import com.github.nayasis.kotlin.basica.core.collection.toNGrid
 import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
 import com.github.nayasis.kotlin.basica.core.localdate.toString
+import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
 import mu.KotlinLogging
-import org.junit.jupiter.api.Test
 
-import org.junit.jupiter.api.Assertions.*
-import java.time.LocalDateTime
-import java.util.*
-import kotlin.random.Random.Default.nextInt
+private val logger = KotlinLogging.logger {}
 
-private val log = KotlinLogging.logger {}
+internal class NGridTest: StringSpec({
 
-internal class NGridTest {
+    Characters.fullwidth = 2.0
 
-    init {
-        Characters.fullwidth = 2.0
-    }
+    "print" {
 
-    @Test
-    fun print() {
+        val grid = NGrid()
 
-        var grid = NGrid()
-
-        grid.addData("key", "controller")
-        grid.addData("key", 1)
-        grid.addData("val", "컨트롤러는 이런 것입니다.")
-        grid.addData("val", 3359)
+        grid.addRow("key", "controller")
+        grid.addRow("key", 1)
+        grid.addRow("val", "컨트롤러는 이런 것입니다.")
+        grid.addRow("val", 3359)
 
         grid.header.setAlias("key", "이것은 KEY 입니다.")
         grid.header.setAlias("val", "これは VALUE です")
 
-        log.debug { "\n${grid}" }
-        log.debug { "\n${grid.toString(false)}" }
-        log.debug { "\n${grid.toString(showIndexColumn = true)}" }
+        logger.debug { "\n${grid}" }
+        logger.debug { "\n${grid.toString(false)}" }
+        logger.debug { "\n${grid.toString(showIndexColumn = true)}" }
 
-        assertEquals("""
+        grid.toString() shouldBe """
             +------------------+-------------------------+
             |이것은 KEY 입니다.|これは VALUE です        |
             +------------------+-------------------------+
             |controller        |컨트롤러는 이런 것입니다.|
             |                 1|                     3359|
             +------------------+-------------------------+            
-        """.trimIndent().trim(), grid.toString())
+        """.trimIndent().trim()
 
-        assertEquals("""
+        grid.toString(false) shouldBe """
             +------------------+-------------------------+
             |controller        |컨트롤러는 이런 것입니다.|
             |                 1|                     3359|
             +------------------+-------------------------+            
-        """.trimIndent().trim(), grid.toString(false))
+        """.trimIndent().trim()
 
-        assertEquals("""
+        grid.toString(showIndexColumn = true) shouldBe """
             +-----+------------------+-------------------------+
             |index|이것은 KEY 입니다.|これは VALUE です        |
             +-----+------------------+-------------------------+
             |    0|controller        |컨트롤러는 이런 것입니다.|
             |    1|                 1|                     3359|
             +-----+------------------+-------------------------+          
-        """.trimIndent().trim(), grid.toString(showIndexColumn = true))
+        """.trimIndent().trim()
 
     }
 
-    @Test
-    fun `print empty data`() {
-
+    "print empty data" {
         val grid = NGrid()
-
-        log.debug { "\n${grid}" }
-
-        assertEquals("""
+        grid.toString() shouldBe """
             +---+
             |   |
             +---+            
-        """.trimIndent().trim(), grid.toString())
+        """.trimIndent().trim()
 
         grid.header.add("name")
-
-        log.debug { "\n${grid}" }
-
-        assertEquals("""
+        grid.toString() shouldBe """
             +----+
             |name|
             +----+
             +----+            
-        """.trimIndent().trim(), grid.toString())
-
+        """.trimIndent().trim()
     }
 
-    @Test
-    fun `print empty with header`() {
-
+    "print empty with header" {
         val grid = NGrid(Person::class)
-
-        log.debug { "\n${grid}" }
-
-        assertEquals("""
+        grid.toString() shouldBe """
             +---+----+
             |age|name|
             +---+----+
             +---+----+            
-        """.trimIndent().trim(), grid.toString())
-
+        """.trimIndent().trim()
     }
 
-    @Test
-    fun `print empty generic collection with header`() {
-
+    "print empty generic collection with header" {
         val list = ArrayList<Person>()
-
-        val grid = list.toNGrid()
-
-        log.debug { "\n${grid}" }
-
-        assertEquals("""
+        val grid = list.toNGrid().also { logger.debug { "\n${it}" } }
+        grid.toString() shouldBe """
             +---+----+
             |age|name|
             +---+----+
             +---+----+            
-        """.trimIndent().trim(), grid.toString())
-
+        """.trimIndent().trim()
     }
 
-    @Test
-    fun `print empty object collection with non-header`() {
-
+    "print empty object collection with non-header" {
         val list = ArrayList<Any>()
-
-        val grid = list.toNGrid()
-
-        log.debug { "\n${grid}" }
-
-        assertEquals("""
+        val grid = list.toNGrid().also { logger.debug { "\n${it}" } }
+        grid.toString() shouldBe """
             +---+
             |   |
             +---+            
-        """.trimIndent().trim(), grid.toString())
+        """.trimIndent().trim()
+    }
+
+    "toListFromColumn" {
+
+        val grid = NGrid().apply {
+            addRow("key", "nayasis")
+            addRow("key", 1)
+            addRow("val", mapOf("name" to "nayasis", "age" to 40))
+            addRow("val", mapOf("name" to "jake", "age" to 11))
+        }
+
+        val rs1 = grid.toListFrom("key", String::class).also { logger.debug { it } }
+        val rs2 = grid.toListFrom("value", Person::class).also { logger.debug { it } }
+        val rs3 = grid.toListFrom("value", object: TypeReference<List<Person>>(){}).also { logger.debug { it } }
+        val rs4 = grid.toListFrom("val", Person::class).also { logger.debug { it } }
+        val rs5 = grid.toListFrom("key", Double::class).also { logger.debug { it } }
+
+        logger.debug { "\n${grid.toString(showIndexColumn = true)}" }
+
+        rs1.toString() shouldBe "[nayasis, 1]"
+        rs2.toString() shouldBe "[null, null]"
+        rs3.toString() shouldBe "[null, null]"
+        rs4.toString() shouldBe "[Person(name=nayasis, age=40), Person(name=jake, age=11)]"
+        rs5.toString() shouldBe "[0.0, 1.0]"
 
     }
 
-    @Test
-    fun toListFromColumn() {
-
-        val grid = NGrid()
-
-        grid.addData("key", "nayasis")
-        grid.addData("key", 1)
-        grid.addData("val", mapOf("name" to "nayasis", "age" to 40))
-        grid.addData("val", mapOf("name" to "jake", "age" to 11))
-
-//        val rs1 = grid.toListFrom("key", String::class)
-//                log.debug { rs1 }
-//        val rs2 = grid.toListFrom("value", Person::class)
-//                log.debug { rs2 }
-//        val rs3 = grid.toListFrom("value", object:TypeReference<List<Person>>(){})
-//                log.debug { rs3 }
-        val rs4 = grid.toListFrom("val", Person::class)
-                log.debug { rs4 }
-//        val rs5 = grid.toListFrom("key", Double::class)
-//                log.debug { rs5 }
-
-        log.debug { "\n${grid.toString(showIndexColumn = true)}" }
-
-//        assertEquals( "[nayasis, 1]", rs1.toString() )
-//        assertEquals( "[null, null]", rs2.toString() )
-//        assertEquals( "[null, null]", rs3.toString() )
-//        assertEquals( "[Person(name=nayasis, age=40), Person(name=jake, age=11)]", rs4.toString() )
-//        assertEquals( "[0.0, 1.0]", rs5.toString() )
-
-    }
-
-    @Test
-    fun printOverflow() {
-
-        Characters.fullwidth = 2.0
-
-        val grid = NGrid()
-
-        grid.addRow(Person("우리나라 좋은나라 대한민국",1234567890))
-        grid.addRow(Person("우리나라 좋은나라 미국",1234567890))
-        grid.addRow(Person("우리나라 좋은나라 오스트레일리아",1234567890))
-
-        assertEquals("""
+    "print overflow" {
+        val grid = NGrid().apply {
+            addRow(Person("우리나라 좋은나라 대한민국",1234567890))
+            addRow(Person("우리나라 좋은나라 미국",1234567890))
+            addRow(Person("우리나라 좋은나라 오스트레일리아",1234567890))
+        }
+        grid.toString(maxColumnWidth=20) shouldBe """
             +--------------------+----------+
             |name                |age       |
             +--------------------+----------+
@@ -193,28 +146,21 @@ internal class NGridTest {
             |우리나라 좋은나라 ..|1234567890|
             |우리나라 좋은나라 ..|1234567890|
             +--------------------+----------+            
-        """.trimIndent().trim(), grid.toString(maxColumnWidth=20))
-
+        """.trimIndent().trim()
     }
 
-    @Test
-    fun printVoOverflow() {
+    "print Vo overflow" {
 
-        Characters.fullwidth = 2.0
+        val grid = NGrid().apply {
+            addRow("key","A")
+            addRow("key","B")
+            addRow("key","C")
+            addRow("value",ComplexVo("우리나라 좋은나라 대한민국",1234590))
+            addRow("value",ComplexVo("우리나라 좋은나라 미국",1234212312))
+            addRow("value",ComplexVo("우리나라 좋은나라 오스트레일리아",12347890))
+        }.also { println(it) }
 
-        val grid = NGrid()
-
-        grid.addData("key","A")
-        grid.addData("key","B")
-        grid.addData("key","C")
-
-        grid.addData("value",ComplexVo("우리나라 좋은나라 대한민국",1234590))
-        grid.addData("value",ComplexVo("우리나라 좋은나라 미국",1234212312))
-        grid.addData("value",ComplexVo("우리나라 좋은나라 오스트레일리아",12347890))
-
-        println(grid)
-
-        assertEquals("""
+        "$grid" shouldBe """
             +---+----------------------------------------------------------------------------------------------------+
             |key|value                                                                                               |
             +---+----------------------------------------------------------------------------------------------------+
@@ -222,22 +168,17 @@ internal class NGridTest {
             |B  |ComplexVo(name=우리나라 좋은나라 미국, age=1234212312, birth=2017-04-06 00:00:00.000, address=매우..|
             |C  |ComplexVo(name=우리나라 좋은나라 오스트레일리아, age=12347890, birth=2017-04-06 00:00:00.000, addr..|
             +---+----------------------------------------------------------------------------------------------------+           
-        """.trimIndent().trim(), grid.toString())
+        """.trimIndent().trim()
 
     }
 
-    @Test
-    fun `ignore carriage return`() {
-
-        Characters.fullwidth = 2.0
-
-        val grid = NGrid()
-
-        grid.addRow(Person("우리나라 \n좋은나라 대한민국",1234567890))
-        grid.addRow(Person("우리나라 \n좋은나라 미국",1234567890))
-        grid.addRow(Person("우리나라 \n좋은나라 오스트레일리아",1234567890))
-
-        assertEquals("""
+    "ignore carriage return" {
+        val grid = NGrid().apply {
+            addRow(Person("우리나라 \n좋은나라 대한민국",1234567890))
+            addRow(Person("우리나라 \n좋은나라 미국",1234567890))
+            addRow(Person("우리나라 \n좋은나라 오스트레일리아",1234567890))
+        }
+        grid.toString(maxColumnWidth=20, showIndexColumn = true) shouldBe """
             +-----+--------------------+----------+
             |index|name                |age       |
             +-----+--------------------+----------+
@@ -245,11 +186,46 @@ internal class NGridTest {
             |    1|우리나라 \n좋은나.. |1234567890|
             |    2|우리나라 \n좋은나.. |1234567890|
             +-----+--------------------+----------+            
-        """.trimIndent().trim(), grid.toString(maxColumnWidth=20, showIndexColumn = true))
-
+        """.trimIndent().trim()
     }
 
-}
+    "control to print alias" {
+
+        val data = listOf(
+            Person("A",1),
+            Person("B",2),
+            Person("C",3),
+        )
+
+        NGrid(data).toString().also {
+            logger.debug { it }
+        } shouldBe """
+            +----+---+
+            |name|age|
+            +----+---+
+            |A   |  1|
+            |B   |  2|
+            |C   |  3|
+            +----+---+
+        """.trimIndent().trim()
+
+        NGrid().apply {
+            header.setAlias(Person::age.name, "a")
+            header.setAlias(Person::name.name, "n")
+        }.addRow(data).toString().also {
+            logger.debug { it }
+        } shouldBe """
+            +-+-+
+            |a|n|
+            +-+-+
+            |1|A|
+            |2|B|
+            |3|C|
+            +-+-+
+        """.trimIndent().trim()
+    }
+
+})
 
 @NoArg
 data class Person(

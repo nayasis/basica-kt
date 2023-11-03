@@ -8,32 +8,29 @@ import kotlin.math.ceil
 import kotlin.math.log10
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.math.round
 import kotlin.math.roundToInt
 
 private const val INDEX_COLUMN_NAME = "index"
 
-
-
 class NGridPrinter(
     val grid: NGrid,
-    val maxColumnWidth: Double = 100.0,
+    val maxColumnWidth: Double,
+    val showHeader: Boolean,
+    val showIndexColumn: Boolean,
+    val showAlias: Boolean,
+    val maxRowCount: Int,
 ) {
 
-    private val meta = HeaderMeta(grid, maxColumnWidth)
+    private val meta = HeaderMeta(grid, maxColumnWidth, showIndexColumn, showAlias, maxRowCount)
 
-    fun toString(showHeader: Boolean, useAlias: Boolean, rowcount:Int, showIndexColumn: Boolean): String {
+    override fun toString(): String {
 
-        val line  = meta.makeLine('-','+',showIndexColumn)
-        val empty = meta.makeLine(' ','|',showIndexColumn)
+        val line  = meta.makeLine('-','+')
+        val empty = meta.makeLine(' ','|')
         val body  = StringBuilder().append(line)
 
         if( showHeader && ! grid.header.isEmpty() ) {
-            if( useAlias ) {
-                body.append('\n').append(toString(grid.header.aliases(),showIndexColumn))
-            } else {
-                body.append('\n').append(toString(meta.key,showIndexColumn))
-            }
+            body.append('\n').append(makeHeader())
             body.append('\n').append(line)
         }
 
@@ -44,9 +41,9 @@ class NGridPrinter(
         } else {
             for( (i,row) in grid.body ) {
                 when {
-                    i > rowcount -> break
+                    i > meta.rowCount -> break
                     row.isEmpty() -> body.append('\n').append(empty)
-                    else -> body.append('\n').append(toString(row,if(showIndexColumn) i else null))
+                    else -> body.append('\n').append(toString(row, if(showIndexColumn) i else null))
                 }
             }
         }
@@ -55,34 +52,24 @@ class NGridPrinter(
 
     }
 
-    private fun toString(header : List<*>, showIndexColumn: Boolean): String {
-
+    private fun makeHeader(): String {
         val line = StringBuilder().append('|')
-
         if( showIndexColumn )
             line.append(INDEX_COLUMN_NAME.dpadStart(meta.indexColumnWidth,' ')).append('|')
-
-        for( i in 0 until meta.key.size ) {
-            val value  = header[i]
-            val width  = meta.width[i]
+        for(key in grid.header.keys()) {
+            val value = if(showAlias) grid.header.getAlias(key) else key
+            val width = meta.columnWidths[key] ?: 0
             line.append(value.toDisplayString(maxColumnWidth).dpadEnd(width, ' ')).append('|')
         }
-
         return line.toString()
-
     }
 
     private fun toString(row : Map<Any,Any?>, index: Int? = null): String {
-
         val line = StringBuilder().append('|')
-
         if( index != null )
             line.append(index.toString().dpadStart(meta.indexColumnWidth,' ')).append('|')
-
-        for( i in 0 until meta.key.size ) {
-            val key    = meta.key[i]
+        meta.columnWidths.forEach { key, width ->
             val value  = row[key]
-            val width  = meta.width[i]
             line.append(value.toDisplayString(maxColumnWidth).let {
                 if( value is Number ) {
                     it.dpadStart(width,' ')
@@ -91,53 +78,48 @@ class NGridPrinter(
                 }
             }).append('|')
         }
-
         return line.toString()
-
     }
 
 }
 
-private class HeaderMeta(grid: NGrid, maxColumnWidth: Double) {
+private class HeaderMeta(
+    grid: NGrid,
+    maxColumnWidth: Double,
+    val showIndexColumn: Boolean,
+    showAlias: Boolean,
+    maxRowCount: Int,
+) {
 
-    val key   = ArrayList<Any>()
-    val width = ArrayList<Int>()
-
-    val indexColumnWidth = max(ceil(log10(grid.size.toDouble())).toInt(),INDEX_COLUMN_NAME.length)
+    val rowCount = maxOf(grid.size, maxRowCount)
+    val indexColumnWidth = max(ceil(log10(rowCount.toDouble())).toInt(), INDEX_COLUMN_NAME.length)
+    val columnWidths = LinkedHashMap<Any,Int>()
 
     init {
-        val bodyWidth = HashMap<Any,Double>()
-        grid.body.values.forEach { row ->
-            row.forEach { (key, value) ->
-                bodyWidth[key] = max(bodyWidth[key] ?: 0.0,value.getDisplayWidth(maxColumnWidth))
-            }
-        }
         for( key in grid.header.keys() ) {
-            this.key.add(key)
-            this.width.add(
-                listOf(
-                    key.getDisplayWidth(maxColumnWidth),
-                    grid.header.getAlias(key).getDisplayWidth(maxColumnWidth),
-                    bodyWidth[key] ?: 0.0
-                ).maxOrNull()?.roundToInt() ?: 0
-            )
+            columnWidths[key] = (if(showAlias) grid.header.getAlias(key) else key).getDisplayWidth(maxColumnWidth).roundToInt()
+        }
+        grid.body.forEach { i, row ->
+            if(i > rowCount) return@forEach
+            row.forEach{ key, value ->
+                columnWidths[key] = maxOf(columnWidths[key] ?: 0, value.getDisplayWidth(maxColumnWidth).roundToInt())
+            }
         }
     }
 
-    fun makeLine(base: Char, delimiter: Char, showIndexColumn: Boolean): String {
+    fun makeLine(base: Char, delimiter: Char): String {
         val sb = StringBuilder().append(delimiter)
         if( showIndexColumn )
             sb.append( base.repeat(indexColumnWidth) ).append(delimiter)
-        if( width.isEmpty() ) {
+        if( columnWidths.isEmpty() ) {
             sb.append( base.repeat(3) ).append(delimiter)
         } else {
-            for( w in width ) {
+            for( w in columnWidths.values ) {
                 sb.append( base.repeat(w) ).append(delimiter)
             }
         }
         return sb.toString()
     }
-
 
 }
 

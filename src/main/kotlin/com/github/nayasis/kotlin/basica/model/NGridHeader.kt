@@ -18,24 +18,20 @@ interface NGridHeader: Serializable, Cloneable {
     fun setAlias(key: Any, alias: String)
     fun getAlias(key: Any): String
     fun isEmpty(): Boolean
-
+    public override fun clone(): NGridHeader
 }
 
-class Header: NGridHeader {
-
-    companion object {
-        private const val serialVersionUID = 4570402963506233954L
-    }
-
-    private val keys    = HashMap<Any, TreeSet<Int>>() // key, size (max row index by key)
-    private val indexes = TreeMap<Int,Any>() // column index, key
-    private val aliases = HashMap<Any,String>()
+class Header(
+    private val keys: MutableMap<Any,TreeSet<Int>> = mutableMapOf(), // key, size (max row index by key)
+    private val indexes: TreeMap<Int,Any>          = TreeMap<Int,Any>(), // column index, key
+    private val aliases: MutableMap<Any,String>    = mutableMapOf(),
+): NGridHeader, Serializable, Cloneable {
 
     fun init(header: Header) {
         clear()
-        keys.putAll( header.keys )
-        indexes.putAll( header.indexes )
-        aliases.putAll( header.aliases )
+        keys.putAll(header.keys)
+        indexes.putAll(header.indexes)
+        aliases.putAll(header.aliases)
     }
 
     fun merge(header: Header) {
@@ -108,12 +104,11 @@ class Header: NGridHeader {
     override fun aliases(): List<String> = keys().map { getAlias(it) }
 
     override fun setAlias(key: Any, alias: String ) {
-        if( keys.containsKey(key) ) {
-            aliases[key] = alias
-        }
+        add(key)
+        aliases[key] = alias
     }
 
-    override fun getAlias(key: Any ): String = aliases[key] ?: "$key"
+    override fun getAlias(key: Any): String = aliases[key] ?: "$key"
     override fun isEmpty(): Boolean = keys.isEmpty()
 
     private fun nextCol(): Int = if(indexes.isEmpty()) 0 else indexes.lastKey() + 1
@@ -124,4 +119,7 @@ class Header: NGridHeader {
         aliases.clear()
     }
 
+    override fun clone(): NGridHeader {
+        return Header(keys.toMutableMap(), TreeMap(indexes), aliases.toMutableMap())
+    }
 }

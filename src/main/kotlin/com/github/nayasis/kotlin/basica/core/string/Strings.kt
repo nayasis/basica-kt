@@ -39,6 +39,7 @@ import java.util.regex.Matcher
 import java.util.regex.Pattern
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
+import kotlin.collections.ArrayList
 import kotlin.math.min
 import kotlin.math.round
 import kotlin.reflect.KClass
@@ -246,10 +247,10 @@ fun String?.unescape(): String {
     return sb.toString()
 }
 
-fun String?.capitalize(): String {
+fun String?.toCapitalize(locale: Locale = Locale.getDefault()): String {
     return when {
         isNullOrEmpty() -> ""
-        else -> replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+        else -> replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
     }
 }
 
@@ -817,4 +818,22 @@ fun String?.add(text: String): String {
     } else {
         "$this${text}"
     }
+}
+
+fun String.wrap(open: String = "\"", close: String = open, escapeChar: Char? = null): String {
+    val escapedValue = (escapeChar ?: when {
+        open == "\"" && close == "\"" -> '"'
+        open == "'" && close == "'" -> '\''
+        else -> null
+    })?.let { escCh ->
+        val new = ArrayList<Char>()
+        this.chars().mapToObj { it.toChar() }.forEach {
+            if(it == escCh) {
+                new.add('\\')
+            }
+            new.add(it)
+        }
+        new.joinToString("")
+    } ?: this
+    return """$open$escapedValue$close"""
 }

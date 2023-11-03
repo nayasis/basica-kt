@@ -2,15 +2,11 @@ package com.github.nayasis.kotlin.basica.model
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.github.nayasis.kotlin.basica.core.character.Characters
-import com.github.nayasis.kotlin.basica.core.number.cast
-import com.github.nayasis.kotlin.basica.core.string.toNumber
 import com.github.nayasis.kotlin.basica.core.validator.Types
 import com.github.nayasis.kotlin.basica.reflection.Reflector
 import java.io.Serializable
 import java.util.*
 import kotlin.reflect.KClass
-import kotlin.reflect.cast
-import kotlin.reflect.full.isSubclassOf
 
 @Suppress("UNCHECKED_CAST")
 class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
@@ -54,19 +50,16 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
     constructor(collection: Collection<*>, header: KClass<*>? = null) {
         if( collection.isEmpty())
             this._header.addAll(header)
-        for( row in collection )
-            addRow(row)
+        addRows(collection)
     }
 
     constructor(array: Array<*>, header: KClass<*>? = null) {
         if( array.isEmpty())
             this._header.addAll(header)
-        for( row in array ) {
-            addRow(row)
-        }
+        addRows(array)
     }
 
-    fun setRow( index: Int, value: Any? ) {
+    fun setRow(index: Int, value: Any?): NGrid {
         if( index < 0 )
             throw IndexOutOfBoundsException("$index")
         when (value) {
@@ -94,6 +87,7 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
             }
             else -> setRow( index, Reflector.toMap(value) )
         }
+        return this
     }
 
     private fun setMap(index: Int, map: Map<*,*>) {
@@ -102,17 +96,29 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
         e.keys.forEach { _header.add(it,index) }
     }
 
-    fun addRow(value: Any?) = setRow(maxindex(), value)
-
-    fun addData(key: Any, value: Any?) = setData(_header.next(key), key, value)
-
-    fun removeRow(index: Int) {
-        if( ! _body.containsKey(index) ) return
-        _body[index]!!.keys.forEach{ _header.remove(it,index) }
-        _body.remove(index)
+    fun addRows(array: Array<*>): NGrid {
+        array.forEach { row -> addRow(row) }
+        return this
     }
 
-    fun removeKey( key: Any ) {
+    fun addRows(collection: Collection<*>): NGrid {
+        collection.forEach { row -> addRow(row) }
+        return this
+    }
+
+    fun addRow(value: Any?): NGrid = setRow(maxindex(), value)
+
+    fun addRow(key: Any, value: Any?): NGrid = setData(_header.next(key), key, value)
+
+    fun removeRow(index: Int): NGrid {
+        if( _body.containsKey(index) ) {
+            _body[index]!!.keys.forEach{ _header.remove(it,index) }
+            _body.remove(index)
+        }
+        return this
+    }
+
+    fun removeKey(key: Any): NGrid {
         _header.remove(key)
         for( index in ArrayList(_body.keys) ) {
             val row = _body[index]!!
@@ -121,9 +127,10 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
                 _body.remove(index)
             }
         }
+        return this
     }
 
-    fun removeData(row: Int, key: Any) {
+    fun removeData(row: Int, key: Any): NGrid {
         _header.remove(key,row)
         _body[row]?.let {
             it.remove(key)
@@ -131,6 +138,7 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
                 _body.remove(row)
             }
         }
+        return this
     }
 
     private fun maxindex(): Int = if(_body.isEmpty()) 0 else _body.lastKey() + 1
@@ -142,17 +150,18 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
 
     fun getRow(index: Int): Map<Any,Any?> = _body[index] ?: emptyMap()
 
-    fun setCell(row: Int, col: Int, value: Any?) {
+    fun setCell(row: Int, col: Int, value: Any?): NGrid {
         if( _header.keyByIndex(col) == null )
             _header.add(col,col)
-        setData(row, _header.keyByIndex(col)!!, value)
+        return setData(row, _header.keyByIndex(col)!!, value)
     }
 
-    fun setData(row: Int, key: Any, value: Any?) {
+    fun setData(row: Int, key: Any, value: Any?): NGrid {
         _header.add(key)
         if( _body[row] == null )
             _body[row] = HashMap()
         _body[row]!![key] = value
+        return this
     }
 
     fun getCell(row: Int, col: Int): Any? {
@@ -213,31 +222,29 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
         return list
     }
 
-    fun clear(bodyOnly: Boolean = false) {
+    fun clear(bodyOnly: Boolean = false): NGrid {
         _body.clear()
         if( ! bodyOnly )
             _header.clear()
+        return this
     }
 
-    fun sort(comparator: Comparator<Map<Any,Any?>>) {
-
+    fun sort(comparator: Comparator<Map<Any,Any?>>): NGrid {
         val indies = ArrayList(_body.keys)
         val rows   = ArrayList(_body.values)
-
         Collections.sort(rows,comparator)
-
         _body.clear()
         for( i in 0 until indies.size )
             _body[indies[i]] = rows[i]
-
+        return this
     }
 
     public override fun clone(): NGrid = NGrid(this)
 
     override fun toString(): String = toString(true)
 
-    fun toString(showHeader: Boolean = true, rowcount:Int = 500, showIndexColumn: Boolean = false, useAlias: Boolean = true, maxColumnWidth: Int = 100): String {
-        return NGridPrinter(this,maxColumnWidth.toDouble()).toString(showHeader,useAlias,rowcount,showIndexColumn)
+    fun toString(showHeader: Boolean = true, maxRowcount: Int = 500, showIndexColumn: Boolean = false, showAlias: Boolean = true, maxColumnWidth: Int = 100): String {
+        return NGridPrinter(this, maxColumnWidth.toDouble(),showHeader, showIndexColumn,showAlias, maxRowcount).toString()
     }
 
     override fun iterator(): Iterator<Map<Any,Any?>> {

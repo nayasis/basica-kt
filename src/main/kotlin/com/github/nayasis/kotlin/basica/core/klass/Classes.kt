@@ -249,12 +249,13 @@ class Classes { companion object{
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun <T:Any> newInstance(type: Type) : T {
+    fun <T: Any> newInstance(type: Type) : T {
+        @Suppress("PrivatePropertyName")
         return newInstance(getClass(type) as Class<T>)
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun <T:Any> newInstance(name: String) : T {
+    fun <T: Any> newInstance(name: String) : T {
         return newInstance(getClass(name) as Class<T>)
     }
 

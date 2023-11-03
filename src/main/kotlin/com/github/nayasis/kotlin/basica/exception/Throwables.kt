@@ -6,12 +6,18 @@ import kotlin.reflect.KClass
 
 private var enableLogback = true
 
-fun Throwable.filterStackTrace(pattern: Regex? = null): Throwable {
+fun Throwable.filterStackTrace(pattern: Regex? = null, include: Boolean = true): Throwable {
     if( pattern == null ) return this
     val self = this
     return Throwable(message).apply {
-        stackTrace = self.stackTrace.filter { pattern.find("$it") == null }.toTypedArray()
-        self.cause?.let { initCause(it.filterStackTrace(pattern)) }
+        stackTrace = self.stackTrace.let {
+            if(include) {
+                it.filter { pattern.find("$it") != null }
+            } else {
+                it.filter { pattern.find("$it") == null }
+            }
+        }.toTypedArray()
+        self.cause?.let { initCause(it.filterStackTrace(pattern, include)) }
     }
 }
 

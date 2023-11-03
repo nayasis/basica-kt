@@ -1,52 +1,42 @@
 package com.github.nayasis.kotlin.basica.exec
 
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
+import com.github.nayasis.kotlin.basica.core.string.wrap
+import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
 
-internal class CommandTest {
+internal class CommandTest: StringSpec({
 
-    @Test
-    fun basic() {
-
+    "basic" {
         Command("a b c   d e ").let {
-            assertEquals("a b c d e", "$it")
-            assertEquals(5, it.command.size)
+            "$it" shouldBe "a b c d e"
+            it.command.size shouldBe 5
         }
-
         Command("a b\t c \n\r\t   d\t e ").let {
-            assertEquals("a b c d e", "$it")
-            assertEquals(5, it.command.size)
+            "$it" shouldBe "a b c d e"
+            it.command.size shouldBe 5
         }
-
         Command("a \"b c  d\"  e").let {
-            assertEquals("a \"b c  d\" e", "$it")
-            assertEquals(3, it.command.size)
+            "$it" shouldBe "a \"b c  d\" e"
+            it.command.size shouldBe 3
         }
-
     }
 
-    @Test
-    fun removeQuote() {
+    "remove quote" {
         val cli = Command("\"c:\\windows\\notepad.exe\"")
-        assertEquals("\"c:\\windows\\notepad.exe\"", cli.command[0] )
+        cli.command[0] shouldBe "c:\\windows\\notepad.exe".wrap()
     }
 
-    @Test
-    fun parse() {
+    "parse" {
         val cli = Command("\"c:\\run.exe\" 'merong \" is parameter' \"oh ' no!\"")
-        assertEquals("\"c:\\run.exe\"",cli.command[0])
-        assertEquals("'merong \" is parameter'",cli.command[1])
-        assertEquals("\"oh ' no!\"",cli.command[2])
+        cli.command[0] shouldBe "c:\\run.exe".wrap()
+        cli.command[1] shouldBe "merong \" is parameter".wrap("'")
+        cli.command[2] shouldBe "oh ' no!".wrap()
     }
 
-    @Test
-    fun append() {
-
+    "append" {
         val cli = Command("run")
         cli.append("'merong.txt'")
-
-        assertEquals("run 'merong.txt'", cli.toString() )
-
+        cli.toString() shouldBe "run 'merong.txt'"
     }
 
-}
+})
