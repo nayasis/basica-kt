@@ -1,29 +1,40 @@
 package com.github.nayasis.kotlin.basica.core.io
 
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.nio.file.Path
 
-class ProgressIOTest {
+class ProgressIOTest: StringSpec({
 
+    @Suppress("LocalVariableName")
     val TEST_DIR = Paths.userHome / "progress-io-test"
+    @Suppress("LocalVariableName")
     val DUMMY_CONTENTS = "A".repeat(10000)
 
-    @BeforeEach
-    fun makeTemp() {
+    fun dummy(path: Path): Path {
+        path.parent.makeDir()
+        path.writeText(DUMMY_CONTENTS)
+        return path
+    }
+
+    fun dummy(subDir: String): Path {
+        return dummy(TEST_DIR / subDir)
+    }
+
+    beforeAny {
         TEST_DIR.makeDir()
     }
 
-    @AfterEach
-    fun clearTemp() {
+    afterAny {
         TEST_DIR.delete()
     }
 
-    @Test
-    fun copyFile() {
-
+    "copy file" {
         val source = dummy("source.txt")
         val target = TEST_DIR / "target.txt"
         var progress = false
@@ -33,51 +44,38 @@ class ProgressIOTest {
             println("read: $read, done: $done, total: $total")
         }
 
-        assertEquals(source.fileSize, target.fileSize)
-        assertTrue(progress)
-
+        source.fileSize shouldBe target.fileSize
+        progress shouldBe true
     }
-
-    @Test
-    fun moveFile() {
-
+    "move file" {
         val source = dummy("source.txt")
         val target = TEST_DIR / "target.txt"
         var progress = false
 
         val prevSourceSize = source.fileSize
 
-        assertTrue(target.notExists())
+        target.notExists() shouldBe true
 
         ProgressIO.moveFile(source,target) { read, done, total ->
             progress = true
             println("read: $read, done: $done, total: $total")
         }
 
-        assertTrue(source.notExists())
-        assertTrue(target.exists())
-        assertEquals(prevSourceSize, target.fileSize)
-        assertTrue(progress)
-
+        source.notExists() shouldBe true
+        target.exists() shouldBe true
+        target.fileSize shouldBe prevSourceSize
+        progress shouldBe true
     }
-
-    @Test
-    fun `move same file`() {
-
+    "move same file" {
         val source = dummy("source.txt")
         val target = TEST_DIR / "source.txt"
-
-        assertThrows(FileAlreadyExistsException::class.java) {
+        shouldThrow<FileAlreadyExistsException> {
             ProgressIO.moveFile(source,target) { read, done, total ->
                 println("read: $read, done: $done, total: $total")
             }
         }
-
     }
-
-    @Test
-    fun copyDirectory() {
-
+    "copy directory" {
         val source = TEST_DIR / "source"
         val target = TEST_DIR / "target"
         var progress = false
@@ -90,20 +88,16 @@ class ProgressIOTest {
             println("i: $index, file: ${file.name}, read: $read, done: $done")
         }
 
-        assertTrue(target.exists())
-        assertTrue(progress)
+        target.exists() shouldBe true
+        progress shouldBe true
 
         val sourceStat = source.statistics
         val targetStat = target.statistics
 
         println(targetStat)
-        assertEquals(sourceStat, targetStat)
-
+        targetStat shouldBe sourceStat
     }
-
-    @Test
-    fun moveDirectory() {
-
+    "move directory" {
         val source = TEST_DIR / "source"
         val target = TEST_DIR / "target"
         var progress = false
@@ -113,32 +107,20 @@ class ProgressIOTest {
 
         val sourceStat = source.statistics
 
-        assertTrue(target.notExists())
+        target.notExists() shouldBe true
 
         ProgressIO.moveDirectory(source, target) { index, file, read, done ->
             progress = true
             println("i: $index, file: ${file.name}, read: $read, done: $done")
         }
 
-        assertTrue(source.notExists())
-        assertTrue(target.exists())
-        assertTrue(progress)
+        source.notExists() shouldBe true
+        target.exists() shouldBe true
+        progress shouldBe true
 
         val targetStat = target.statistics
 
         println(targetStat)
-        assertEquals(sourceStat, targetStat)
-
+        targetStat shouldBe sourceStat
     }
-
-    fun dummy(subDir: String): Path {
-        return dummy(TEST_DIR / subDir)
-    }
-
-    fun dummy(path: Path): Path {
-        path.parent.makeDir()
-        path.writeText(DUMMY_CONTENTS)
-        return path
-    }
-
-}
+})

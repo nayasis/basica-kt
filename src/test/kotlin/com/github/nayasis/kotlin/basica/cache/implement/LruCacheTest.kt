@@ -1,51 +1,47 @@
 package com.github.nayasis.kotlin.basica.cache.implement
 
+import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import mu.KotlinLogging
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Test
 
-private val log = KotlinLogging.logger {  }
+private val logger = KotlinLogging.logger{}
 
-internal class LruCacheTest {
+class LruCacheTest: StringSpec({
 
-    @Test
-    fun basic() {
-
-        val cache = LruCache<Int,Int>(2)
+    "basic" {
+        val cache = LruCache<Int, Int>(2)
         cache[0] = 0
         cache[1] = 1
 
-        assertEquals( 0, cache[0] )
-        assertEquals( 1, cache[1] )
+        cache[0] shouldBe 0
+        cache[1] shouldBe 1
 
         cache[2] = 2
 
-        assertEquals( null, cache[0] )
-        assertEquals( 1, cache[1] )
-        assertEquals( 2, cache[2] )
-
+        cache[0] shouldBe null
+        cache[1] shouldBe 1
+        cache[2] shouldBe 2
     }
 
-    @Test
-    fun capacity() {
+    "capacity" {
 
-        val cache = LruCache<Int,Int>(5)
+        val cache = LruCache<Int, Int>(5)
 
         for( i in 1..10)
             cache[i] = i
 
         for( i in 1..5)
-            assertNull(cache[i])
+            cache[i] shouldBe null
 
         for( i in 6..10)
-            assertNotNull(cache[i])
+            cache[i] shouldNotBe null
 
     }
 
-    @Test
-    fun lru() {
+    "lru" {
 
-        val cache = LruCache<Int,Int>(10)
+        val cache = LruCache<Int, Int>(10)
 
         for( i in 1..10)
             cache[i] = i
@@ -57,17 +53,17 @@ internal class LruCacheTest {
             cache[i] = i
 
         for( i in 1..15)
-            log.debug { "$i : ${cache[i]}" }
+            logger.debug { "$i : ${cache[i]}" }
 
         for( i in 1..5)
-            assertNotNull(cache[i])
+            cache[i] shouldNotBe null
 
         for( i in 6..10)
-            assertNull(cache[i])
+            cache[i] shouldBe null
 
         for( i in 11..15)
-            assertNotNull(cache[i])
+            cache[i] shouldNotBe null
 
     }
 
-}
+})

@@ -1,87 +1,77 @@
 package com.github.nayasis.kotlin.basica.etc
 
+import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.comparables.shouldBeGreaterThan
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import mu.KotlinLogging
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Test
 import java.lang.Thread.sleep
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.DurationUnit
 
-private val log = KotlinLogging.logger {}
+private val logger = KotlinLogging.logger {}
 
-internal class StopWatchTest {
+internal class StopWatchTest: StringSpec({
 
-    @Test
-    fun basic() {
+    "basic" {
 
-        val stopWatch = StopWatch("task1")
-        sleep(100)
+        val stopWatch = StopWatch()
+        delay(100)
+        stopWatch.tick("task1")
 
+        delay(200)
         stopWatch.tick("task2")
-        sleep(200)
 
+        delay(300)
         stopWatch.tick("task3")
-        sleep(300)
 
-        log.debug { "\n${stopWatch}" }
-
-        sleep(100)
-        stopWatch.stop()
-
-        log.debug { "\n${stopWatch}" }
+        delay(100)
+        stopWatch.toString().also { logger.debug { "\n$it" } }
+        logger.debug { "\n${stopWatch}" }
 
         stopWatch.reset()
-        log.debug { "\n${stopWatch}" }
+        logger.debug { "\n${stopWatch}" }
 
     }
 
-    @Test
-    fun elapsed() {
+    "elapsed" {
 
         val stopWatch = StopWatch()
 
-        sleep(100)
-        log.debug { stopWatch.elapsedSeconds }
-        assertTrue( stopWatch.elapsedMillis > 100 )
+        delay(100)
+        stopWatch.elapsed shouldBeGreaterThan 100.milliseconds
 
-        sleep(100)
-        log.debug { stopWatch.elapsedSeconds }
-        assertTrue( stopWatch.elapsedMillis > 200 )
+        delay(100)
+        stopWatch.elapsed shouldBeGreaterThan 200.milliseconds
 
-        sleep(100)
-        log.debug { stopWatch.elapsedSeconds }
-        assertTrue( stopWatch.elapsedMillis > 300 )
+        delay(100)
+        stopWatch.elapsed shouldBeGreaterThan 300.milliseconds
 
     }
 
-    @Test
-    fun disabled() {
+    "lambda" {
+        val stopwatch = StopWatch()
 
-        val stopWatch = StopWatch("task1")
-        stopWatch.enable = false
-        sleep(100)
+        stopwatch.tickSuspendable("task1") {
+            delay(100)
+        }.let { logger.debug { it } }
+        stopwatch.tick("another 2") {
+            sleep(200)
+        }.let { logger.debug { it } }
+        stopwatch.tick {
+            runBlocking {
+                delay(300)
+            }
+        }.let { logger.debug { it } }
 
-        stopWatch.tick("task2")
-        sleep(200)
-
-        stopWatch.tick("task3")
-        sleep(300)
-
-        stopWatch.stop()
-
-        log.debug { "\n${stopWatch}" }
-        assertEquals("", stopWatch.toString())
-
+        logger.debug{ "\n${stopwatch}" }
+        logger.debug{ "\n${stopwatch.toString(DurationUnit.NANOSECONDS)}" }
     }
 
-    @Test
-    fun lambda() {
-        StopWatch("task1") {
-            sleep(100)
-            it.tick("task2")
-            sleep(100)
-            it.tick("task3")
-        }.let { watch ->
-            log.debug{ "\n$watch" }
-        }
+    "no error without ticking" {
+        val stopwatch = StopWatch()
+        stopwatch.toString().let { logger.debug { "\n$it" } }
     }
 
-}
+})

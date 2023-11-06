@@ -10,20 +10,20 @@ import java.io.Serializable
 class MvelHandler { companion object {
 
     val ctx = ParserContext().apply{
-
         val base = "com.github.nayasis.kotlin.basica.core"
-
-        addPackageImport("$base.character")
-        addPackageImport("$base.collection")
-        addPackageImport("$base.extention")
-        addPackageImport("$base.klass")
-        addPackageImport("$base.localdate")
-        addPackageImport("$base.math")
-        addPackageImport("$base.number")
-        addPackageImport("$base.path")
-        addPackageImport("$base.resource")
-        addPackageImport("$base.string")
-        addPackageImport("$base.validator")
+        listOf(
+            "character",
+            "collection",
+            "extention",
+            "klass",
+            "localdate",
+            "math",
+            "number",
+            "path",
+            "resource",
+            "string",
+            "validator",
+        ).map { addPackageImport("$base.$it") }
         addImport(Reflector::class.java)
         classLoader.loadClass("$base.validator.Validator").methods.forEach {
             if( it.name == "nvl" ) {
@@ -51,7 +51,7 @@ class MvelHandler { companion object {
      * @return execution result
     </T> */
     @Suppress("UNCHECKED_CAST")
-    fun <T:Any> run(expression: Serializable?, param: Any?): T? = MVEL.executeExpression(expression, param) as T
+    fun <T: Any> run(expression: Serializable?, param: Any?): T = MVEL.executeExpression(expression, param) as T
 
     /**
      * run compiled expression
@@ -60,6 +60,6 @@ class MvelHandler { companion object {
      * @param <T>           return type
      * @return execution result
     */
-    fun <T:Any> run(expression: Serializable?): T? = run(expression, null)
+    fun <T: Any> run(expression: Serializable?): T = run(expression, null)
 
 }}

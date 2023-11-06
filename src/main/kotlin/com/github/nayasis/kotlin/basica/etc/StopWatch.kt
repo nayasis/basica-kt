@@ -1,97 +1,115 @@
 package com.github.nayasis.kotlin.basica.etc
 
-import com.github.nayasis.kotlin.basica.core.collection.sumByLong
+import com.github.nayasis.kotlin.basica.core.collection.sumByDuration
 import com.github.nayasis.kotlin.basica.core.number.round
+import com.github.nayasis.kotlin.basica.core.string.toCapitalize
 import com.github.nayasis.kotlin.basica.model.NGrid
+import mu.KotlinLogging
 import java.io.Serializable
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.ZERO
+import kotlin.time.Duration.Companion.nanoseconds
+import kotlin.time.DurationUnit
+import kotlin.time.DurationUnit.*
+
+private val logger = KotlinLogging.logger {}
 
 /**
  * Stop Watch
  */
 class StopWatch: Serializable {
 
-    private var start = 0L
-    private val logs  = ArrayList<Log>()
+    private var start = System.nanoTime().nanoseconds
 
-    var task: String = ""
-        get() = field
+    private val logs = ArrayList<Log>()
 
-    var enable: Boolean = true
+    val elapsed: Duration
+        get() = System.nanoTime().nanoseconds - start
 
-    constructor(task: String = "", fn:((watcher:StopWatch) -> Unit)? = null) {
-        tick(task)
-        fn?.invoke(this)
+    val elapsedTotal: Duration
+        get() {
+            var sum: Duration = ZERO
+            logs.forEach { sum += it.elapsed }
+            sum += elapsed
+            return sum
+        }
+
+    fun tick(task: String = "-", block: (() -> Unit)? = null): Duration {
+        start = System.nanoTime().nanoseconds
+        block?.invoke()
+        return elapsed.also {
+            logs.add(Log(task, it))
+            start = System.nanoTime().nanoseconds
+        }
     }
 
-    val elapsedNanos: Long
-        get() = if( start == 0L ) 0L else System.nanoTime() - start
-    val elapsedMillis: Long
-        get() = elapsedNanos / 1_000_000
-    val elapsedSeconds: Double
-        get() = (elapsedNanos / 1_000_000_000.0).round(3)
-
-    fun stop(): StopWatch {
-        addLog()
-        task = ""
-        start = 0
-        return this
-    }
-
-    private fun addLog() {
-        if (enable && start != 0L)
-            logs.add(Log(task, elapsedMillis))
-    }
-
-    fun tick(task: String = ""): StopWatch {
-        addLog()
-        this.task = task
-        this.start = System.nanoTime()
-        return this
+    suspend fun tickSuspendable(task: String = "-", block: suspend () -> Unit): Duration {
+        start = System.nanoTime().nanoseconds
+        block.invoke()
+        return elapsed.also {
+            logs.add(Log(task, it))
+            start = System.nanoTime().nanoseconds
+        }
     }
 
     fun reset() {
-        start = System.nanoTime()
+        start = System.nanoTime().nanoseconds
         logs.clear()
     }
 
     override fun toString(): String {
-        if( ! enable ) return ""
+        return toString(MILLISECONDS)
+    }
 
-        val total = logs.sumByLong { it.milis }
-
-        var remainPercent = 100.0
-
-        val last = logs.size - 1
-        for( i in 0..last ) {
-            val log = logs[i]
-            if (i == last) {
-                log.percent = remainPercent
-            } else {
-                log.percent = (log.milis.toDouble() / total * 100).round(1)
-                remainPercent -= log.percent
+    fun toString(unit: DurationUnit): String {
+        val total = logs.sumByDuration { it.elapsed }.also { logger.debug { ">> total: $it" } }
+        var remain = 100.0
+        for(i in 0 until logs.size - 1) {
+            logs[i].let { log ->
+                log.percent = ((log.elapsed / total) * 100).round(1)
+                remain -= log.percent
             }
         }
+        logs.lastOrNull()?.percent = remain.round(1)
 
-        val grid = NGrid()
-
-        logs.forEach {
-            grid.addData( "Task", it.task )
-            grid.addData( "ms", it.milis )
-            grid.addData( "%", "%.1f".format(it.percent) )
+        val grid = NGrid().apply{
+            listOf(
+                Log::task.name to "Task",
+                Log::elapsed.name to getSimpleUnit(unit),
+                Log::percent.name to "%"
+            ).forEach { header.setAlias(it.first, it.second) }
         }
 
-        grid.addData("Task", "Total")
-        grid.addData("ms", "%6d".format(total))
-        grid.addData("%", "" )
+        logs.forEach {
+            grid.addRow(Log::task.name, it.task)
+            grid.addRow(Log::elapsed.name, it.elapsed.toLong(unit))
+            grid.addRow(Log::percent.name, it.percent)
+        }
+
+        grid.addRow(Log::task.name, "Total")
+        grid.addRow(Log::elapsed.name, total.toLong(unit))
 
         return grid.toString(true)
 
     }
 
+    private fun getSimpleUnit(unit: DurationUnit): String {
+        return when(unit) {
+            NANOSECONDS -> "ns"
+            MICROSECONDS -> "us"
+            MILLISECONDS -> "ms"
+            SECONDS -> "s"
+            MINUTES -> "m"
+            HOURS -> "h"
+            DAYS -> "day"
+            else -> "$unit".lowercase().toCapitalize()
+        }
+    }
+
 }
 
 private data class Log(
-    var task: String,
-    var milis: Long = 0,
+    val task: String,
+    val elapsed: Duration,
     var percent: Double = 0.0
 ): Serializable

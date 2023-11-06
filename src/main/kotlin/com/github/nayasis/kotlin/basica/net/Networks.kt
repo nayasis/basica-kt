@@ -14,8 +14,8 @@ class Networks { companion object {
     /**
      * ignore SSL certification validation
      */
-    fun trustAllCerts() {
-        val allCerts = arrayOf(
+    fun ignoreCerts() {
+        val certs = arrayOf(
             object: X509TrustManager {
                 override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
                 override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
@@ -26,7 +26,7 @@ class Networks { companion object {
         )
         try {
             SSLContext.getInstance("SSL").apply {
-                init(null, allCerts, SecureRandom())
+                init(null, certs, SecureRandom())
                 HttpsURLConnection.setDefaultHostnameVerifier { _, _ -> true }
                 HttpsURLConnection.setDefaultSSLSocketFactory(socketFactory)
             }

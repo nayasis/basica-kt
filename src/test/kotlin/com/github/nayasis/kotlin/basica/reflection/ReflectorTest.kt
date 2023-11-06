@@ -3,6 +3,9 @@ package com.github.nayasis.kotlin.basica.reflection
 import com.github.nayasis.kotlin.basica.core.collection.toJson
 import com.github.nayasis.kotlin.basica.core.localdate.format
 import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
+import com.github.nayasis.kotlin.basica.core.string.loadClass
+import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
 import mu.KotlinLogging
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -13,203 +16,168 @@ import kotlin.collections.LinkedHashMap
 private val log = KotlinLogging.logger {}
 
 @Suppress("UNCHECKED_CAST")
-internal class ReflectorTest {
+internal class ReflectorTest: StringSpec({
 
-    @Test
-    fun toJson() {
+    "to json" {
 
         val map1 = mapOf( "C" to "2021-01-01T23:59:59".toLocalDateTime(),3 to null, 2 to "two", "A" to LocalDateTime.now(),1 to "one", )
+            .also { println("map1: $it") }
         val json = """{"C":"2021-03-26T15:16:31.154","2":"two","A":"2021-03-26T15:16:31.172","1":"one"}"""
 
-        println( Reflector.toJson(map1) )
-
         val map2 = Reflector.toMap(map1)
-            println(map2)
-        var map3 = Reflector.toMap(json)
-            println(map3)
-        val map4: Map<String,Any?> = Reflector.toMap(map1)
-            println(map4)
-        var obj1 = Reflector.toObject<Dummy>(json)
-            println(obj1)
+            .also { println("map2: $it") }
 
-        assertEquals( "2021-03-26T15:16:31.154", obj1.C.format() )
+        val map3 = Reflector.toMap(json)
+            .also { println("map3: $it") }
+
+        val map4: Map<String,Any?> = Reflector.toMap(map1)
+            .also { println("map4: $it") }
+
+        val obj1 = Reflector.toObject<Dummy>(json)
+            .also { println("obj1: $it") }
+
+        obj1.C.format() shouldBe "2021-03-26T15:16:31.154"
 
     }
 
-    @Test
-    fun nullMapping() {
+    "null mapping" {
 
-        val map = mapOf( "A" to null, "B" to 1, "C" to "2021-01-01T23:59:59".toLocalDateTime(), "D" to null );
-
+        val map = mapOf( "A" to null, "B" to 1, "C" to "2021-01-01T23:59:59".toLocalDateTime() )
+            .also { println("map: $it") }
         val json1 = Reflector.toJson(map)
+            .also { println("json1: $it") }
         val json2 = Reflector.toJson(map,ignoreNull = false)
-
-        println(map)
-
-        println("convert 1-1 : $json1 -> ${Reflector.toMap(json1)}")
-        println("convert 1-2 : $json1 -> ${Reflector.toMap(json1,ignoreNull = false)}")
-        println("convert 1-3 : $json2 -> ${Reflector.toMap(json2)}")
-        println("convert 1-4 : $json2 -> ${Reflector.toMap(json2,ignoreNull = false)}")
+            .also { println("json2: $it") }
 
         val map1 = Reflector.toMap(json1)
+            .also { println("map1: $it") }
         val map2 = Reflector.toMap(json2)
-        assertTrue( ! map1.containsKey("D") && map1["D"] == null )
-        assertTrue(   map2.containsKey("D") && map2["D"] == null )
+            .also { println("map2: $it") }
 
-        println( "convert 2-1 : $map1 -> ${Reflector.toMap(map1)}" )
-        println( "convert 2-2 : $map1 -> ${Reflector.toMap(map1,ignoreNull = false)}" )
-        println( "convert 2-3 : $map2 -> ${Reflector.toMap(map2)}" )
-        println( "convert 2-4 : $map2 -> ${Reflector.toMap(map2,ignoreNull = false)}" )
+        map1.containsKey("A") shouldBe false
+        map2.containsKey("A") shouldBe true
 
         val map3 = Reflector.toMap(map2)
+            .also { println("map3: $it") }
         val map4 = Reflector.toMap(map2,ignoreNull = false)
-        assertTrue( ! map3.containsKey("D") && map3["D"] == null )
-        assertTrue(   map4.containsKey("D") && map4["D"] == null )
+            .also { println("map4: $it") }
+
+        map3.containsKey("A") shouldBe false
+        map4.containsKey("A") shouldBe true
 
     }
 
-    @Test
-    fun toJsonFromObject() {
+    "object -> json" {
         val person = Person("nayasis",45,"sungnam", null)
-        println( Reflector.toJson(person))
-        println( Reflector.toMap(person) )
+        Reflector.toJson(person) shouldBe """{"name":"nayasis","age":45,"address":"sungnam"}"""
+        Reflector.toMap(person).toString() shouldBe "{name=nayasis, age=45, address=sungnam}"
     }
 
-    @Test
-    @Suppress("UNCHECKED_CAST")
-    fun getFunctions() {
-        var line = "-".repeat(100)
+    "get functions" {
+        val line = "-".repeat(100)
         println(line)
-        javaClass.classLoader.loadClass("com.github.nayasis.kotlin.basica.core.validator.Validator")
+        "com.github.nayasis.kotlin.basica.core.validator.Validator".loadClass()
             .methods.forEach { println(it) }
         println(line)
-        javaClass.classLoader.loadClass("com.github.nayasis.kotlin.basica.core.string.Strings")
+        "com.github.nayasis.kotlin.basica.core.string.Strings".loadClass()
             .methods.forEach { println(it) }
         println(line)
         Reflector::class.java.methods.forEach { println(it) }
         println(line)
     }
 
-    @Test
-    fun keyUnsorted() {
+    "key unsorted" {
+        val map = mapOf(
+            "c" to 1,
+            "a" to "merong",
+            "z" to "qqq",
+            "b" to "b"
+        ).also { println(">> map: $it") }
 
-        var map = LinkedHashMap<String,Any>()
-        map["c"] = 1
-        map["a"] = "merong"
-        map["z"] = "qqq"
-        map["b"] = "b"
+        val json = map.toJson().also { println(">> json: $it") }
 
-        println(map)
-
-        val json = map.toJson()
-        println(json)
-
-        assertEquals( "{\"c\":1,\"a\":\"merong\",\"z\":\"qqq\",\"b\":\"b\"}", json )
-
+        json shouldBe """
+            {"c":1,"a":"merong","z":"qqq","b":"b"}
+        """.trim()
     }
 
-    @Test
-    fun isJson() {
-        assertFalse( Reflector.isJson(null) )
-        assertFalse( Reflector.isJson("") )
-        assertTrue( Reflector.isJson("{}") )
-        assertTrue( Reflector.isJson("""
+    "is json" {
+        Reflector.isJson(null) shouldBe false
+        Reflector.isJson("") shouldBe false
+        Reflector.isJson("{}") shouldBe true
+        Reflector.isJson("""
             {
               "a": "merong",
               "b": [1,2,3,4],
               "c": "20170304"
             }            
-        """.trimIndent()) )
-        assertFalse( Reflector.isJson("{c}") )
+        """.trimIndent()) shouldBe true
+        Reflector.isJson("{c}") shouldBe false
     }
 
-    @Test
-    fun mergeMap() {
-
+    "merge map" {
         val map1 = mapOf(1 to 1, 2 to 2)
         val map2 = mapOf(3 to 3, 4 to 4)
-        val merged = Reflector.merge(map1,map2)
-
-        log.debug { merged }
-
-        for( i in 1..4 )
-            assertEquals(i, merged[i])
-
+        val merged = Reflector.merge(map1,map2).also { println(it) }
+        (1..4).forEach { i ->
+            merged[i] shouldBe i
+        }
     }
 
-    @Test
-    fun mergeList() {
-
+    "merge List" {
         val list1 = listOf(0,1,2,3)
         val list2 = arrayOf(5,6,7,8,4)
-        val merged = Reflector.merge(list1,list2)
-
-        log.debug { merged.joinToString() }
-
+        val merged = Reflector.merge(list1,list2).also { println(it.joinToString(",")) }
         for( i in 0..4 )
-            assertEquals(i, merged[i])
-
+            merged[i] shouldBe i
     }
 
-    @Test
-    fun mergeMapAndList() {
+    "merge Map & List" {
 
         val map1 = mapOf(1 to 1, 2 to 2, 5 to mapOf("name" to "nayasis"))
         val map2 = mapOf(3 to 3, 4 to 4, 5 to listOf(
             mapOf("age" to 45),
             mapOf("name" to "jake", "age" to 11)
         ))
-
-        val merged = Reflector.merge(map1,map2)
-
-        log.debug { merged }
+        val merged = Reflector.merge(map1,map2).also { println(it) }
 
         for( i in 1..4 )
-            assertEquals(i, merged[i])
+            merged[i] shouldBe i
 
         val e5 = merged[5] as List<Map<String,Any>>
 
-        assertEquals( "nayasis" , e5[0]["name"] )
-        assertEquals( 45        , e5[0]["age"]  )
-        assertEquals( "jake"    , e5[1]["name"] )
-        assertEquals( 11        , e5[1]["age"]  )
+        e5[0]["name"]  shouldBe "nayasis"
+        e5[0]["age"]   shouldBe 45
+        e5[1]["name"]  shouldBe "jake"
+        e5[1]["age"]   shouldBe 11
 
     }
 
-    @Test
-    fun mergeBean() {
-
+    "merge Bean" {
         val p1 = Person("nayasis")
         val p2 = Person(age = 14, address = "sungnam")
-
-        val merged = Reflector.merge(p2,p1)
-
-        log.debug { merged }
-
-        assertEquals( "nayasis", merged.name )
-        assertEquals( 14, merged.age )
-        assertEquals( "sungnam", merged.address )
-
+        val merged = Reflector.merge(p2,p1).also { println(it) }
+        merged.name    shouldBe "nayasis"
+        merged.age     shouldBe 14
+        merged.address shouldBe "sungnam"
     }
 
-    @Test
-    fun empty() {
-        assertEquals( emptySet<String>(), Reflector.toObject<Set<String>>("") )
-        assertEquals( emptySet<String>(), Reflector.toObject<Set<String>>(null) )
-        assertEquals( emptyMap<String,String>(), Reflector.toObject<Map<String,String>>("") )
-        assertEquals( emptyMap<String,String>(), Reflector.toObject<Map<String,String>>(null) )
-        assertEquals( emptyList<String>(), Reflector.toObject<List<String>>("") )
-        assertEquals( emptyList<String>(), Reflector.toObject<List<String>>(null) )
+    "empty" {
+        Reflector.toObject<Set<String>>("")          shouldBe emptySet()
+        Reflector.toObject<Set<String>>(null)        shouldBe emptySet()
+        Reflector.toObject<Map<String,String>>("")   shouldBe emptyMap()
+        Reflector.toObject<Map<String,String>>(null) shouldBe emptyMap()
+        Reflector.toObject<List<String>>("")         shouldBe emptyList()
+        Reflector.toObject<List<String>>(null)       shouldBe emptyList()
     }
 
-    @Test
-    fun `clone test`() {
+    "clone test" {
         val p1 = Person(name="nayasis", age = 14, address = "sungnam", etc = "merong")
         val p2 = Reflector.clone(p1)
-        assertEquals(p1,p2)
+        p1 shouldBe p2
     }
 
-}
+})
 
 data class Dummy(
     val A: Date,

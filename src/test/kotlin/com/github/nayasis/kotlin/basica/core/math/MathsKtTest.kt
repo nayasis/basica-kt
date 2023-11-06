@@ -1,5 +1,7 @@
 package com.github.nayasis.kotlin.basica.core.math
 
+import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
 import mu.KotlinLogging
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -7,20 +9,18 @@ import java.time.LocalDateTime.now
 
 private val log = KotlinLogging.logger {}
 
-internal class MathsKtTest {
+internal class MathsKtTest: StringSpec({
 
-    @Test
-    fun max() {
+    "maxOf" {
         val a = now()
         val b = now().plusDays(1)
-        assertEquals(b, max(a,b))
+        maxOf(a,b) shouldBe b
     }
 
-    @Test
-    fun min() {
+    "minOf" {
         val a = now()
         val b = now().plusDays(1)
-        assertEquals(a, min(a,b))
+        minOf(a,b) shouldBe a
     }
 
-}
+})

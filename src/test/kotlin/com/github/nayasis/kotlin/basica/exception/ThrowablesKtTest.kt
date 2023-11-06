@@ -1,30 +1,39 @@
 package com.github.nayasis.kotlin.basica.exception
 
 import com.github.nayasis.kotlin.basica.etc.error
+import io.kotest.core.spec.style.AnnotationSpec
+import io.kotest.matchers.shouldBe
 import mu.KotlinLogging
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Test
 import java.security.InvalidParameterException
 
 private val logger = KotlinLogging.logger {}
 
-class ThrowablesKtTest {
+class ThrowablesKtTest: AnnotationSpec() {
 
     @Test
     fun filterStackTrace() {
-
-        val pattern = """^java\.util|^sun\.reflect|^java\.lang|^org\.junit|^org\.gradle|^com\.sun|^worker\.org\.gradle""".toRegex()
 
         try {
             stack1()
         } catch (e: Exception) {
 
-            logger.debug(">> original")
-            logger.error(e)
-            logger.debug(">> filtered")
-            logger.error(e.filterStackTrace(pattern))
+            e.filterStackTrace("""
+                com\.github\.nayasis
+            """.trimIndent().toRegex()).also {
+                logger.error(it)
+            }.stackTrace.size shouldBe 4
 
-            assertEquals(4, e.filterStackTrace(pattern).stackTrace.size)
+            e.filterStackTrace(listOf(
+                "java.util",
+                "java.lang",
+                "kotlin.reflect",
+                "kotlin.coroutines",
+                "kotlinx.coroutines",
+                "io.kotest",
+                "sun.reflect",
+            ).map { it.replace(".","\\.") }.joinToString("|").toRegex(),false).also {
+                logger.error(it)
+            }.stackTrace.size shouldBe 4
 
         }
 

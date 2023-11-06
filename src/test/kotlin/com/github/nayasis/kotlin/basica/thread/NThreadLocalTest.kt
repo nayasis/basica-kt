@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.lang.Thread.sleep
 import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
 
 private val log = KotlinLogging.logger {}
 

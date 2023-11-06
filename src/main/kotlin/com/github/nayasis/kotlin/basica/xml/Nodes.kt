@@ -2,7 +2,7 @@
 
 package com.github.nayasis.kotlin.basica.xml
 
-import com.github.nayasis.kotlin.basica.core.extention.ifNull
+import com.github.nayasis.kotlin.basica.core.extension.ifNull
 import com.github.nayasis.kotlin.basica.xml.NodeType.*
 import com.sun.org.apache.xml.internal.serialize.OutputFormat
 import com.sun.org.apache.xml.internal.serialize.XMLSerializer
@@ -49,7 +49,7 @@ fun Node.rename(tagName: String): Node =
     ownerDocument.renameNode(this, this.namespaceURI, tagName )
 
 fun Node.appendFromXml(xml: String, ignoreDtd: Boolean = true): Node {
-    val doc = XmlReader().read(xml,ignoreDtd)
+    val doc = XmlReader.read(xml,ignoreDtd)
     val children = ownerDocument.importNode( doc, true)
     return this.appendChild(children)
 }

@@ -1,94 +1,68 @@
 package com.github.nayasis.kotlin.basica.core.string
 
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Test
+import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
 import java.io.File
 
-internal class FormatterTest {
+internal class FormatterTest: StringSpec({
 
-    private val binder = Formatter()
+    val binder = Formatter()
 
-    @Test
-    fun changeHangulJosa() {
-
-        assertEquals("카드템플릿을 등록합니다.", binder.bindSimple("{}를 등록합니다.", "카드템플릿"))
-        assertEquals("카드를 등록합니다.", binder.bindSimple("{}를 등록합니다.", "카드"))
-        assertEquals("카드는 등록됩니다.", binder.bindSimple("{}는 등록됩니다.", "카드"))
-        assertEquals("카드템플릿은 등록됩니다.", binder.bindSimple("{}는 등록됩니다.", "카드템플릿"))
-        assertEquals("카드가 등록됩니다.", binder.bindSimple("{}가 등록됩니다.", "카드"))
-        assertEquals("카드템플릿이 등록됩니다.", binder.bindSimple("{}가 등록됩니다.", "카드템플릿"))
-
+    "change Hangul Josa" {
+        binder.bind("{}를 등록합니다.", "카드템플릿") shouldBe "카드템플릿을 등록합니다."
+        binder.bind("{}를 등록합니다.", "카드") shouldBe "카드를 등록합니다."
+        binder.bind("{}는 등록됩니다.", "카드") shouldBe "카드는 등록됩니다."
+        binder.bind("{}는 등록됩니다.", "카드템플릿") shouldBe "카드템플릿은 등록됩니다."
+        binder.bind("{}가 등록됩니다.", "카드") shouldBe "카드가 등록됩니다."
+        binder.bind("{}가 등록됩니다.", "카드템플릿") shouldBe "카드템플릿이 등록됩니다."
     }
 
-    @Test
-    fun skip() {
-
-        assertEquals( "{}", binder.bindSimple("{{}}") )
-        assertEquals( "12", binder.bindSimple("1{}2") )
-
+    "skip" {
+        binder.bind("{{}}") shouldBe "{}"
+        binder.bind("1{}2") shouldBe "12"
     }
 
-    @Test
-    fun complex() {
-
+    "complex" {
         val format = "{aa} {} {{merong}} is {a} and {{{b}"
-
         val param = mapOf<String,Any>( "aa" to "nayasis", "b" to "end")
-
-        assertEquals("nayasis 2 {merong} is  and {end", binder.bindSimple(format, param, 2))
-
+        binder.bind(format, param, 2) shouldBe "nayasis 2 {merong} is  and {end"
     }
 
-    @Test
-    fun `no parameter`() {
-
+    "no parameter" {
         val format = "badCredentials"
-
-        assertEquals(format, binder.bindSimple(format) )
-
+        binder.bind(format) shouldBe format
     }
 
-    @Test
-    fun `format`() {
-
+    "format" {
         val parameter = "{'name':'abc', 'age':2}".toMap()
-
-        assertEquals("PRE {age} POST", binder.bindSimple("PRE {{age}} POST", parameter))
-
-        assertEquals("001001", binder.bindSimple("{}{}", "001", "001"))
-
-        assertEquals("items : (count:3)\n", binder.bindSimple("items : (count:{})\n{}", 3))
-
-        assertEquals("{ name : merong, age : 2 }", binder.bindSimple("{ name : {}, age : {} }", "merong", 2))
-        assertEquals("5K\nUtil\ndesc", binder.bindSimple("{}\n{}\n{}", "5K", "Util", "desc"))
-
-        assertEquals("PRE 2 POST", binder.bindSimple("PRE {age} POST", parameter))
-        assertEquals("abc PRE 2 POST", binder.bindSimple("{name} PRE {age} POST", parameter))
-        assertEquals("abc PRE   2 POST", binder.bindSimple("{name} PRE {age:%3d} POST", parameter))
-
+        binder.bind("PRE {{age}} POST", parameter) shouldBe "PRE {age} POST"
+        binder.bind("{}{}", "001", "001") shouldBe "001001"
+        binder.bind("items : (count:{})\n{}", 3) shouldBe "items : (count:3)\n"
+        binder.bind("{ name : {}, age : {} }", "merong", 2) shouldBe "{ name : merong, age : 2 }"
+        binder.bind("{}\n{}\n{}", "5K", "Util", "desc") shouldBe "5K\nUtil\ndesc"
+        binder.bind("PRE {age} POST", parameter) shouldBe "PRE 2 POST"
+        binder.bind("{name} PRE {age} POST", parameter) shouldBe "abc PRE 2 POST"
+        binder.bind("{name} PRE {age:%3d} POST", parameter) shouldBe "abc PRE   2 POST"
     }
 
-    @Test
-    fun `format from Bean`() {
-        val bean = BeanA(1,2,"abcd")
-        assertEquals("1 is 2 or abcd", binder.bindSimple("{a} is {b} or {c}", bean))
+    "format from Bean" {
+        val bean = Pojo(1,2,"abcd")
+        binder.bind("{a} is {b} or {c}", bean) shouldBe "1 is 2 or abcd"
     }
 
-    @Test
-    fun `format from map`() {
+    "format from map" {
         val bean = "{'a':1, 'b':2, 'c':'abcd'}".toMap()
-        assertEquals("1 is 2 or abcd", binder.bindSimple("{a} is {b} or {c}", bean))
+        binder.bind("{a} is {b} or {c}", bean) shouldBe "1 is 2 or abcd"
     }
 
-    @Test
-    fun `file parameter`() {
+    "file parameter" {
         val f = File("salamander")
-        assertEquals("it is      salamander", binder.bindSimple("it is {:%15s}", f))
+        binder.bind("it is {:%15s}", f) shouldBe "it is      salamander"
     }
 
-}
+})
 
-data class BeanA (
+data class Pojo (
     val a: Int = 0,
     val b: Int = 0,
     val c: String? = null,

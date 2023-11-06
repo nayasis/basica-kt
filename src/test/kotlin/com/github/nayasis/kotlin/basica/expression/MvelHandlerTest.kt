@@ -1,61 +1,58 @@
 package com.github.nayasis.kotlin.basica.expression
 
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Test
+import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
 import java.time.LocalDateTime
 
-internal class MvelHandlerTest {
+internal class MvelHandlerTest: StringSpec({
 
-    @Test
-    fun simple() {
-        assertEquals(21, run<Any>(" 3 * 7") as Int)
-        assertTrue(run<Boolean>("name == 'nayasis' && age == 40 && address == empty", Person()) == true)
-        assertTrue(run<Boolean>("name == 'nayasis' && age == 40 && address != empty", Person()) == false)
+    "simple" {
+        run<Int>("3 * 7") shouldBe 21
+        run<Boolean>("name == 'nayasis' && age == 40 && address == empty", Person()) shouldBe true
+        run<Boolean>("name == 'nayasis' && age == 40 && address != empty", Person()) shouldBe false
     }
 
-    @Test
-    fun contains() {
-        assertTrue(run<Boolean>("['nayasis','jake'].contains(name)", Person()) == true)
+    "contains" {
+        run<Boolean>("['nayasis','jake'].contains(name)", Person()) shouldBe true
     }
 
-    @Test
-    fun like() {
-        assertTrue(run<Boolean>("name.matches('.+?sis$')", Person()) == true)
+    "like" {
+        run<Boolean>("name.matches('.+?sis$')", Person()) shouldBe true
     }
 
-    @Test
-    fun nvl() {
-        assertEquals("default", run("nvl(address,'default')", Person()))
-        assertEquals("default", run("nvl(address,'default')", Person()))
-        assertEquals("", run("nvl(address)", Person()))
+    "nvl" {
+        run<String>("nvl(address,'default')", Person()) shouldBe "default"
+        run<String>("nvl(address)", Person()) shouldBe ""
     }
 
-    @Test
-    fun useKotlinMethod() {
+    "use KotlinMethod" {
 
-        assertEquals("default", run("Validator.nvl(address,'default')",Person()) )
-        assertEquals(true, run("Strings.isDate('2021-01-01')") )
+        run<String>("Validator.nvl(address,'default')",Person()) shouldBe "default"
+        run<Boolean>("Strings.isDate('2021-01-01')") shouldBe true
+
         val date: LocalDateTime? = run("LocalDateTimes.toLocalDateTime('2021-01-01')")
-        assertEquals("2021-01-01T00:00", date.toString() )
+        date.toString() shouldBe "2021-01-01T00:00"
 
-        println( run("""Reflector.toMap("{'A':1,'B':'name'}",false)""") )
+        println( run<String>("""Reflector.toMap("{'A':1,'B':'name'}",false)""") )
 
+        run<Map<String,Any>>("""
+            Reflector.toMap("{'A':1,'B':'name'}",false)
+        """.trimIndent()).toString() shouldBe "{A=1, B=name}"
     }
 
-    @Test
-    fun typecast() {
-        assertTrue(run<Boolean>("1 == '1'") == true)
-        assertTrue(run<Boolean>("1 + (2 * 3) == '7'") == true)
-        assertTrue(run<Boolean>("1 + 'a' == '1a'") == true)
-        assertTrue(run<Boolean>("1 + '2' == '3'") == false)
-        assertTrue(run<Boolean>("1 + (int)'2' == '3'") == true)
+    "typecast" {
+        run<Boolean>("1 == '1'") shouldBe true
+        run<Boolean>("1 + (2 * 3) == '7'") shouldBe true
+        run<Boolean>("1 + 'a' == '1a'") shouldBe true
+        run<Boolean>("1 + '2' == '3'") shouldBe false
+        run<Boolean>("1 + (int)'2' == '3'") shouldBe true
     }
 
-    private fun <T> run(expression: String, param: Any? = null): T? {
-        val exp = MvelHandler.compile(expression)
-        return MvelHandler.run(exp, param)!!
-    }
+})
 
+private fun <T> run(expression: String, param: Any? = null): T {
+    val exp = MvelHandler.compile(expression)
+    return MvelHandler.run(exp, param)
 }
 
 data class Person(

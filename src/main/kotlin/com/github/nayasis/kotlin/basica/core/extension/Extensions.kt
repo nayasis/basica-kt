@@ -1,4 +1,4 @@
-package com.github.nayasis.kotlin.basica.core.extention
+package com.github.nayasis.kotlin.basica.core.extension
 
 import com.github.nayasis.kotlin.basica.core.validator.isEmpty
 import com.github.nayasis.kotlin.basica.core.validator.isNotEmpty

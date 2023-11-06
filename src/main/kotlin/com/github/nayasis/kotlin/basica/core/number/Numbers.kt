@@ -4,11 +4,11 @@ import java.math.BigDecimal
 import java.math.BigInteger
 import java.math.RoundingMode
 import java.text.DecimalFormat
-import java.time.Duration
 import kotlin.reflect.KClass
+import kotlin.time.Duration
 
 @Suppress("UNCHECKED_CAST")
-fun <T:Number> Number.cast(type: KClass<T>): T {
+fun <T: Number> Number.cast(type: KClass<T>): T {
     return when(type) {
         this::class -> this
         Short::class -> this.toShort()
@@ -23,7 +23,7 @@ fun <T:Number> Number.cast(type: KClass<T>): T {
     } as T
 }
 
-inline fun <reified T:Number> Number.cast(): T {
+inline fun <reified T: Number> Number.cast(): T {
     return cast(T::class)
 }
 
@@ -31,25 +31,11 @@ fun Number.format(fractionDigits: Int): String {
     return DecimalFormat().apply { maximumFractionDigits = fractionDigits }.format(this)
 }
 
-val Number.millis: Duration
-    get() = Duration.ofMillis(this.toLong())
-
-val Number.seconds: Duration
-    get() = Duration.ofSeconds(this.toLong())
-
-val Number.minutes: Duration
-    get() = Duration.ofMinutes(this.toLong())
-
-val Number.hours: Duration
-    get() = Duration.ofHours(this.toLong())
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+operator fun Duration.plus(duration: Duration): Duration = this.plus(duration)
 
 @Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-operator fun Duration.plus(duration: Duration): Duration
-    = this.plus(duration)
-
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
-operator fun Duration.minus(duration: Duration): Duration
-    = this.minus(duration)
+operator fun Duration.minus(duration: Duration): Duration = this.minus(duration)
 
 fun Double.round(scale: Int = 0, mode: RoundingMode = RoundingMode.HALF_UP): Double {
     return BigDecimal(this).setScale(scale,mode).toDouble()

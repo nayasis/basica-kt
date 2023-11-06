@@ -1,33 +1,30 @@
 package com.github.nayasis.kotlin.basica.cache.implement
 
+import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import mu.KotlinLogging
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Test
 
-private val log = KotlinLogging.logger {  }
+private val logger = KotlinLogging.logger{}
 
-internal class FifoCacheTest {
+class FifoCacheTest: StringSpec({
 
-    @Test
-    fun basic() {
-
+    "basic" {
         val cache = FifoCache<Int, Int>(2)
         cache[0] = 0
         cache[1] = 1
 
-        Assertions.assertEquals(0, cache[0])
-        Assertions.assertEquals(1, cache[1])
+        cache[0] shouldBe 0
+        cache[1] shouldBe 1
 
         cache[2] = 2
 
-        Assertions.assertEquals(null, cache[0])
-        Assertions.assertEquals(1, cache[1])
-        Assertions.assertEquals(2, cache[2])
-
+        cache[0] shouldBe null
+        cache[1] shouldBe 1
+        cache[2] shouldBe 2
     }
 
-    @Test
-    fun capacity() {
+    "capacity" {
 
         val cache = FifoCache<Int, Int>(5)
 
@@ -35,15 +32,14 @@ internal class FifoCacheTest {
             cache[i] = i
 
         for( i in 1..5)
-            Assertions.assertNull(cache[i])
+            cache[i] shouldBe null
 
         for( i in 6..10)
-            Assertions.assertNotNull(cache[i])
+            cache[i] shouldNotBe null
 
     }
 
-    @Test
-    fun fifo() {
+    "fifo" {
 
         val cache = FifoCache<Int, Int>(10)
 
@@ -57,14 +53,14 @@ internal class FifoCacheTest {
             cache[i] = i
 
         for( i in 1..15)
-            log.debug { "$i : ${cache[i]}" }
+            logger.debug { "$i : ${cache[i]}" }
 
         for( i in 1..5)
-            Assertions.assertNull(cache[i])
+            cache[i] shouldBe null
 
         for( i in 6..15)
-            Assertions.assertNotNull(cache[i])
+            cache[i] shouldNotBe null
 
     }
 
-}
+})

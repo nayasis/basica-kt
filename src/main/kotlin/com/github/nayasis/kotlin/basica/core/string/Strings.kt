@@ -5,9 +5,9 @@ package com.github.nayasis.kotlin.basica.core.string
 import com.github.nayasis.kotlin.basica.core.character.Characters
 import com.github.nayasis.kotlin.basica.core.character.fontWidth
 import com.github.nayasis.kotlin.basica.core.character.isCJK
-import com.github.nayasis.kotlin.basica.core.extention.ifEmpty
-import com.github.nayasis.kotlin.basica.core.extention.isEmpty
-import com.github.nayasis.kotlin.basica.core.extention.then
+import com.github.nayasis.kotlin.basica.core.extension.ifEmpty
+import com.github.nayasis.kotlin.basica.core.extension.isEmpty
+import com.github.nayasis.kotlin.basica.core.extension.then
 import com.github.nayasis.kotlin.basica.core.io.*
 import com.github.nayasis.kotlin.basica.core.io.Paths.Companion.FOLDER_SEPARATOR
 import com.github.nayasis.kotlin.basica.core.io.Paths.Companion.FOLDER_SEPARATOR_UNIX
@@ -17,7 +17,6 @@ import com.github.nayasis.kotlin.basica.core.number.cast
 import com.github.nayasis.kotlin.basica.core.url.URLCodec
 import com.github.nayasis.kotlin.basica.model.Messages
 import com.github.nayasis.kotlin.basica.reflection.Reflector
-import mu.KotlinLogging
 import java.io.BufferedReader
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -42,8 +41,6 @@ import java.util.zip.GZIPOutputStream
 import kotlin.math.min
 import kotlin.math.round
 import kotlin.reflect.KClass
-
-private val log = KotlinLogging.logger {}
 
 private val REGEX_CAMEL = "(_[a-zA-Z])".toPattern()
 private val REGEX_SNAKE = "([A-Z])".toPattern()
@@ -246,10 +243,10 @@ fun String?.unescape(): String {
     return sb.toString()
 }
 
-fun String?.capitalize(): String {
+fun String?.toCapitalize(locale: Locale = Locale.getDefault()): String {
     return when {
         isNullOrEmpty() -> ""
-        else -> replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+        else -> replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
     }
 }
 
@@ -559,7 +556,7 @@ fun String?.toMap(): Map<String,*> {
 fun String?.bind(vararg parameter: Any?, modifyKorean: Boolean = true): String {
     return when {
         this.isNullOrEmpty() -> ""
-        else -> FORMATTER.bindSimple(this, *parameter, modifyKorean = modifyKorean)
+        else -> FORMATTER.bind(this, *parameter, modifyKorean = modifyKorean)
     }
 }
 
@@ -568,7 +565,7 @@ fun String?.bind(vararg parameter: Any?, modifyKorean: Boolean = true): String {
  *
   * @return encoded text
  */
-fun Any?.encodeBase64(): String {
+fun Any.encodeBase64(): String {
     ByteArrayOutputStream().use {
         ObjectOutputStream(it).use { outstream ->
             outstream.writeObject(this)
@@ -582,12 +579,11 @@ fun Any?.encodeBase64(): String {
  *
  * @return decoded object
  */
-inline fun <reified T> String?.decodeBase64(): T? {
-    if( this == null ) return null
+inline fun <reified T> String.decodeBase64(): T {
     val bytes = Base64.getDecoder().decode(this)
     ByteArrayInputStream(bytes).use {
         ObjectInputStream(it).use { instream ->
-            return instream.readObject() as T?
+            return instream.readObject() as T
         }
     }
 }
@@ -817,4 +813,26 @@ fun String?.add(text: String): String {
     } else {
         "$this${text}"
     }
+}
+
+fun String.wrap(open: String = "\"", close: String = open, escapeChar: Char? = null): String {
+    val escapedValue = (escapeChar ?: when {
+        open == "\"" && close == "\"" -> '"'
+        open == "'" && close == "'" -> '\''
+        else -> null
+    })?.let { escCh ->
+        val new = ArrayList<Char>()
+        this.chars().mapToObj { it.toChar() }.forEach {
+            if(it == escCh) {
+                new.add('\\')
+            }
+            new.add(it)
+        }
+        new.joinToString("")
+    } ?: this
+    return """$open$escapedValue$close"""
+}
+
+fun String.loadClass(classLoader: ClassLoader? = null): Class<*> {
+    return (classLoader ?: Classes.classLoader).loadClass(this)
 }

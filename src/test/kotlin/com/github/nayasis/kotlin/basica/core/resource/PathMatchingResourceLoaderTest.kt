@@ -1,6 +1,11 @@
 package com.github.nayasis.kotlin.basica.core.resource
 
 import com.github.nayasis.kotlin.basica.core.resource.util.Resources
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNot
+import io.kotest.matchers.shouldNotBe
 import mu.KotlinLogging
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
@@ -8,28 +13,18 @@ import java.io.IOException
 
 private val log = KotlinLogging.logger {}
 
-internal class PathMatchingResourceLoaderTest {
+internal class PathMatchingResourceLoaderTest: StringSpec({
 
-    @Test
-    @Throws(IOException::class)
-    fun findResources() {
+    "find resources" {
         val loader = PathMatchingResourceLoader()
         val resources = loader.getResources("classpath:/message/*.prop")
-        assertTrue(resources.isNotEmpty(), "there are no resources.")
+        resources.isNotEmpty() shouldBe true
     }
 
-    @Test
-    @Throws(IOException::class)
-    fun findResourcesInJar() {
-        var hasJarUrl = false
-        val loader = PathMatchingResourceLoader()
-        val resources = loader.getResources("classpath:/META-INF/LICENSE.md")
-        for (resource in resources) {
-            if (!Resources.isJarURL(resource.getURL())) continue
-            hasJarUrl = true
-            log.debug{"resource : ${resource.getURL()}"}
-        }
-        assertTrue(hasJarUrl, "there are no resources in JAR.")
+    "find resources in JAR" {
+        PathMatchingResourceLoader().getResources("classpath:/META-INF/LICENSE.md").firstOrNull{
+            Resources.isJarURL(it.getURL())
+        }.also { println(it) } shouldNotBe null
     }
 
-}
+})

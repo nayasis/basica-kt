@@ -1,60 +1,55 @@
 package com.github.nayasis.kotlin.basica.exec
 
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.StringSpec
+import io.kotest.core.test.config.TestCaseConfig
+import io.kotest.matchers.shouldBe
 import mu.KotlinLogging
-import org.junit.jupiter.api.Assertions.assertThrows
-import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Disabled
-import org.junit.jupiter.api.Test
 import java.lang.Thread.sleep
 import kotlin.concurrent.thread
 
 private val logger = KotlinLogging.logger {}
 
 @Disabled("exclude by platform dependency")
-internal class CommandExecutorTest {
+internal class CommandExecutorTest: StringSpec({
 
-    @Test
-    fun notepad() {
+//    "notepad".config(enabled = false) {
+    "notepad" {
         Command("cmd /c start notepad").run()
     }
 
-    @Test
-    fun excelAsync() {
+    "excel async" {
         Command("cmd.exe /c start excel.exe").run().waitFor()
         println(">> Done!!")
     }
 
-    @Test
-    fun excelSync() {
+    "excel sync" {
         Command("cmd.exe /c start /wait excel.exe").run().waitFor()
         println(">> Done!!")
     }
 
-    @Test
-    fun runExcel() {
+    "run excel" {
         Command("c:\\Program Files (x86)\\Microsoft Office\\Office15\\EXCEL.EXE").run().waitFor()
         println(">> Done!!")
     }
 
-    @Test
-    fun preventDoubleExecution() {
-        assertThrows(IllegalAccessException::class.java) {
+    "prevent double execution" {
+        shouldThrow<IllegalAccessException> {
             val path = "c:\\Program Files (x86)\\Microsoft Office\\Office15\\EXCEL.EXE"
             Command(path).run()
             Command(path).run()
         }
     }
 
-    @Test
-    fun readDir() {
+    "read dir" {
         val out = StringBuffer()
         Command("cmd /c c: && cd \"c:\\Windows\" && dir").run(out).waitFor()
         println(out)
-        assertTrue(out.isNotEmpty())
+        out.isNotEmpty() shouldBe true
     }
 
-    @Test
-    fun communication() {
+    "communication" {
 
         val out = StringBuffer()
         val executor = Command("cmd").run(out)
@@ -66,24 +61,21 @@ internal class CommandExecutorTest {
         executor.waitFor()
 
         println(out)
-        assertTrue(out.isNotEmpty())
+        out.isNotEmpty() shouldBe true
 
     }
 
-    @Test
-    fun readDirByReader() {
+    "read dir by reader" {
 
         val out = StringBuffer()
-
-        Command("cmd /c c: && cd \"c:\\Windows\" && dir").run({ out.append(it) }).waitFor()
+        Command("cmd /c c: && cd \"c:\\Windows\" && dir").run { out.append(it) }.waitFor()
 
         println(out)
-        assertTrue(out.isNotEmpty())
+        out.isNotEmpty() shouldBe true
 
     }
 
-    @Test
-    fun printOutputOnMame() {
+    "print output on MAME" {
 
         logger.debug{">> start"}
 
@@ -106,15 +98,13 @@ internal class CommandExecutorTest {
 
     }
 
-    @Test
-    fun openEmail() {
+    "open E-mail" {
         val addr = "mailto:nayasis@gmail.com?subject=merong"
         Command("explorer \"${addr}\"").run().waitFor()
     }
 
 
-    @Test
-    fun buildChd() {
+    "build CHD" {
 
         val cd = "d:/download/test/chd"
         val command = "${cd}/chdman.exe createcd -f -i ${cd}/disc.cue -o ${cd}/disc.chd"
@@ -128,10 +118,13 @@ internal class CommandExecutorTest {
 
     }
 
-    @Test
-    fun runNetworkExe() {
+    "run EXE on SMB" {
         val cmd = Command("\\\\NAS2\\emul\\_tool\\3DS\\decrypter\\3ds_decrypt_v4.exe", "\\\\NAS2\\emul\\_tool\\3DS\\decrypter")
         cmd.run() { println(it) }
     }
 
+}) {
+    init {
+        defaultTestConfig = TestCaseConfig(enabled = false)
+    }
 }

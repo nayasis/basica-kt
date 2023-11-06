@@ -1,117 +1,83 @@
 package com.github.nayasis.kotlin.basica.core.string
 
 import com.github.nayasis.kotlin.basica.core.collection.toUrlParam
-import com.github.nayasis.kotlin.basica.core.extention.isNotEmpty
+import com.github.nayasis.kotlin.basica.core.extension.isNotEmpty
 import com.github.nayasis.kotlin.basica.core.localdate.format
-import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
 import com.github.nayasis.kotlin.basica.core.localdate.toLocalTime
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.comparables.shouldBeGreaterThan
+import io.kotest.matchers.shouldBe
 import mu.KotlinLogging
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.io.Serializable
 import java.net.URLEncoder
 import java.time.LocalTime
-import java.time.format.DateTimeFormatter
-import java.time.temporal.UnsupportedTemporalTypeException
 
 private val log = KotlinLogging.logger {}
 
-internal class StringsTest {
+internal class StringsTest: StringSpec({
 
-    @Test
-    fun `glob test`() {
-
-        println( ".".glob("*.kt").joinToString("\n") )
-        assertTrue( ".".glob("*.kt").size > 1 )
+    "glob test" {
+        ".".glob("*.kt")
+            .also { println(it.joinToString("\n")) }
+            .size shouldBeGreaterThan 1
         println("----------")
-        println( "".glob("*.kt").joinToString("\n") )
-        assertTrue( "".glob("*.kt").size > 1 )
-
+        "".glob("*.kt")
+            .also { println(it.joinToString("\n")) }
+            .size shouldBeGreaterThan 1
     }
 
-    @Test
-    fun isDate() {
-
-        "2021-01-01".toLocalDateTime()
-
-        assertTrue( "2021-01-01".isDate() )
-        assertFalse( "2021-01-33".isDate() )
+    "is date" {
+        "2021-01-01".isDate() shouldBe true
+        "2021-01-33".isDate() shouldBe false
     }
 
-    @Test
-    fun toNumber() {
-        assertEquals(1, "1".toNumber())
-        assertEquals(1.2, "1.2".toNumber(Double::class))
-        assertEquals(0.0, "nayasis".toNumber(Double::class))
-        assertEquals(0L, "nayasis".toNumber(Long::class))
+    "toNumber" {
+        "1".toNumber<Int>() shouldBe 1
+        "1.2".toNumber<Double>() shouldBe 1.2
+        "1.2".toNumber(Double::class) shouldBe 1.2
+        "nayasis".toNumber<Double>() shouldBe 0.0
+        "nayasis".toNumber<Long>() shouldBe 0L
     }
 
-    @Test
-    fun `bind parameter`() {
-
+    "bind parameter" {
         val param = """
             { "name":"nayasis", "age":10 }
         """.toMap()
-
-        val format = "\${name} is \${age} years old."
-
-        println( format.format(param) )
-
+        "{name} is {age} years old.".bind(param) shouldBe "nayasis is 10 years old."
     }
 
-    @Test
-    fun `capture regex`() {
-
+    "capture regex" {
         val captured = "jdbc:sqlite:./target/test-classes/localDb/#{Merong_babo}#{Nayasis_babo}SimpleLauncherHelloWorld.db"
             .capture("#\\{(.+?)_(.+?)}".toRegex())
-
-        assertEquals(4, captured.size)
-        assertEquals(listOf("Merong", "babo", "Nayasis", "babo"), captured)
-
+        captured.size shouldBe 4
+        captured shouldBe listOf("Merong", "babo", "Nayasis", "babo")
         val refids = "< Ref id=\"refOrigin2\" />"
             .capture("(?i)< *?ref +?id *?= *?['\"](.*?)['\"] *?\\/>".toRegex())
-
-        assertEquals("[refOrigin2]", refids.toString())
-
+        refids.toString() shouldBe "[refOrigin2]"
     }
 
-    @Test
-    fun `capture patterns`() {
-
+    "capture patterns" {
         val captured = "jdbc:sqlite:./target/test-classes/localDb/#{Merong_babo}#{Nayasis_babo}SimpleLauncherHelloWorld.db"
             .capture("#\\{(.+?)_(.+?)}".toPattern())
-
-        assertEquals(4, captured.size)
-        assertEquals(listOf("Merong", "babo", "Nayasis", "babo"), captured)
-
+        captured.size shouldBe 4
+        captured shouldBe listOf("Merong", "babo", "Nayasis", "babo")
         val refids = "< Ref id=\"refOrigin2\" />"
             .capture("(?i)< *?ref +?id *?= *?['\"](.*?)['\"] *?\\/>".toPattern())
-
-        assertEquals("[refOrigin2]", refids.toString())
-
+        refids.toString() shouldBe "[refOrigin2]"
     }
 
-    @Test
-    fun `encode & decode`() {
-
-        val dummy = Dummy("nayasis", 45 )
-
-        val text = dummy.encodeBase64()
-
-        log.debug { text }
-
-        val decoded = text.decodeBase64<Dummy>()!!
-
-        log.debug { decoded }
-
-        assertEquals( dummy.name, decoded.name )
-        assertEquals( dummy.age, decoded.age )
-
+    "encode & decode" {
+        val vo = Dummy("nayasis", 45 ).also { println(">> origin: $it") }
+        val encoded = vo.encodeBase64().also { println(">> encoded: $it") }
+        val decoded = encoded.decodeBase64<Dummy>().also { println(">> decoded: $it") }
+        decoded.name shouldBe vo.name
+        decoded.age shouldBe vo.age
     }
 
-    @Test
-    fun `split and tokenize`() {
-
+    "split & tokenize" {
         val txt = """
             A
             B
@@ -119,181 +85,156 @@ internal class StringsTest {
             C
             D
         """.trimIndent()
-
-        assertEquals("A,B,,C,D", txt.split("\n").joinToString(","))
-        assertEquals("A,B,C,D", txt.tokenize("\n").joinToString(","))
-
+        txt.split("\n").joinToString(",") shouldBe "A,B,,C,D"
+        txt.tokenize("\n").joinToString(",") shouldBe "A,B,C,D"
     }
 
-    @Test
-    fun `url encoding & decoding`() {
-
+    "url encoding & decoding" {
         val param = "abcd =&1234원스토어韓國"
-
-        assertEquals(param, param.urlEncode().urlDecode() )
-        assertEquals(URLEncoder.encode(param,Charsets.UTF_8.name()).replace("+","%20"), param.urlEncode() )
-        assertEquals(URLEncoder.encode(param,Charsets.UTF_8.name()), param.urlEncode(legacyMode = false) )
-
+        param.urlEncode().urlDecode() shouldBe param
+        param.urlEncode() shouldBe URLEncoder.encode(param,Charsets.UTF_8.name()).replace("+","%20")
+        param.urlEncode(legacyMode = false) shouldBe URLEncoder.encode(param,Charsets.UTF_8.name())
     }
 
-    @Test
-    fun `map parameter url encoding & decoding`() {
-
+    "map parameter url encoding & decoding" {
         val param = mapOf( 1 to "원스토어", "ab& _e" to 3 )
-        val urlParam = param.toUrlParam()
-        val map = urlParam.toMapFromUrlParam()
 
-        assertEquals("1=%EC%9B%90%EC%8A%A4%ED%86%A0%EC%96%B4&ab%26%20_e=3", urlParam)
-        assertEquals("{1=원스토어, ab& _e=3}", map.toString())
+        param.toUrlParam() shouldBe "1=%EC%9B%90%EC%8A%A4%ED%86%A0%EC%96%B4&ab%26%20_e=3"
+        "1=%EC%9B%90%EC%8A%A4%ED%86%A0%EC%96%B4&ab%26%20_e=3".toMapFromUrlParam().toString() shouldBe "{1=원스토어, ab& _e=3}"
 
-
-        val another = "a&&&ab%26%20_e=3".toMapFromUrlParam()
-        assertEquals("{a=null, ab& _e=3}", another.toString())
-
+        "a&&&ab%26%20_e=3".toMapFromUrlParam().toString() shouldBe "{a=null, ab& _e=3}"
     }
 
-    @Test
-    fun `mask`() {
-
+    "mask" {
         val word = "010ABCD1234"
-
-        assertEquals("", word.mask(""))
-        assertEquals("010_ABCD_1234", word.mask("###_####_####"))
-        assertEquals("010_ABCD_123", word.mask("###_####_###"))
-        assertEquals("010-ABCD-123", word.mask("###-####-###"))
-        assertEquals("010-****-1234", word.mask("###-****-####"))
-        assertEquals("*010_ABCD_***", word.mask("\\*###_####_***"))
-        assertEquals("010_ABCD_123*", word.mask("###_####_###\\*"))
-        assertEquals("***-A**D-***", word.mask("***-#**#-***\\"))
-        assertEquals("###-ABCD-####", word.mask("###-****-####", pass = '*', hide = '#'))
-
+        word.mask("") shouldBe ""
+        word.mask("###_####_####") shouldBe "010_ABCD_1234"
+        word.mask("###_####_###") shouldBe "010_ABCD_123"
+        word.mask("###-####-###") shouldBe "010-ABCD-123"
+        word.mask("###-****-####") shouldBe "010-****-1234"
+        word.mask("\\*###_####_***") shouldBe "*010_ABCD_***"
+        word.mask("###_####_###\\*") shouldBe "010_ABCD_123*"
+        word.mask("***-#**#-***\\") shouldBe "***-A**D-***"
+        word.mask("###-****-####", pass = '*', hide = '#') shouldBe "###-ABCD-####"
     }
 
-    @Test
-    fun `unmask`() {
-        assertEquals("010ABCD1234", "010_ABCD_1234".unmask("###_####_####"))
-        assertEquals("010ABCD123", "010_ABCD_1234".unmask("###_####_###"))
-        assertEquals("010ABCD123", "010-ABCD-123".unmask("###-####-###"))
-        assertEquals("010****1234", "010-****-1234".unmask("###-****-####"))
-        assertEquals("010ABCD***", "*010_ABCD_***".unmask("\\*###_####_***"))
-        assertEquals("010ABCD123", "010_ABCD_123*".unmask("###_####_###\\*"))
-        assertEquals("***A**D***", "***-A**D-***".unmask("***-#**#-***\\"))
-        assertEquals("###ABCD####", "###-ABCD-####".unmask("###-****-####", pass = '*', hide = '#'))
+    "unmask" {
+        "010_ABCD_1234".unmask("###_####_####") shouldBe "010ABCD1234"
+        "010_ABCD_1234".unmask("###_####_###") shouldBe "010ABCD123"
+        "010-ABCD-123".unmask("###-####-###") shouldBe "010ABCD123"
+        "010-****-1234".unmask("###-****-####") shouldBe "010****1234"
+        "*010_ABCD_***".unmask("\\*###_####_***") shouldBe "010ABCD***"
+        "010_ABCD_123*".unmask("###_####_###\\*") shouldBe "010ABCD123"
+        "***-A**D-***".unmask("***-#**#-***\\") shouldBe "***A**D***"
+        "###-ABCD-####".unmask("###-****-####", pass = '*', hide = '#') shouldBe "###ABCD####"
     }
 
-    @Test
-    fun `isMasked`() {
-
-        assertTrue( "010_ABCD_1234".isMasked("###_####_####"))
-        assertFalse( "010_ABCD_1234".isMasked("###_####_###"))
-        assertTrue( "010_ABCD_123".isMasked("###_####_###"))
-        assertTrue( "010_ABCD_123".isMasked("###_####_####"))
-        assertTrue( "010-ABCD-123".isMasked("###-####-###"))
-        assertTrue( "010-****-1234".isMasked("###-****-####"))
-        assertTrue( "*010_ABCD_***".isMasked("\\*###_####_***"))
-        assertTrue( "010_ABCD_123*".isMasked("###_####_###\\*"))
-        assertTrue( "***-A**D-***".isMasked("***-#**#-***\\"))
-        assertTrue( "###-ABCD-####".isMasked("###-****-####", pass = '*', hide = '#'))
-
-        assertTrue( "".isMasked("") )
-        assertFalse( "AAA".isMasked("") )
-        assertTrue( "".isMasked("#*#", fullMasked = false) )
-        assertFalse( "".isMasked("#*#", fullMasked = true) )
-        assertTrue( "010_ABCD_123".isMasked("###_####_####", fullMasked = false))
-        assertFalse( "010_ABCD_123".isMasked("###_####_####", fullMasked = true))
-
+    "isMasked" {
+        "010_ABCD_1234".isMasked("###_####_####") shouldBe true
+        "010_ABCD_1234".isMasked("###_####_###") shouldBe false
+        "010_ABCD_123".isMasked("###_####_###") shouldBe true
+        "010_ABCD_123".isMasked("###_####_####") shouldBe true
+        "010-ABCD-123".isMasked("###-####-###") shouldBe true
+        "010-****-1234".isMasked("###-****-####") shouldBe true
+        "*010_ABCD_***".isMasked("\\*###_####_***") shouldBe true
+        "010_ABCD_123*".isMasked("###_####_###\\*") shouldBe true
+        "***-A**D-***".isMasked("***-#**#-***\\") shouldBe true
+        "###-ABCD-####".isMasked("###-****-####", pass = '*', hide = '#') shouldBe true
+        "".isMasked("") shouldBe true
+        "AAA".isMasked("") shouldBe false
+        "".isMasked("#*#", fullMasked = false) shouldBe true
+        "".isMasked("#*#", fullMasked = true) shouldBe false
+        "010_ABCD_123".isMasked("###_####_####", fullMasked = false)shouldBe true
+        "010_ABCD_123".isMasked("###_####_####", fullMasked = true)shouldBe false
     }
 
-    @Test
-    fun `similarity`() {
+    "similarity" {
+        "".similarity("") shouldBe 1.0
+        "".similarity("A") shouldBe 0.0
         assertEquals(1.0, "".similarity(""))
         assertEquals(0.0, "".similarity("A"))
-        assertTrue( "ABCDEFG".similarity("CDEF").let { 0.5 < it && it < 0.6 } )
+        "ABCDEFG".similarity("CDEF").let { 0.5 < it && it < 0.6 } shouldBe true
     }
 
-    @Test
-    fun `find resources`() {
-
-        val resources = "/message/*.prop".toResources()
-        println( resources )
-        assertTrue(resources.isNotEmpty(), "there are no resources.")
-
-        val resource = "message/message.en.prop".toResource()
-        println(resource)
-        assertTrue(resource.isNotEmpty(), "there are no resource.")
-
+    "find resources" {
+        "/message/*.prop".toResources()
+            .also { println(it) }
+            .isNotEmpty() shouldBe true
+        "message/message.en.prop".toResource()
+            .also { println(it) }
+            .isNotEmpty() shouldBe true
     }
 
-    @Test
-    fun `capitalize`() {
-        assertEquals("Capitalize", "capitalize".capitalize())
-        assertEquals("Merong", "merong".capitalize())
-        assertEquals("능력자", "능력자".capitalize())
+    "capitalize" {
+        "capitalize".toCapitalize() shouldBe "Capitalize"
+        "merong".toCapitalize() shouldBe "Merong"
+        "사람".toCapitalize() shouldBe "사람"
     }
 
-    @Test
-    fun `isNumeric`() {
-        assertTrue("1.2".isNumeric())
-        assertTrue("${Int.MAX_VALUE}".isNumeric())
-        assertTrue("${Int.MIN_VALUE}".isNumeric())
-        assertTrue("${Long.MAX_VALUE}".isNumeric())
-        assertTrue("${Long.MIN_VALUE}".isNumeric())
-        assertTrue("${Float.MAX_VALUE}".isNumeric())
-        assertTrue("${Float.MAX_VALUE}".isNumeric())
-        assertTrue("${Double.MAX_VALUE}".isNumeric())
-        assertTrue("${Double.MAX_VALUE}".isNumeric())
-        assertTrue("${Short.MAX_VALUE}".isNumeric())
-        assertTrue("${Short.MAX_VALUE}".isNumeric())
-        assertTrue("${Byte.MAX_VALUE}".isNumeric())
-        assertTrue("${Byte.MAX_VALUE}".isNumeric())
-        assertTrue("5.67892E+04".isNumeric())
-        assertTrue("5.67892e+04".isNumeric())
-        assertTrue("1.23456E-05".isNumeric())
-        assertTrue("1.23456e-05".isNumeric())
-        assertFalse("1.2A".isNumeric())
-        assertFalse("1.2.2".isNumeric())
-        assertFalse("5.67892+04".isNumeric())
-        assertFalse("1.23456-05".isNumeric())
+    "isNumeric" {
+        "1.2".isNumeric() shouldBe true
+        "${Int.MAX_VALUE}".isNumeric() shouldBe true
+        "${Int.MIN_VALUE}".isNumeric() shouldBe true
+        "${Long.MAX_VALUE}".isNumeric() shouldBe true
+        "${Long.MIN_VALUE}".isNumeric() shouldBe true
+        "${Float.MAX_VALUE}".isNumeric() shouldBe true
+        "${Float.MAX_VALUE}".isNumeric() shouldBe true
+        "${Double.MAX_VALUE}".isNumeric() shouldBe true
+        "${Double.MAX_VALUE}".isNumeric() shouldBe true
+        "${Short.MAX_VALUE}".isNumeric() shouldBe true
+        "${Short.MAX_VALUE}".isNumeric() shouldBe true
+        "${Byte.MAX_VALUE}".isNumeric() shouldBe true
+        "${Byte.MAX_VALUE}".isNumeric() shouldBe true
+        "5.67892E+04".isNumeric() shouldBe true
+        "5.67892e+04".isNumeric() shouldBe true
+        "1.23456E-05".isNumeric() shouldBe true
+        "1.23456e-05".isNumeric() shouldBe true
+        "1.2A".isNumeric() shouldBe false
+        "1.2.2".isNumeric() shouldBe false
+        "5.67892+04".isNumeric() shouldBe false
+        "1.23456-05".isNumeric() shouldBe false
     }
 
-    @Test
-    fun `LocalTime to String`() {
-
-//        println( "22:40:30.222".toDate("HHMISSFFF"))
-
-//        val time = LocalTime.now()
-//
-//        val milisecFormat = time.format(DateTimeFormatter.ofPattern("HH:mm:ss.SS"))
-//        println(milisecFormat)
-//        val nanoFormat    = time.format(DateTimeFormatter.ofPattern("HH:mm:ss.nnnnnnnnn"))
-//        println(nanoFormat)
-
+    "LocalTime to String #1" {
         val time = LocalTime.of(12, 23, 42 )
-
-        assertThrows(IllegalArgumentException::class.java) {
+        shouldThrow<IllegalArgumentException> {
             println(time.format("MM:HI"))
         }
-
-        assertEquals("23:12", time.format("MI:HH"))
-        assertEquals("12:23:42", time.format())
-        assertEquals("000", time.format("FFF"))
-        assertEquals("000", time.format("SSS", native = true))
-        assertEquals("00", time.format("SS", native = true))
-
+        time.format("MI:HH") shouldBe "23:12"
+        time.format() shouldBe "12:23:42"
+        time.format("FFF") shouldBe "000"
+        time.format("SSS", native = true) shouldBe "000"
+        time.format("SS", native = true) shouldBe "00"
     }
 
-    @Test
-    fun `String to LocalTime`() {
-        val time = "12:23:42".toLocalTime("HH:MI:SS")
-        println(time)
-        assertEquals("23:12", time.format("MI:HH"))
-        assertEquals("12:23:42", time.format())
-        assertEquals("000", time.format("FFF"))
-        assertEquals("000", time.format("SSS", native = true))
-        assertEquals("00", time.format("SS", native = true))
+    "LocalTime to String #2" {
+        val time = "12:23:42".toLocalTime("HH:MI:SS").also { println(">> time: $it") }
+        time.format("MI:HH") shouldBe "23:12"
+        time.format() shouldBe "12:23:42"
+        time.format("FFF") shouldBe "000"
+        time.format("SSS", native = true) shouldBe "000"
+        time.format("SS", native = true) shouldBe "00"
     }
 
-}
+    "wrap" {
+        "1234".wrap() shouldBe """
+            "1234"
+        """.trimIndent().trim()
+        "12\"34".wrap() shouldBe """
+            "12\"34"
+        """.trimIndent().trim()
+        "1234".wrap("'") shouldBe """
+            '1234'
+        """.trimIndent().trim()
+        "12\"34".wrap("'") shouldBe """
+            '12"34'
+        """.trimIndent().trim()
+        "12'34".wrap("'") shouldBe """
+            '12\'34'
+        """.trimIndent().trim()
+    }
+
+})
 
 data class Dummy(
     val name: String,

@@ -38,12 +38,12 @@ fun <V> Map<*,*>.getByExpr(mvelExpression: String?, default: V? = null): V? = ge
 fun Map<*,*>.toString(showType: Boolean, rowcount:Int = 500): String {
     val grid = NGrid()
     forEach { (key,value) ->
-        grid.addData("key", key)
+        grid.addRow("key", key)
         if(showType)
-            grid.addData("type",value?.let{it::class.simpleName})
-        grid.addData("value", value)
+            grid.addRow("type",value?.let{it::class.simpleName})
+        grid.addRow("value", value)
     }
-    return grid.toString(showHeader=false, rowcount=rowcount)
+    return grid.toString(showHeader=false, maxRowcount=rowcount)
 }
 
 fun Map<*,*>.toUrlParam(charset: Charset = Charsets.UTF_8): String {
