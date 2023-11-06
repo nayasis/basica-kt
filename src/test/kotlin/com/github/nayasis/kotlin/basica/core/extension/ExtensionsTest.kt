@@ -1,7 +1,6 @@
 package com.github.nayasis.kotlin.basica.core.extension
 
 import io.kotest.core.spec.style.AnnotationSpec
-import io.kotest.core.spec.style.AnnotationSpec.Test
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 

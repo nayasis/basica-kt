@@ -1,6 +1,10 @@
 package com.github.nayasis.kotlin.basica.xml
 
 import com.github.nayasis.kotlin.basica.core.klass.Classes
+import com.github.nayasis.kotlin.basica.core.string.toResource
+import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import mu.KotlinLogging
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -11,156 +15,125 @@ import java.lang.StringBuilder
 
 private val logger = KotlinLogging.logger {}
 
-internal class XmlReaderTest {
+internal class XmlReaderTest: StringSpec({
 
-    @Test
-    fun `basic parse`() {
+    "basic parse" {
+        val path = "/xml/grammar.xml".toResource()!!
+        val doc = XmlReader.read(path).apply {
+            setDocType("merong","http://struts.apache.org/dtds/struts-2.0.dtd")
+        }.also { logger.debug{ "\n${it.toString(true)}" } }
 
-//        val path = rootPath(this::class).resolve("xml/grammar.xml")
-        val path = Classes.getResource("/xml/grammar.xml")
-        val doc = XmlReader().read(path!!)
-        doc.setDocType("merong","http://struts.apache.org/dtds/struts-2.0.dtd")
-
-        logger.debug{ "\n${doc}" }
-        logger.debug{ "\n${doc.toString(true)}" }
-
-        assertTrue(doc.toString(true).isNotEmpty())
-        assertEquals("merong", doc.docType?.publicId)
-        assertEquals("http://struts.apache.org/dtds/struts-2.0.dtd", doc.docType?.systemId)
-
+        doc.toString(true).isNotEmpty() shouldBe true
+        doc.docType?.publicId shouldBe "merong"
+        doc.docType?.systemId shouldBe "http://struts.apache.org/dtds/struts-2.0.dtd"
     }
 
-    @Test
-    fun `node parse`() {
+    "parse node" {
 
-        val doc = XmlReader().read(sampleTreeXml)
-
-        logger.debug { doc.toString(true) }
+        val doc = XmlReader.read(sampleTreeXml)
+            .also { logger.debug{ "\n${it.toString(true)}" } }
 
         var node = doc.findNode("//row")
-        assertTrue( node != null )
+            ?.also { logger.debug{ "\n${it.toString(true)}" } }
 
-        logger.debug { node?.toString(true) }
+        node shouldNotBe null
 
         node = doc.findNode("//not-exist")
-        assertTrue( node == null )
+            ?.also { logger.debug{ "\n${it.toString(true)}" } }
 
-        logger.debug { node?.toString(true) }
+        node shouldBe null
 
     }
 
-    @Test
-    fun `xPath test`() {
+    "xPath test" {
 
-        val doc = XmlReader().read(sampleTreeXml)
+        val doc = XmlReader.read(sampleTreeXml)
 
-        var node = doc.findNode("//*[@id='c2']")
+        val node = doc.findNode("//*[@id='c2']")
+            ?.also { logger.debug { it.attributes() } }
 
-        logger.debug { node?.attributes() }
-
-        assertEquals("<col2 id=\"c2\" val=\"val2\">Value2</col2>", node?.toString(false)?.trim())
-        assertEquals("{id=id=\"c2\", val=val=\"val2\"}", node?.attributes().toString())
-        assertEquals("{id=c2, val=val2}", node?.attrs().toString())
+        node?.toString(false)?.trim() shouldBe "<col2 id=\"c2\" val=\"val2\">Value2</col2>"
+        node?.attributes().toString() shouldBe "{id=id=\"c2\", val=val=\"val2\"}"
+        node?.attrs().toString() shouldBe "{id=c2, val=val2}"
 
         val child01 = doc.findNode("./row[2]/col2")
         val child02 = doc.findNode("//col2[2]")
 
-        assertEquals("<col2 id=\"c4\">Value4</col2>", child01?.toString(false)?.trim())
-        assertEquals("c4", child01?.attr("id"))
-        assertEquals(null, child02?.toString(false)?.trim())
-        assertEquals(null, child02?.attr("id"))
-
-        assertEquals(3, doc.elementsByTagName("row").size )
+        child01?.toString(false)?.trim() shouldBe "<col2 id=\"c4\">Value4</col2>"
+        child01?.attr("id") shouldBe "c4"
+        child02?.toString(false)?.trim() shouldBe null
+        child02?.attr("id") shouldBe null
+        doc.elementsByTagName("row").size shouldBe 3
 
         val node2 = doc.elementsByTagName("row").first()
 
-        assertEquals(0, node2.findNodes("//col").size)
-        assertEquals(1, node2.findNodes("./row").size)
-        assertEquals(1, node2.findNodes("./*[contains(local-name(), 'col')]").size)
-        assertEquals(2, node2.findNodes(".//*[contains(local-name(), 'col')]").size)
+        node2.findNodes("//col").size shouldBe 0
+        node2.findNodes("./row").size shouldBe 1
+        node2.findNodes("./*[contains(local-name(), 'col')]").size shouldBe 1
+        node2.findNodes(".//*[contains(local-name(), 'col')]").size shouldBe 2
 
         val node3 = doc.findNode("./row")?.findNode(".//col2")
 
-        assertEquals("col2", node3?.nodeName)
-        assertEquals("Value2", node3?.value)
-        assertEquals("c2", node3?.attr("id"))
-        assertEquals("val2", node3?.attr("val"))
-        assertEquals("{id=c2, val=val2}", node3?.attrs().toString())
+        node3?.nodeName shouldBe "col2"
+        node3?.value shouldBe "Value2"
+        node3?.attr("id") shouldBe "c2"
+        node3?.attr("val") shouldBe "val2"
+        node3?.attrs().toString() shouldBe "{id=c2, val=val2}"
 
     }
 
-    @Test
-    fun `set docType`() {
+    "set docType" {
 
-        val docValidFromFile = XmlReader().read(Classes.getResource("/xml/grammar.xml")!!)
-        docValidFromFile.setDocType("merong","http://struts.apache.org/dtds/struts-2.0.dtd")
+        val docFromFile = "/xml/grammar.xml".toResource()?.let { XmlReader.read(it) }?.apply {
+            setDocType("merong","http://struts.apache.org/dtds/struts-2.0.dtd")
+        }?.also { logger.debug{ "\n${it.toString(true)}" } }
 
-        val docValidFromString = XmlReader().read("<tag><nested>hello</nested></tag>")
-        docValidFromString.setDocType("-//Apache Software Foundation//DTD Struts Configuration 2.0//EN","http://struts.apache.org/dtds/struts-2.0.dtd")
+        docFromFile?.docType?.publicId shouldBe "merong"
+        docFromFile?.docType?.systemId shouldBe "http://struts.apache.org/dtds/struts-2.0.dtd"
+
+        val docFromString = "<tag><nested>hello</nested></tag>".let { XmlReader.read(it) }.apply {
+            setDocType("-//Apache Software Foundation//DTD Struts Configuration 2.0//EN","http://struts.apache.org/dtds/struts-2.0.dtd")
+        }.also { logger.debug{ "\n${it.toString(true)}" } }
+
+        docFromString?.docType?.publicId shouldBe "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+        docFromString?.docType?.systemId shouldBe "http://struts.apache.org/dtds/struts-2.0.dtd"
 
     }
 
-    @Test
-    fun `print contents`() {
-
-        val doc = XmlReader().read(sampleSqlXml)
-
-        logger.debug { "\n${doc.toString(true,tabSize = 2)}" }
-//        logger.debug { "\n${doc.toString(true,tabSize = 4)}" }
-
-        assertEquals("sqlMap", doc.nodeName)
+    "print contents" {
+        val doc = XmlReader.read(sampleSqlXml)
+            .also { logger.debug{ "\n${it.toString(true, tabSize = 2)}" } }
+        doc.nodeName shouldBe "sqlMap"
 
         val inserts = doc.getElementsByTagName("insert")
-
-        assertEquals(1, inserts.length)
-
+        inserts.length shouldBe 1
     }
 
-    @Test
-    fun `load sql`() {
-
-        val doc = XmlReader().read(sampleSqlXml)
-
-        logger.debug { doc.toSimpleString() }
-        logger.debug { makeSql(doc) }
-
+    "simple string" {
+        val doc = XmlReader.read(sampleSqlXml)
+        doc.toSimpleString() shouldBe "<sqlMap namespace=\"Cash\"/>"
     }
 
-    private fun makeSql(node: Node, depth: Int = 0): String {
-        val sb = StringBuilder().append("\t".repeat(depth))
-        if( node.isText() || node.isCData() || node.isComment() ) {
-            sb.append(node.value)
-        } else {
-            sb.append(node.toSimpleString())
-        }
-        for( child in node.children() ) {
-            sb.append( makeSql(child, depth + 1) )
-        }
-        return sb.toString()
-    }
-
-    @Test
-    fun `create document`() {
-
+    "create document" {
         val body = "<node>merong</node>"
+        val doc = XmlReader.createNew("root")
+        doc.children().size shouldBe 0
 
-        val doc = XmlReader().createNew("root")
-        assertEquals(0,doc.children().size)
         doc.appendFromXml(body)
-        assertEquals(1,doc.children().size)
-        doc.appendFromXml(body)
-        assertEquals(2,doc.children().size)
-        doc.appendFromXml(body)
-        assertEquals(3,doc.children().size)
+        doc.children().size shouldBe 1
 
+        doc.appendFromXml(body)
+        doc.children().size shouldBe 2
+
+        doc.appendFromXml(body)
+        doc.children().size shouldBe 3
     }
 
-    @Test
-    fun `pretty print`() {
+    "pretty print" {
 
-        val doc1 = XmlReader().read("<a><b><c/><d>text D</d><e value='0'/></b></a>")
+        val doc1 = XmlReader.read("<a><b><c/><d>text D</d><e value='0'/></b></a>")
 
-        assertEquals("""
+        doc1.toString(tabSize = 2).trim() shouldBe """
             <a>
               <b>
                 <c/>
@@ -168,9 +141,9 @@ internal class XmlReaderTest {
                 <e value="0"/>
               </b>
             </a>
-        """.trimIndent(), doc1.toString(tabSize = 2).trim() )
+        """.trimIndent()
 
-        assertEquals("""
+        doc1.toString(tabSize = 4).trim() shouldBe """
             <a>
                 <b>
                     <c/>
@@ -178,11 +151,11 @@ internal class XmlReaderTest {
                     <e value="0"/>
                 </b>
             </a>
-        """.trimIndent(), doc1.toString(tabSize = 4).trim() )
+        """.trimIndent()
 
-        val doc2 = XmlReader().read(sampleTreeXml)
+        val doc2 = XmlReader.read(sampleTreeXml)
 
-        assertEquals("""
+        doc2.toString(tabSize = 2).trim() shouldBe """
             <root>
               <row>
                 <col1 id="c1">Value1</col1>
@@ -195,9 +168,9 @@ internal class XmlReaderTest {
                 <col2 id="c4">Value4</col2>
               </row>
             </root>
-        """.trimIndent(), doc2.toString(tabSize = 2).trim() )
+        """.trimIndent()
 
-        assertEquals("""
+        doc2.toString(tabSize = 4).trim() shouldBe """
             <root>
                 <row>
                     <col1 id="c1">Value1</col1>
@@ -210,16 +183,19 @@ internal class XmlReaderTest {
                     <col2 id="c4">Value4</col2>
                 </row>
             </root>
-        """.trimIndent(), doc2.toString(tabSize = 4).trim() )
+        """.trimIndent()
 
         // mixture format is hard to indent (text node itself is member of XML format.)
-        val doc3 = XmlReader().read(sampleSqlXml)
-        logger.debug { "\n${doc3.toString(true,tabSize = 2)}" }
-        logger.debug { "\n${doc3.toString(true,tabSize = 4)}" }
+        XmlReader.read(sampleSqlXml).also { doc ->
+            logger.debug { "\n${doc.toString(true,tabSize = 2)}" }
+            logger.debug { "\n${doc.toString(true,tabSize = 4)}" }
+        }
 
     }
 
-    private val sampleTreeXml = """
+})
+
+private val sampleTreeXml = """
         <root>
           <row>
                 <col1 id="c1">Value1</col1>
@@ -235,7 +211,7 @@ internal class XmlReaderTest {
         """.trimIndent()
 
 
-    private val sampleSqlXml = """
+private val sampleSqlXml = """
         <?xml version="1.0" encoding="UTF-8" standalone="no"?>
         <!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
         <sqlMap namespace="Cash">
@@ -285,5 +261,3 @@ internal class XmlReaderTest {
             </insert>
         </sqlMap>
         """.trimIndent()
-
-}
