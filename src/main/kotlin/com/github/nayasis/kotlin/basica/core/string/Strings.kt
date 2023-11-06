@@ -832,3 +832,7 @@ fun String.wrap(open: String = "\"", close: String = open, escapeChar: Char? = n
     } ?: this
     return """$open$escapedValue$close"""
 }
+
+fun String.loadClass(classLoader: ClassLoader? = null): Class<*> {
+    return (classLoader ?: Classes.classLoader).loadClass(this)
+}
