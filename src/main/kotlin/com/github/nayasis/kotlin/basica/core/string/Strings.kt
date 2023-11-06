@@ -17,7 +17,6 @@ import com.github.nayasis.kotlin.basica.core.number.cast
 import com.github.nayasis.kotlin.basica.core.url.URLCodec
 import com.github.nayasis.kotlin.basica.model.Messages
 import com.github.nayasis.kotlin.basica.reflection.Reflector
-import mu.KotlinLogging
 import java.io.BufferedReader
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -39,12 +38,9 @@ import java.util.regex.Matcher
 import java.util.regex.Pattern
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
-import kotlin.collections.ArrayList
 import kotlin.math.min
 import kotlin.math.round
 import kotlin.reflect.KClass
-
-private val log = KotlinLogging.logger {}
 
 private val REGEX_CAMEL = "(_[a-zA-Z])".toPattern()
 private val REGEX_SNAKE = "([A-Z])".toPattern()
@@ -560,7 +556,7 @@ fun String?.toMap(): Map<String,*> {
 fun String?.bind(vararg parameter: Any?, modifyKorean: Boolean = true): String {
     return when {
         this.isNullOrEmpty() -> ""
-        else -> FORMATTER.bindSimple(this, *parameter, modifyKorean = modifyKorean)
+        else -> FORMATTER.bind(this, *parameter, modifyKorean = modifyKorean)
     }
 }
 
@@ -569,7 +565,7 @@ fun String?.bind(vararg parameter: Any?, modifyKorean: Boolean = true): String {
  *
   * @return encoded text
  */
-fun Any?.encodeBase64(): String {
+fun Any.encodeBase64(): String {
     ByteArrayOutputStream().use {
         ObjectOutputStream(it).use { outstream ->
             outstream.writeObject(this)
@@ -583,12 +579,11 @@ fun Any?.encodeBase64(): String {
  *
  * @return decoded object
  */
-inline fun <reified T> String?.decodeBase64(): T? {
-    if( this == null ) return null
+inline fun <reified T> String.decodeBase64(): T {
     val bytes = Base64.getDecoder().decode(this)
     ByteArrayInputStream(bytes).use {
         ObjectInputStream(it).use { instream ->
-            return instream.readObject() as T?
+            return instream.readObject() as T
         }
     }
 }

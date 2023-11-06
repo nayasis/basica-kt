@@ -47,7 +47,7 @@ class Formatter {
      * @param modifyKorean if true modify first outer character of parameter binding markup by rule of korean.
      * @return formatted string
      */
-    fun bindSimple(format: String, vararg parameter: Any?, modifyKorean: Boolean = true): String =
+    fun bind(format: String, vararg parameter: Any?, modifyKorean: Boolean = true): String =
         bind(pattern=PATTERN_BASIC, format=format, binder= DEFAULT_BINDER, modifyKorean=modifyKorean, parameter=parameter, )
 
     fun bind(pattern: ExtractPattern, format: String, binder: (key: BindingKey, param: Map<String,*>) -> String?, modifyKorean: Boolean, vararg parameter: Any?,): String {

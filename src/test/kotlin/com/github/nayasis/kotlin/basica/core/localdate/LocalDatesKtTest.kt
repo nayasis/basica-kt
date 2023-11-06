@@ -1,58 +1,39 @@
 package com.github.nayasis.kotlin.basica.core.localdate
 
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Test
-import java.time.format.DateTimeFormatter
+import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
 
-internal class LocalDatesKtTest{
+internal class LocalDatesKtTest: StringSpec({
 
-    @Test
-    fun toLocalDateTime() {
-        Assertions.assertEquals("1977-01-01", "1977".toLocalDate().toString() )
-        Assertions.assertEquals("1977-01-01", "1977-01".toLocalDate().toString() )
-        Assertions.assertEquals("1977-01-22", "1977-01-22".toLocalDate().toString() )
-        Assertions.assertEquals("1977-01-22T23:59:59.999", "1977-01-22T23:59:59.999".toLocalDateTime().toString() )
-        Assertions.assertEquals("1977-01-22", "1977-01-22T23:59:59.999".toLocalDate().toString() )
+    "toLocalDateTime" {
+        "1977".toLocalDate().toString() shouldBe "1977-01-01"
+        "1977-01".toLocalDate().toString() shouldBe "1977-01-01"
+        "1977-01-22".toLocalDate().toString() shouldBe "1977-01-22"
+        "1977-01-22T23:59:59.999".toLocalDateTime().toString() shouldBe "1977-01-22T23:59:59.999"
+        "1977-01-22T23:59:59.999".toLocalDate().toString() shouldBe "1977-01-22"
     }
 
-    @Test
-    fun atStartOfMonth() {
-
+    "atStartOfMonth" {
         val current = "2020-12-22 13:42:59".toLocalDateTime()
-
-        Assertions.assertEquals("2020-12-01", current.atStartOfMonth().format("YYYY-MM-DD"))
-        Assertions.assertEquals("2020-12-31", current.atEndOfMonth().format("YYYY-MM-DD"))
-
-        Assertions.assertEquals("2020-12-22 00:00:00", current.atStartOfDay().toString("YYYY-MM-DD HH:MI:SS"))
-        Assertions.assertEquals("2020-12-22 23:59:59", current.atEndOfDay().toString("YYYY-MM-DD HH:MI:SS"))
-
+        current.atStartOfMonth().format("YYYY-MM-DD") shouldBe "2020-12-01"
+        current.atEndOfMonth().format("YYYY-MM-DD") shouldBe "2020-12-31"
+        current.atStartOfDay().toString("YYYY-MM-DD HH:MI:SS") shouldBe "2020-12-22 00:00:00"
+        current.atEndOfDay().toString("YYYY-MM-DD HH:MI:SS") shouldBe "2020-12-22 23:59:59"
     }
 
-    @Test
-    fun offset() {
-
-        Assertions.assertEquals("2020-01-01T16:00:00", "2020-01-01 13:00:00 Z+0300".toLocalDateTime().format())
-        Assertions.assertEquals("2020-01-01T16:00:00", "2020-01-01 13:00:00 Z+03:00".toLocalDateTime().format())
-        Assertions.assertEquals("2020-01-01T16:00:00", "2020-01-01 13:00:00 +03:00".toLocalDateTime().format())
-        Assertions.assertEquals("2020-01-01T16:00:00", "2020-01-01 13:00:00 +0300".toLocalDateTime().format())
-
+    "offset" {
+        "2020-01-01 13:00:00 Z+0300".toLocalDateTime().format() shouldBe "2020-01-01T16:00:00"
+        "2020-01-01 13:00:00 Z+03:00".toLocalDateTime().format() shouldBe "2020-01-01T16:00:00"
+        "2020-01-01 13:00:00 +03:00".toLocalDateTime().format() shouldBe "2020-01-01T16:00:00"
+        "2020-01-01 13:00:00 +0300".toLocalDateTime().format() shouldBe "2020-01-01T16:00:00"
     }
 
-    @Test
-    fun oldTime() {
-        Assertions.assertEquals("0423-01-01", "0423-01-01".toDate().format("YYYY-MM-DD") )
-        Assertions.assertEquals(-48818622472000, "0423-01-01".toDate().time )
-        Assertions.assertEquals("0423-01-01", "0423-01-01".toLocalDate().format("YYYY-MM-DD") )
-        Assertions.assertEquals(-48818622472000, "0423-01-01".toLocalDate().toLong() )
-        Assertions.assertEquals("0423-01-01", "0423-01-01".toLocalDateTime().format("YYYY-MM-DD") )
-        Assertions.assertEquals(-48818622472000, "0423-01-01".toLocalDateTime().toLong() )
+    "oldTime" {
+        "0423-01-01".toDate().format("YYYY-MM-DD") shouldBe "0423-01-01"
+        "0423-01-01".toDate().time shouldBe -48818622472000
+        "0423-01-01".toLocalDate().format("YYYY-MM-DD") shouldBe "0423-01-01"
+        "0423-01-01".toLocalDate().toLong()shouldBe -48818622472000
+        "0423-01-01".toLocalDateTime().format("YYYY-MM-DD") shouldBe "0423-01-01"
+        "0423-01-01".toLocalDateTime().toLong() shouldBe -48818622472000
     }
-
-    @Test
-    fun formatting() {
-        println(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-        println(DateTimeFormatter.ISO_LOCAL_DATE)
-        println(DateTimeFormatter.ISO_LOCAL_TIME)
-    }
-
-}
+})

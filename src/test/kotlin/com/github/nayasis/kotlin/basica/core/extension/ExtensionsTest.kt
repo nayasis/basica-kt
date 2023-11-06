@@ -28,7 +28,6 @@ class ExtensionsTest: StringSpec({
         a.clear()
         a.ifNotEmpty { it.sum() } shouldBe null
     }
-
 })
 
 class AnnotationExtensionsTest: AnnotationSpec() {
@@ -38,7 +37,6 @@ class AnnotationExtensionsTest: AnnotationSpec() {
         "".ifEmpty { return }
         throw Exception("must not run this code")
     }
-
     @Test
     fun `ifTrue`() {
         var a = 0
@@ -50,7 +48,6 @@ class AnnotationExtensionsTest: AnnotationSpec() {
         true.ifTrue { return }
         throw Exception("must not run this code")
     }
-
     @Test
     fun `ifFalse`() {
         var a = 0

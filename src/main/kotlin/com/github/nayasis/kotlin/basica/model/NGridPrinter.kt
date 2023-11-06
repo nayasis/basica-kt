@@ -102,7 +102,8 @@ private class HeaderMeta(
         grid.body.forEach { i, row ->
             if(i > rowCount) return@forEach
             row.forEach{ key, value ->
-                columnWidths[key] = maxOf(columnWidths[key] ?: 0, value.getDisplayWidth(maxColumnWidth).roundToInt())
+                columnWidths[key] =
+                    maxOf(columnWidths[key] ?: 0, value.getDisplayWidth(maxColumnWidth).roundToInt())
             }
         }
     }
