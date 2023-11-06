@@ -49,7 +49,7 @@ fun Node.rename(tagName: String): Node =
     ownerDocument.renameNode(this, this.namespaceURI, tagName )
 
 fun Node.appendFromXml(xml: String, ignoreDtd: Boolean = true): Node {
-    val doc = XmlReader().read(xml,ignoreDtd)
+    val doc = XmlReader.read(xml,ignoreDtd)
     val children = ownerDocument.importNode( doc, true)
     return this.appendChild(children)
 }
