@@ -7,13 +7,8 @@ plugins {
 	kotlin("plugin.noarg") version "1.9.20"
 }
 
-noArg {
-	annotation("com.github.nayasis.kotlin.basica.annotation.NoArg")
-	invokeInitializers = true
-}
-
 group = "com.github.nayasis"
-version = "0.2.21-SNAPSHOT"
+version = "0.3.2-SNAPSHOT"
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 
 configurations.all {
@@ -21,9 +16,6 @@ configurations.all {
 }
 
 java {
-	registerFeature("support") {
-		usingSourceSet(sourceSets["main"])
-	}
 	withJavadocJar()
 	withSourcesJar()
 }
