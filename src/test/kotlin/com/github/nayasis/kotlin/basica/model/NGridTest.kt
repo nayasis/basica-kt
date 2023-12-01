@@ -227,10 +227,9 @@ internal class NGridTest: StringSpec({
 
 })
 
-@NoArg
 data class Person(
-    val name: String?,
-    val age: Int?,
+    val name: String? = null,
+    val age: Int? = null,
 )
 
 data class ComplexVo(

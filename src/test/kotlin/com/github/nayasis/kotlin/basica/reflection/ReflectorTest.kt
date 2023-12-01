@@ -177,6 +177,17 @@ internal class ReflectorTest: StringSpec({
         p1 shouldBe p2
     }
 
+    "from list" {
+        val list = listOf(
+            Dummy(Date(), 1, LocalDateTime.now(), "A"),
+            Dummy(Date(), 2, LocalDateTime.now(), "B"),
+            Dummy(Date(), 3, LocalDateTime.now(), "C"),
+            Dummy(Date(), 4, LocalDateTime.now(), "D"),
+        )
+        val json = Reflector.toJson(list,pretty = true)
+        println(json)
+    }
+
 })
 
 data class Dummy(
