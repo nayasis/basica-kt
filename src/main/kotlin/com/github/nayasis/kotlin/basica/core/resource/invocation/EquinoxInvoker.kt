@@ -1,7 +1,7 @@
 package com.github.nayasis.kotlin.basica.core.resource.invocation
 
 import com.github.nayasis.kotlin.basica.core.klass.Classes
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.lang.reflect.Method
 import java.net.URL
 

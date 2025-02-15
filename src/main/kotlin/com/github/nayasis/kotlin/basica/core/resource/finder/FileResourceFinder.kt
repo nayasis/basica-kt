@@ -5,7 +5,7 @@ import com.github.nayasis.kotlin.basica.core.resource.matcher.PathMatcher
 import com.github.nayasis.kotlin.basica.core.resource.type.FileSystemResource
 import com.github.nayasis.kotlin.basica.core.resource.type.interfaces.Resource
 import com.github.nayasis.kotlin.basica.core.string.invariantSeparators
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException

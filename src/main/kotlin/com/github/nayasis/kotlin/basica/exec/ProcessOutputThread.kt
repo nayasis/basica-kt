@@ -1,7 +1,7 @@
 package com.github.nayasis.kotlin.basica.exec
 
 import com.github.nayasis.kotlin.basica.etc.error
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.BufferedReader
 import java.io.InputStream
 import java.io.InputStreamReader

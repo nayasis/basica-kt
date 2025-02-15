@@ -6,7 +6,7 @@ import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
 import com.github.nayasis.kotlin.basica.core.string.loadClass
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
@@ -175,6 +175,17 @@ internal class ReflectorTest: StringSpec({
         val p1 = Person(name="nayasis", age = 14, address = "sungnam", etc = "merong")
         val p2 = Reflector.clone(p1)
         p1 shouldBe p2
+    }
+
+    "from list" {
+        val list = listOf(
+            Dummy(Date(), 1, LocalDateTime.now(), "A"),
+            Dummy(Date(), 2, LocalDateTime.now(), "B"),
+            Dummy(Date(), 3, LocalDateTime.now(), "C"),
+            Dummy(Date(), 4, LocalDateTime.now(), "D"),
+        )
+        val json = Reflector.toJson(list,pretty = true)
+        println(json)
     }
 
 })

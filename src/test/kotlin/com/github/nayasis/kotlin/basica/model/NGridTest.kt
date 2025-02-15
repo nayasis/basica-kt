@@ -8,7 +8,7 @@ import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
 import com.github.nayasis.kotlin.basica.core.localdate.toString
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 
 private val logger = KotlinLogging.logger {}
 
@@ -227,10 +227,9 @@ internal class NGridTest: StringSpec({
 
 })
 
-@NoArg
 data class Person(
-    val name: String?,
-    val age: Int?,
+    val name: String? = null,
+    val age: Int? = null,
 )
 
 data class ComplexVo(

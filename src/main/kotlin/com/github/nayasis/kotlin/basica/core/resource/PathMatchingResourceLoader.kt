@@ -29,7 +29,7 @@ import com.github.nayasis.kotlin.basica.core.resource.type.UrlResource
 import com.github.nayasis.kotlin.basica.core.resource.type.interfaces.Resource
 import com.github.nayasis.kotlin.basica.core.resource.util.Resources
 import com.github.nayasis.kotlin.basica.core.resource.util.URL_PREFIX_CLASSPATH
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.IOException
 
 private val log = KotlinLogging.logger {}

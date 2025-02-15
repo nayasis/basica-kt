@@ -2,7 +2,7 @@ package com.github.nayasis.kotlin.basica.xml
 
 import com.github.nayasis.kotlin.basica.core.klass.Classes
 import com.github.nayasis.kotlin.basica.core.io.inputStream
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 import org.xml.sax.InputSource

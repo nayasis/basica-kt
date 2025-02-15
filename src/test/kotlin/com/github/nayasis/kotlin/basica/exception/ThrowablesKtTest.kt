@@ -3,7 +3,7 @@ package com.github.nayasis.kotlin.basica.exception
 import com.github.nayasis.kotlin.basica.etc.error
 import io.kotest.core.spec.style.AnnotationSpec
 import io.kotest.matchers.shouldBe
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.security.InvalidParameterException
 
 private val logger = KotlinLogging.logger {}

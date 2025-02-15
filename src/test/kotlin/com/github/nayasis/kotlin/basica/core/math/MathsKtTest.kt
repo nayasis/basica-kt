@@ -2,7 +2,7 @@ package com.github.nayasis.kotlin.basica.core.math
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime.now

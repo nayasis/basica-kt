@@ -7,7 +7,7 @@ import com.github.nayasis.kotlin.basica.core.resource.util.URL_PREFIX_FILE
 import com.github.nayasis.kotlin.basica.core.resource.util.URL_PREFIX_JAR
 import com.github.nayasis.kotlin.basica.core.resource.util.URL_SEPARATOR_JAR
 import com.github.nayasis.kotlin.basica.core.string.toCapitalize
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.io.IOException
 import java.net.MalformedURLException
@@ -33,7 +33,7 @@ class ClasspathResourceFinder(private val resourceLoader: ResourceLoader) {
             path = path.substring(1)
         }
         val result = findAllClassPathResources(path)
-        log.trace("Resolved classpath location [{}] to resources {}", location, result)
+        log.trace{ "Resolved classpath location [$location] to resources $result" }
         return result
     }
 
