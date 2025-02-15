@@ -21,7 +21,7 @@ import com.github.nayasis.kotlin.basica.core.resource.type.interfaces.Resource
 import com.github.nayasis.kotlin.basica.core.resource.util.PathModifier
 import com.github.nayasis.kotlin.basica.core.resource.util.Resources
 import com.github.nayasis.kotlin.basica.core.string.toPath
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
@@ -136,11 +136,11 @@ open class UrlResource: AbstractFileResolvingResource {
      */
     private fun getCleanedUrl(originalUrl: URL, originalPath: String): URL {
         val cleanedPath = PathModifier.clean(originalPath)
-        log.trace("""
+        log.trace{"""
             - original url  : $originalUrl
             - original path : $originalPath
             - cleaned path  : $cleanedPath
-        """.trimIndent())
+        """.trimIndent()}
         if (cleanedPath != originalPath) {
             try {
                 return URL(cleanedPath)

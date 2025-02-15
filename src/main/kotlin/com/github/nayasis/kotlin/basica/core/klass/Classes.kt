@@ -3,7 +3,8 @@ package com.github.nayasis.kotlin.basica.core.klass
 import com.github.nayasis.kotlin.basica.core.resource.PathMatchingResourceLoader
 import com.github.nayasis.kotlin.basica.core.resource.util.URL_PREFIX_CLASSPATH
 import com.github.nayasis.kotlin.basica.core.url.toFile
-import mu.KotlinLogging
+import com.github.nayasis.kotlin.basica.etc.error
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.IOException
 import java.io.InputStream
 import java.lang.reflect.Array
@@ -22,6 +23,7 @@ import java.time.LocalDateTime
 import java.util.*
 import java.util.regex.Pattern
 import kotlin.reflect.KClass
+import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.isSubclassOf
 
 private val log = KotlinLogging.logger {}
@@ -88,22 +90,24 @@ val KClass<*>?.isImmutable: Boolean
     get() = IMMUTABLE.contains(this)
 
 fun Class<*>.fields(declaredOnly: Boolean = false): Set<Field> {
-    val fields = mutableSetOf<Field>(*declaredFields)
+    val fields = mutableSetOf<Field>(*this.declaredFields)
     if( ! declaredOnly ) {
-        var parent: Class<*>? = this
-        while( parent != Any::class && parent != null ) {
-            fields.addAll(declaredFields)
+        var parent: Class<*>? = this.superclass
+        while( parent != null ) {
+            fields.addAll(parent.declaredFields)
+            parent = parent.superclass
         }
     }
     return fields
 }
 
 fun Class<*>.methods(declaredOnly: Boolean = false): Set<Method> {
-    val methods = mutableSetOf<Method>(*declaredMethods)
+    val methods = mutableSetOf<Method>(*this.declaredMethods)
     if( ! declaredOnly ) {
-        var parent: Class<*>? = this
-        while( parent != Any::class && parent != null ) {
-            methods.addAll(declaredMethods)
+        var parent: Class<*>? = this.superclass
+        while( parent != null ) {
+            methods.addAll(parent.declaredMethods)
+            parent = parent.superclass
         }
     }
     return methods
@@ -152,15 +156,10 @@ private fun handleField( field: Field, fn: () -> Any?) {
 class Classes { companion object{
 
     val classLoader: ClassLoader
-        get() {
-            try {
-                return Thread.currentThread().contextClassLoader
-            } catch (e: Exception) {}
-            try {
-                return Classes::class.java.classLoader
-            } catch (e: Exception) {}
-            return ClassLoader.getSystemClassLoader()
-        }
+        get() =
+            runCatching { Thread.currentThread().contextClassLoader }.getOrNull() ?:
+            runCatching { Classes::class.java.classLoader }.getOrNull() ?:
+            ClassLoader.getSystemClassLoader()
 
     /**
      * get class for name
@@ -168,8 +167,7 @@ class Classes { companion object{
      * @param name class name
      * @throws ClassNotFoundException
      */
-    @Throws(ClassNotFoundException::class)
-    fun getClass(name: String): KClass<*> {
+    fun getClass(name: String): Class<*> {
         val className = name.replace(" ", "").let {
             val invalidIndex = it.indexOf('<')
             if( invalidIndex >= 0 ) {
@@ -178,16 +176,15 @@ class Classes { companion object{
                 it
             }
         }
-        return classLoader.loadClass(className).kotlin
+        return classLoader.loadClass(className)
     }
 
-    @Throws(ClassNotFoundException::class)
-    fun getClass(type: Type?): KClass<*> {
-        if (type == null) return Any::class
+    fun getClass(type: Type?): Class<*> {
+        if (type == null) return Any::class.java
         val genericName = type.typeName.let {
             val start = it.indexOf('<')
             if( start < 0 ) {
-                return Any::class
+                return Any::class.java
             } else {
                 it.substring(start + 1, it.length - 1)
             }
@@ -204,7 +201,7 @@ class Classes { companion object{
 
     /**
      * get class for name.
-     * it could understand array class name (ex. "String[]") and inner class's source name (ex. java.lang.Thread.State instread of "java.lang.Thread@State" )
+     * it could understand array class name (ex. "String[]") and inner class's source name (ex. java.lang.Thread.State instead of "java.lang.Thread@State" )
      *
      * @param name            class name
      * @param classLoader    class loader
@@ -212,58 +209,44 @@ class Classes { companion object{
      * @throws ClassNotFoundException    if class was not found
      * @throws LinkageError    if class file could not be loaded
      */
-    @Throws(ClassNotFoundException::class, LinkageError::class)
     fun forName(name: String, classLoader: ClassLoader = this.classLoader ): Class<*> {
 
-        if (name.endsWith(SUFFIX_ARRAY)) {
-            val elementClassName =
-                name.substring(0, name.length - SUFFIX_ARRAY.length)
-            val elementClass = forName(elementClassName, classLoader)
-            return Array.newInstance(elementClass, 0).javaClass
-        }
-        if (name.startsWith(PREFIX_NON_PRIMITIVE_ARRAY) && name.endsWith(";")) {
-            val elementName = name.substring(PREFIX_NON_PRIMITIVE_ARRAY.length,name.length - 1)
-            val elementClass = forName(elementName, classLoader)
-            return Array.newInstance(elementClass, 0).javaClass
-        }
-        if (name.startsWith(PREFIX_INTERNAL_ARRAY)) {
-            val elementName = name.substring(PREFIX_INTERNAL_ARRAY.length)
-            val elementClass = forName(elementName, classLoader)
-            return Array.newInstance(elementClass, 0).javaClass
+        when {
+            name.endsWith(SUFFIX_ARRAY) -> name.substring(0, name.length - SUFFIX_ARRAY.length)
+            name.startsWith(PREFIX_NON_PRIMITIVE_ARRAY) && name.endsWith(";") -> name.substring(PREFIX_NON_PRIMITIVE_ARRAY.length,name.length - 1)
+            name.startsWith(PREFIX_INTERNAL_ARRAY) -> name.substring(PREFIX_INTERNAL_ARRAY.length)
+            else -> null
+        }?.let {
+            val classInArray = forName(it)
+            return Array.newInstance(classInArray, 0).javaClass
         }
 
         return try {
             Class.forName(name, false, classLoader)
-        } catch (ex: ClassNotFoundException) {
-            val lastDotIndex = name.lastIndexOf(SEPARATOR_PACKAGE)
-            if (lastDotIndex != -1) {
-                val innerClassName = name.substring(0,lastDotIndex) + SEPARATOR_INNER_CLASS + name.substring(lastDotIndex + 1)
-                try {
-                    return Class.forName(innerClassName, false, classLoader)
-                } catch (ex2: ClassNotFoundException) {
-                    // let original exception get through
-                }
-            }
-            throw ex
+        } catch (e: ClassNotFoundException) {
+            name.lastIndexOf(SEPARATOR_PACKAGE).let { index ->
+                if(index >= 0) {
+                    "${name.substring(0,index)}$SEPARATOR_PACKAGE${name.substring(index + 1)}"
+                } else null
+            }?.let { inner -> runCatching { Class.forName(inner, false, classLoader)}.getOrNull() } ?: throw e
         }
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun <T: Any> newInstance(type: Type) : T {
-        @Suppress("PrivatePropertyName")
-        return newInstance(getClass(type) as Class<T>)
+    fun <T: Any> createInstance(type: Type) : T {
+        return getClass(type).kotlin.createInstance() as T
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun <T: Any> newInstance(name: String) : T {
-        return newInstance(getClass(name) as Class<T>)
+    fun <T: Any> createInstance(name: String) : T {
+        return getClass(name).kotlin.createInstance() as T
     }
 
     fun hasResource(path: String?): Boolean {
         return ! path.isNullOrEmpty() && classLoader.getResource(path.toResourceName) != null
     }
 
-    fun getResourceStream(path: String): InputStream {
+    fun getResourceStream(path: String): InputStream? {
         return classLoader.getResourceAsStream(path.toResourceName)
     }
 
@@ -280,7 +263,7 @@ class Classes { companion object{
      *
      * it only works when used in class itself.
      *
-     * <pre>
+     * ```
      * class Test<T> {
      *   fun test() {
      *     // it returns type of **T** exactly.
@@ -292,7 +275,7 @@ class Classes { companion object{
      *     val generic = Classes.getGenericClass( test.class.java );
      *   }
      * }
-     * </pre>
+     * ```
      *
      * @param klass class to inspect
      * @return generic class of klass
@@ -341,7 +324,7 @@ class Classes { companion object{
             try {
                 loader.getResources(URL_PREFIX_CLASSPATH + ptn).forEach { urls.add(it.getURL()) }
             } catch (e: IOException) {
-                log.error(e.message, e)
+                log.error(e)
             }
         }
         return urls

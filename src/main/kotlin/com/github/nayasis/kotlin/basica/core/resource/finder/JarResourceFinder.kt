@@ -5,7 +5,7 @@ import com.github.nayasis.kotlin.basica.core.resource.type.interfaces.Resource
 import com.github.nayasis.kotlin.basica.core.resource.util.Resources
 import com.github.nayasis.kotlin.basica.core.resource.util.URL_SEPARATOR_JAR
 import com.github.nayasis.kotlin.basica.core.resource.util.URL_SEPARATOR_WAR
-import mu.KotlinLogging
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.IOException
 import java.net.JarURLConnection
 import java.net.URL
