@@ -29,7 +29,7 @@ dependencies {
 	implementation("com.googlecode.juniversalchardet:juniversalchardet:1.0.3")
 	implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.2")
 	implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.14.2")
-	implementation("ch.qos.logback:logback-classic:1.3.11")
+	implementation("org.slf4j:slf4j-api:2.0.7")
 
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
@@ -40,6 +40,7 @@ dependencies {
 	testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.2")
 	testImplementation("io.kotest:kotest-runner-junit5:5.6.2")
 	testImplementation("io.kotest:kotest-assertions-core:5.6.2")
+	testImplementation("ch.qos.logback:logback-classic:1.3.15")
 
 }
 

@@ -8,7 +8,7 @@ import java.security.InvalidParameterException
 
 private val logger = KotlinLogging.logger {}
 
-class ThrowablesKtTest: AnnotationSpec() {
+class ThrowableTest: AnnotationSpec() {
 
     @Test
     fun filterStackTrace() {
@@ -19,19 +19,22 @@ class ThrowablesKtTest: AnnotationSpec() {
 
             e.filterStackTrace("""
                 com\.github\.nayasis
-            """.trimIndent().toRegex()).also {
+            """.trimIndent().toRegex(), false
+            ).also {
                 logger.error(it)
             }.stackTrace.size shouldBe 4
 
-            e.filterStackTrace(listOf(
-                "java.util",
-                "java.lang",
-                "kotlin.reflect",
-                "kotlin.coroutines",
-                "kotlinx.coroutines",
-                "io.kotest",
-                "sun.reflect",
-            ).map { it.replace(".","\\.") }.joinToString("|").toRegex(),false).also {
+            e.filterStackTrace(
+                listOf(
+                    "java.util",
+                    "java.lang",
+                    "kotlin.reflect",
+                    "kotlin.coroutines",
+                    "kotlinx.coroutines",
+                    "io.kotest",
+                    "sun.reflect",
+                ).joinToString("|") { it.replace(".", "\\.") }.toRegex()
+            ).also {
                 logger.error(it)
             }.stackTrace.size shouldBe 4
 
