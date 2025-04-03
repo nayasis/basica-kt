@@ -1,10 +1,8 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
 	`java`
 	`maven-publish`
-	kotlin("jvm") version "1.9.24"
-	kotlin("plugin.noarg") version "1.9.24"
+	kotlin("jvm") version "2.1.20"
+	kotlin("plugin.noarg") version "2.1.20"
 }
 
 group = "com.github.nayasis"

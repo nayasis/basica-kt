@@ -2,10 +2,13 @@
 
 package com.github.nayasis.kotlin.basica.xml
 
+import com.github.nayasis.kotlin.basica.core.extension.ifNotEmpty
 import com.github.nayasis.kotlin.basica.core.extension.ifNull
 import com.github.nayasis.kotlin.basica.xml.NodeType.*
-import com.sun.org.apache.xml.internal.serialize.OutputFormat
-import com.sun.org.apache.xml.internal.serialize.XMLSerializer
+import javax.xml.transform.OutputKeys
+import javax.xml.transform.TransformerFactory
+import javax.xml.transform.dom.DOMSource
+import javax.xml.transform.stream.StreamResult
 import org.w3c.dom.Attr
 import org.w3c.dom.Document
 import org.w3c.dom.DocumentType
@@ -289,22 +292,93 @@ fun Node.findNodes(xpath: String): List<Node> =
 fun Node.findNode(xpath: String): Node? =
     parserXpath.evaluate(xpath, this, XPathConstants.NODE) as Node?
 
-fun Node.toString(pretty: Boolean = true, tabSize: Int = 2): String {
-
+fun Node.toString(pretty: Boolean = true, indent: Int = 2): String {
     if( this.isEmpty() ) return ""
-
-    val format = OutputFormat(document).apply {
-        lineWidth = 1000
-        indenting = pretty
-        indent = tabSize
-        standalone = true
-        omitXMLDeclaration = true
+    
+    if (!pretty) {
+        val transformer = TransformerFactory.newInstance().newTransformer().apply {
+            setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes")
+            setOutputProperty(OutputKeys.STANDALONE, "yes")
+        }
+        return StringWriter().use {
+            transformer.transform(DOMSource(this), StreamResult(it))
+            it.toString()
+        }
     }
 
-    val writer = StringWriter()
-    XMLSerializer(writer,format).serialize(this)
-    return writer.toString()
+    val sb    = StringBuilder()
+    val tab   = " ".repeat(indent)
+    var depth = 0
 
+    fun appendIndent() {
+        if (depth > 0) {
+            if (sb.isNotEmpty() && sb.last() != '\n') {
+                sb.append("\n")
+            }
+            sb.append(tab.repeat(depth))
+        }
+    }
+
+    fun serializeNode(node: Node) {
+        when (node.nodeType) {
+            Node.ELEMENT_NODE -> {
+                appendIndent()
+                sb.append("<").append(node.nodeName)
+                
+                // Add attributes
+                val attrs = node.attributes
+                for (i in 0 until attrs.length) {
+                    val attr = attrs.item(i) as Attr
+                    sb.append(" ").append(attr.nodeName).append("=\"").append(attr.value).append("\"")
+                }
+
+                if (!node.hasChildNodes()) {
+                    sb.append("/>")
+                    return
+                }
+                
+                sb.append(">")
+                depth++
+                
+                // Process child nodes
+                val children = node.childNodes
+                var hasElementChild = false
+                var hasTextChild = false
+                for (i in 0 until children.length) {
+                    val child = children.item(i)
+                    when (child.nodeType) {
+                        Node.ELEMENT_NODE -> {
+                            hasElementChild = true
+                            serializeNode(child)
+                        }
+                        Node.TEXT_NODE -> {
+                            val text = child.textContent.trim()
+                            if (text.isNotEmpty()) {
+                                hasTextChild = true
+                                sb.append(text)
+                            }
+                        }
+                    }
+                }
+                
+                depth--
+                if (hasElementChild && !hasTextChild) {
+                    appendIndent()
+                }
+                sb.append("</").append(node.nodeName).append(">")
+                if (hasElementChild && !hasTextChild) {
+                    sb.append("\n")
+                }
+            }
+            Node.TEXT_NODE -> {
+                node.textContent.trim().ifNotEmpty { sb.append(it) }
+            }
+            else -> {}
+        }
+    }
+
+    serializeNode(this)
+    return sb.toString()
 }
 
 /**
