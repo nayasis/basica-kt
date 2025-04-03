@@ -30,9 +30,11 @@ class NThreadLocal { companion object {
 
     fun containsKey(key: String): Boolean = threadLocal.containsKey(key)
 
-    fun keySet(): Set<String> = threadLocal.keys
+    val keys: Set<String>
+        get() = threadLocal.keys
 
-    fun values(): Collection<Any?> = threadLocal.values
+    val values: Collection<Any?>
+        get() = threadLocal.values
 
     fun clear() {
         pool.remove(ThreadRoot.key)
