@@ -1,11 +1,8 @@
 package com.github.nayasis.kotlin.basica.exception
 
-import org.slf4j.LoggerFactory
 import java.io.PrintWriter
 import java.io.StringWriter
 import kotlin.reflect.KClass
-
-private var enableLogback = true
 
 fun Throwable.filterStackTrace(pattern: Regex? = null, exclusive: Boolean = true): Throwable {
     if( pattern == null ) return this
@@ -38,38 +35,24 @@ fun <T: Exception> Throwable.findCause(klass: KClass<T>): T? {
     return null
 }
 
-fun Throwable.toString(exclusive: Regex? = null): String {
-    if (enableLogback) {
-        try {
-            val logger = LoggerFactory.getLogger(Throwable::class.java)
-            if (logger.javaClass.name.contains("ch.qos.logback")) {
-                return formatStackTrace(this, exclusive)
-            }
-            enableLogback = false
-        } catch (e: NoClassDefFoundError) {
-            enableLogback = false
-        }
-    }
-    return stackTraceToString()
-}
 
-private fun formatStackTrace(throwable: Throwable, exclusive: Regex? = null): String {
+fun Throwable.toString(exclusive: Regex? = null): String {
     return StringWriter().use { sw -> PrintWriter(sw).use { pw ->
 
         // print the throwable message
-        pw.println(throwable.toString())
+        pw.println(this.toString())
 
         // print stack trace
         if (exclusive != null) {
-            throwable.stackTrace.filter { ! it.className.matches(exclusive) }
+            this.stackTrace.filter { ! it.className.matches(exclusive) }
         } else {
-            throwable.stackTrace.toList()
+            this.stackTrace.toList()
         }.forEach { element ->
             pw.println("\tat $element")
         }
 
         // print cause if exists
-        var cause = throwable.cause
+        var cause = this.cause
         while (cause != null) {
             pw.println("Caused by: ${cause.toString()}")
             if (exclusive != null) {
