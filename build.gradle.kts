@@ -8,8 +8,8 @@ plugins {
     id("com.vanniktech.maven.publish") version "0.31.0"
 }
 
-group = "com.github.nayasis"
-version = "0.3.4-SNAPSHOT"
+group = "io.github.nayasis"
+version = "0.3.4"
 
 repositories {
     mavenLocal()
@@ -71,13 +71,7 @@ tasks.register<Jar>("javadocJar") {
 
 mavenPublishing {
     signAllPublications()
-    
-    if ("$version".endsWith("-SNAPSHOT")) {
-        publishToMavenCentral(SonatypeHost.S01)
-    } else {
-        publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
-    }
-    
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
     pom {
         name.set(rootProject.name)
         description.set("Basic Kotlin utility library providing common functionality for Kotlin applications")
