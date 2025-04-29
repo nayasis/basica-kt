@@ -74,7 +74,7 @@ mavenPublishing {
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
     pom {
         name.set(rootProject.name)
-        description.set("Basic Kotlin utility library providing common functionality for Kotlin applications")
+        description.set("Basic Kotlin utility library providing common functionality for Kotlin applications.")
         url.set("https://github.com/nayasis/basica-kt")
         licenses {
             license {
