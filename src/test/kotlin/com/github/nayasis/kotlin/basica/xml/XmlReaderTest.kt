@@ -1,17 +1,10 @@
 package com.github.nayasis.kotlin.basica.xml
 
-import com.github.nayasis.kotlin.basica.core.klass.Classes
 import com.github.nayasis.kotlin.basica.core.string.toResource
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.github.oshai.kotlinlogging.KotlinLogging
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Test
-import org.w3c.dom.Node
-import java.lang.StringBuilder
 
 private val logger = KotlinLogging.logger {}
 
@@ -95,14 +88,14 @@ internal class XmlReaderTest: StringSpec({
             setDocType("-//Apache Software Foundation//DTD Struts Configuration 2.0//EN","http://struts.apache.org/dtds/struts-2.0.dtd")
         }.also { logger.debug{ "\n${it.toString(true)}" } }
 
-        docFromString?.docType?.publicId shouldBe "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
-        docFromString?.docType?.systemId shouldBe "http://struts.apache.org/dtds/struts-2.0.dtd"
+        docFromString.docType?.publicId shouldBe "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"
+        docFromString.docType?.systemId shouldBe "http://struts.apache.org/dtds/struts-2.0.dtd"
 
     }
 
     "print contents" {
         val doc = XmlReader.read(sampleSqlXml)
-            .also { logger.debug{ "\n${it.toString(true, tabSize = 2)}" } }
+            .also { logger.debug{ "\n${it.toString(indent = 2)}" } }
         doc.nodeName shouldBe "sqlMap"
 
         val inserts = doc.getElementsByTagName("insert")
@@ -133,7 +126,7 @@ internal class XmlReaderTest: StringSpec({
 
         val doc1 = XmlReader.read("<a><b><c/><d>text D</d><e value='0'/></b></a>")
 
-        doc1.toString(tabSize = 2).trim() shouldBe """
+        doc1.toString(indent = 2).trim() shouldBe """
             <a>
               <b>
                 <c/>
@@ -143,7 +136,7 @@ internal class XmlReaderTest: StringSpec({
             </a>
         """.trimIndent()
 
-        doc1.toString(tabSize = 4).trim() shouldBe """
+        doc1.toString(true, indent = 4).trim() shouldBe """
             <a>
                 <b>
                     <c/>
@@ -155,7 +148,7 @@ internal class XmlReaderTest: StringSpec({
 
         val doc2 = XmlReader.read(sampleTreeXml)
 
-        doc2.toString(tabSize = 2).trim() shouldBe """
+        doc2.toString(indent = 2).trim() shouldBe """
             <root>
               <row>
                 <col1 id="c1">Value1</col1>
@@ -170,7 +163,7 @@ internal class XmlReaderTest: StringSpec({
             </root>
         """.trimIndent()
 
-        doc2.toString(tabSize = 4).trim() shouldBe """
+        doc2.toString(indent = 4).trim() shouldBe """
             <root>
                 <row>
                     <col1 id="c1">Value1</col1>
@@ -187,8 +180,8 @@ internal class XmlReaderTest: StringSpec({
 
         // mixture format is hard to indent (text node itself is member of XML format.)
         XmlReader.read(sampleSqlXml).also { doc ->
-            logger.debug { "\n${doc.toString(true,tabSize = 2)}" }
-            logger.debug { "\n${doc.toString(true,tabSize = 4)}" }
+            logger.debug { "\n${doc.toString(indent = 2)}" }
+            logger.debug { "\n${doc.toString(indent = 4)}" }
         }
 
     }

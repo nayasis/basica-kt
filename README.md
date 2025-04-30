@@ -1,43 +1,25 @@
 # basica-kt
-basic kotlin utility
 
-[![](https://jitpack.io/v/nayasis/basica-kt.svg)](https://jitpack.io/#nayasis/basica-kt)
+Basic Kotlin utility library providing common functionality for Kotlin applications.
+
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.nayasis/basica-kt.svg)](https://central.sonatype.com/artifact/io.github.nayasis/basica-kt)
 
 ## Dependency
 
-### maven
+### gradle (build.gradle.kts)
 
-1. add repository in **pom.xml**.
-```xml
-<repositories>
-  <repository>
-    <id>jitpack</id>
-    <url>https://jitpack.io</url>
-  </repository>
-</repositories>
-```
-
-2. add dependency in **pom.xml**.
-```xml
-<dependency>
-  <groupId>com.github.nayasis</groupId>
-  <artifactId>basica-kt</artifactId>
-  <version>x.y.z</version>
-</dependency>
-```
-
-### gradle
-
-1. add repository in **build.gradle.kts**.
-```kotlin
-repositories {
-  maven { url = uri("https://jitpack.io") }
-}
-```
-
-2. add dependency in **build.gradle.kts**.
 ```kotlin
 dependencies {
-  implementation( "com.github.nayasis:basica-kt:x.y.z" )
+    implementation("io.github.nayasis:basica-kt:0.3.4")
 }
+```
+
+### maven (pom.xml)
+
+```xml
+<dependency>
+    <groupId>io.github.nayasis</groupId>
+    <artifactId>basica-kt</artifactId>
+    <version>0.3.4</version>
+</dependency>
 ```
