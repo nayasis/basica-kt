@@ -2,22 +2,16 @@ import com.vanniktech.maven.publish.SonatypeHost
 
 plugins {
     kotlin("jvm") version "2.1.20"
-    kotlin("plugin.noarg") version "2.1.20"
     java
     signing
     id("com.vanniktech.maven.publish") version "0.31.0"
 }
 
 group = "io.github.nayasis"
-version = "0.3.4"
+version = "0.3.5-SNAPSHOT"
 
 repositories {
-    mavenLocal()
     mavenCentral()
-}
-
-configurations.all {
-    resolutionStrategy.cacheDynamicVersionsFor(5, "minutes")
 }
 
 java {
@@ -59,16 +53,6 @@ tasks.withType<JavaCompile> {
     options.release.set(8)
 }
 
-tasks.register<Jar>("sourcesJar") {
-    archiveClassifier.set("sources")
-    from(sourceSets.main.get().allSource)
-}
-
-tasks.register<Jar>("javadocJar") {
-    archiveClassifier.set("javadoc")
-    from(tasks.javadoc)
-}
-
 mavenPublishing {
     signAllPublications()
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
@@ -95,12 +79,4 @@ mavenPublishing {
             url.set("https://github.com/nayasis/basica-kt/tree/master")
         }
     }
-}
-
-tasks.withType<Jar> {
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-}
-
-tasks.withType<Javadoc> {
-    isFailOnError = false
 }
