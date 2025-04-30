@@ -1,5 +1,3 @@
-@file:Suppress("NON_PUBLIC_CALL_FROM_PUBLIC_INLINE")
-
 package com.github.nayasis.kotlin.basica.reflection
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect
@@ -18,7 +16,6 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.addDeserializer
 import com.fasterxml.jackson.module.kotlin.addSerializer
-import com.fasterxml.jackson.module.kotlin.jacksonTypeRef
 import com.fasterxml.jackson.module.kotlin.jsonMapper
 import com.fasterxml.jackson.module.kotlin.kotlinModule
 import com.github.nayasis.kotlin.basica.core.string.escapeRegex
@@ -111,16 +108,16 @@ class Reflector { companion object {
     fun isJson(string: CharSequence?): Boolean {
         if( string.isNullOrEmpty() ) return false
         return try {
-            mapper.readTree(if(string is String) string else string.toString()); true
+            mapper.readTree(string as? String ?: string.toString()); true
         } catch (e: Exception) {
             false
         }
     }
 
     @JvmStatic
-    inline fun <reified T> toObject(src: Any?, ignoreNull: Boolean = true): T {
+    fun <T> toObject(src: Any?, ignoreNull: Boolean = true): T {
         val mapper    = mapper(ignoreNull)
-        val typeref   = jacksonTypeRef<T>()
+        val typeref   = object : TypeReference<T>() {}
         return when (src) {
             null            -> mapper.readValue(emptyJson(typeref), typeref)
             is CharSequence -> mapper.readValue(src.toString().ifEmpty{emptyJson(typeref)}, typeref)

@@ -55,7 +55,7 @@ object PathModifier {
             pathElements.add(0, PATH_PARENT)
         }
         // If nothing else left, at least explicitly point to current path.
-        if (pathElements.size == 1 && "" == pathElements.last && !prefix.endsWith(FOLDER_SEPARATOR_UNIX)) {
+        if (pathElements.size == 1 && pathElements.last() == "" && !prefix.endsWith(FOLDER_SEPARATOR_UNIX)) {
             pathElements.add(0, PATH_CURRENT)
         }
         return prefix + pathElements.joinToString("$FOLDER_SEPARATOR_UNIX")

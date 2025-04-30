@@ -2,7 +2,6 @@ package com.github.nayasis.kotlin.basica.etc
 
 import com.github.nayasis.kotlin.basica.core.collection.sumByDuration
 import com.github.nayasis.kotlin.basica.core.number.round
-import com.github.nayasis.kotlin.basica.core.string.toCapitalize
 import com.github.nayasis.kotlin.basica.model.NGrid
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.Serializable
@@ -102,7 +101,6 @@ class StopWatch: Serializable {
             MINUTES -> "m"
             HOURS -> "h"
             DAYS -> "day"
-            else -> "$unit".lowercase().toCapitalize()
         }
     }
 
