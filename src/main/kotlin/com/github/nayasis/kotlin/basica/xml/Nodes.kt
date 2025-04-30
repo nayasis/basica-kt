@@ -400,7 +400,7 @@ val Node.docType: DocumentType?
     get() = if(this is Document) this.doctype else document.docType
 
 val Node.document: Document
-    get() = if(this is Document) this else this.ownerDocument
+    get() = this as? Document ?: this.ownerDocument
 
 fun Node.getTreeWalker(whatToShow: Int = NodeFilter.SHOW_ALL, filter: NodeFilter? = null, entityReferenceExpansion: Boolean = false ): TreeWalker =
     (document as DocumentTraversal).createTreeWalker(this,whatToShow,filter,entityReferenceExpansion)

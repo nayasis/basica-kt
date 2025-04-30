@@ -1,63 +1,106 @@
+import com.vanniktech.maven.publish.SonatypeHost
+
 plugins {
-	`java`
-	`maven-publish`
-	kotlin("jvm") version "2.1.20"
-	kotlin("plugin.noarg") version "2.1.20"
+    kotlin("jvm") version "2.1.20"
+    kotlin("plugin.noarg") version "2.1.20"
+    java
+    signing
+    id("com.vanniktech.maven.publish") version "0.31.0"
 }
 
-group = "com.github.nayasis"
-version = "0.3.2-SNAPSHOT"
-java.sourceCompatibility = JavaVersion.VERSION_1_8
+group = "io.github.nayasis"
+version = "0.3.4"
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
 
 configurations.all {
-	resolutionStrategy.cacheDynamicVersionsFor(5, "minutes")
+    resolutionStrategy.cacheDynamicVersionsFor(5, "minutes")
 }
 
 java {
-	withJavadocJar()
-	withSourcesJar()
-}
-
-repositories {
-	mavenLocal()
-	mavenCentral()
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(8))
+    }
 }
 
 dependencies {
+    implementation("org.mvel:mvel2:2.5.2.Final")
+    implementation("com.googlecode.juniversalchardet:juniversalchardet:1.0.3")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.18.3")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.14.2")
+    implementation("org.slf4j:slf4j-api:2.0.7")
 
-	implementation("org.mvel:mvel2:2.5.2.Final")
-	implementation("com.googlecode.juniversalchardet:juniversalchardet:1.0.3")
-	implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.14.2")
-	implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.14.2")
-	implementation("org.slf4j:slf4j-api:2.0.7")
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+    implementation("io.github.oshai:kotlin-logging-jvm:7.0.3")
 
-	implementation("org.jetbrains.kotlin:kotlin-reflect")
-	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-	implementation("io.github.oshai:kotlin-logging-jvm:7.0.3")
-
-	testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
-	testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.2")
-	testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.2")
-	testImplementation("io.kotest:kotest-runner-junit5:5.6.2")
-	testImplementation("io.kotest:kotest-assertions-core:5.6.2")
-	testImplementation("ch.qos.logback:logback-classic:1.3.15")
-
+    testImplementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.5.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.2")
+    testImplementation("io.kotest:kotest-runner-junit5:5.6.2")
+    testImplementation("io.kotest:kotest-assertions-core:5.6.2")
+    testImplementation("ch.qos.logback:logback-classic:1.3.15")
 }
 
 kotlin {
-	compilerOptions {
-		freeCompilerArgs.addAll("-Xjsr305=strict")
-	}
+    compilerOptions {
+        freeCompilerArgs.addAll("-Xjsr305=strict")
+    }
 }
 
 tasks.withType<Test> {
-	useJUnitPlatform()
+    useJUnitPlatform()
 }
 
-publishing {
-	publications {
-		create<MavenPublication>("maven") {
-			from(components["java"])
-		}
-	}
+tasks.withType<JavaCompile> {
+    options.release.set(8)
+}
+
+tasks.register<Jar>("sourcesJar") {
+    archiveClassifier.set("sources")
+    from(sourceSets.main.get().allSource)
+}
+
+tasks.register<Jar>("javadocJar") {
+    archiveClassifier.set("javadoc")
+    from(tasks.javadoc)
+}
+
+mavenPublishing {
+    signAllPublications()
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+    pom {
+        name.set(rootProject.name)
+        description.set("Basic Kotlin utility library providing common functionality for Kotlin applications.")
+        url.set("https://github.com/nayasis/basica-kt")
+        licenses {
+            license {
+                name.set("Apache License, Version 2.0")
+                url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+            }
+        }
+        developers {
+            developer {
+                id.set("nayasis")
+                name.set("nayasis")
+                email.set("nayasis@gmail.com")
+            }
+        }
+        scm {
+            connection.set("scm:git:github.com/nayasis/basica-kt.git")
+            developerConnection.set("scm:git:ssh://github.com/nayasis/basica-kt.git")
+            url.set("https://github.com/nayasis/basica-kt/tree/master")
+        }
+    }
+}
+
+tasks.withType<Jar> {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+tasks.withType<Javadoc> {
+    isFailOnError = false
 }
