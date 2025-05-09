@@ -53,22 +53,6 @@ tasks.withType<JavaCompile> {
     options.release.set(8)
 }
 
-// Maven Central 배포를 위한 인증 정보 설정
-println("Environment Variables Debug:")
-println("MAVEN_CENTRAL_USERNAME: ${System.getenv("MAVEN_CENTRAL_USERNAME")}")
-println("MAVEN_CENTRAL_PASSWORD: ${System.getenv("MAVEN_CENTRAL_PASSWORD")}")
-
-// 환경 변수를 gradle.properties 형식으로 설정
-gradle.projectsLoaded {
-    rootProject.allprojects {
-        extensions.extraProperties.set("mavenCentralUsername", System.getenv("MAVEN_CENTRAL_USERNAME"))
-        extensions.extraProperties.set("mavenCentralPassword", System.getenv("MAVEN_CENTRAL_PASSWORD"))
-        extensions.extraProperties.set("signing.keyId", System.getenv("SIGNING_KEY_ID"))
-        extensions.extraProperties.set("signing.password", System.getenv("SIGNING_PASSWORD"))
-        extensions.extraProperties.set("signing.secretKeyRing", System.getenv("SIGNING_KEY"))
-    }
-}
-
 mavenPublishing {
     signAllPublications()
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
