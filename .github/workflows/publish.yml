@@ -8,6 +8,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
+      - name: Grant execute permission to Gradle wrapper
+        run: chmod +x ./gradlew
       
       - name: Set up JDK
         uses: actions/setup-java@v3
