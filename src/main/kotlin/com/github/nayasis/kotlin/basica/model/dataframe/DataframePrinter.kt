@@ -8,15 +8,8 @@ import com.github.nayasis.kotlin.basica.core.character.isHalfWidth
 import com.github.nayasis.kotlin.basica.core.character.repeat
 import com.github.nayasis.kotlin.basica.core.extension.isEmpty
 import com.github.nayasis.kotlin.basica.core.extension.isNotEmpty
-import com.github.nayasis.kotlin.basica.core.localdate.format
-import com.github.nayasis.kotlin.basica.core.localdate.toDate
 import com.github.nayasis.kotlin.basica.core.string.dpadEnd
 import com.github.nayasis.kotlin.basica.core.string.dpadStart
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.ZonedDateTime
-import java.util.Calendar
-import java.util.Date
 import kotlin.math.ceil
 import kotlin.math.log10
 import kotlin.math.max
@@ -148,11 +141,6 @@ fun Any?.toDisplayString(maxWidth: Double): String {
         this is Map<*, *>     && this.isEmpty() -> return "{}"
         this is Collection<*> && this.isEmpty() -> return "[]"
         this is Array<*>      && this.isEmpty() -> return "[]"
-        this is LocalDate                       -> this.format()
-        this is LocalDateTime                   -> this.format()
-        this is ZonedDateTime                   -> this.format()
-        this is Date                            -> this.format()
-        this is Calendar                        -> this.toDate().format()
         else                                    -> this.toString()
     }
 
@@ -206,24 +194,19 @@ private fun Any?.getDisplayWidth(max: Double): Double {
         this is Map<*, *>     && this.isEmpty() -> return 2.0
         this is Collection<*> && this.isEmpty() -> return 2.0
         this is Array<*>      && this.isEmpty() -> return 2.0
-        this is LocalDate                       -> this.format()
-        this is LocalDateTime                   -> this.format()
-        this is ZonedDateTime                   -> this.format()
-        this is Date                            -> this.format()
-        this is Calendar                        -> this.toDate().format()
-        else                                    -> this.toString()
-    }.let { string ->
-        if(string.length > max) return max
-        var width  = 0.0
-        for (c in string) {
-            val w = c.displayWidth
-            when {
-                width + w > max -> return width
-                width == max    -> return max
-                else            -> width += w
+        else -> {
+            var width  = 0.0
+            val string = this.toString().also { if (it.length >= max) return max }
+            for (c in string) {
+                val w = c.displayWidth
+                when {
+                    width + w > max -> return width
+                    width == max    -> return max
+                    else            -> width += w
+                }
             }
+            return width
         }
-        return width
     }
 }
 

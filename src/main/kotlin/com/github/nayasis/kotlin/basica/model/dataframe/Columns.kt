@@ -12,7 +12,7 @@ class Columns: LinkedHashMap<String, Column>() {
         values.forEach { it.clear() }
     }
 
-    fun getLabel(key: String): String {
+    fun getLabel(key: String): String? {
         return labels[key] ?: key
     }
 
@@ -42,10 +42,9 @@ class Columns: LinkedHashMap<String, Column>() {
         super.putAll(m)
     }
 
-    override fun putIfAbsent(key: String, value: Column): Column? {
-        return super.putIfAbsent(key, value).also{
-            if(it == null) _keyByIndex = null
-        }
+    override fun putIfAbsent(key: String,value: Column): Column? {
+        _keyByIndex = null
+        return super.putIfAbsent(key, value)
     }
 
     override fun remove(key: String): Column? {
