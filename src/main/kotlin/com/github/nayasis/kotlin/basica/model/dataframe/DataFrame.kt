@@ -3,9 +3,9 @@ package com.github.nayasis.kotlin.basica.model.dataframe
 import com.github.nayasis.kotlin.basica.reflection.Reflector
 import java.io.Serializable
 
-class DataFrame: Serializable, Cloneable, Iterable<Map<String, Any?>> {
-
-    private val body = Columns()
+class DataFrame(
+    private val body: Columns = Columns()
+): Serializable, Cloneable, Iterable<Map<String, Any?>> {
 
     val lastIndex: Int?
         get() = body.values.mapNotNull { it.lastIndex }.maxOrNull()
@@ -134,8 +134,8 @@ class DataFrame: Serializable, Cloneable, Iterable<Map<String, Any?>> {
         showHeader: Boolean = true,
         showIndex: Boolean = false,
         showLabel: Boolean = true,
-        startRow: Int = 0,
-        endRow: Int = Int.MAX_VALUE,
+        startRow: Int = firstIndex ?: 0,
+        endRow: Int = lastIndex ?: 0,
         maxColumnWidth: Int = 50,
     ): String {
         return DataframePrinter(
@@ -147,6 +147,44 @@ class DataFrame: Serializable, Cloneable, Iterable<Map<String, Any?>> {
             endRow,
             maxColumnWidth.toDouble(),
         ).toString()
+    }
+
+    fun head(
+        n: Int = 10,
+        showHeader: Boolean = true,
+        showIndex: Boolean = false,
+        showLabel: Boolean = true,
+        maxColumnWidth: Int = 50,
+    ): String {
+        return toString(
+            showHeader = showHeader,
+            showIndex = showIndex,
+            showLabel = showLabel,
+            startRow = firstIndex ?: 0,
+            endRow = (firstIndex ?: 0) + n - 1,
+            maxColumnWidth = maxColumnWidth
+        )
+   }
+
+    fun tail(
+        n: Int = 10,
+        showHeader: Boolean = true,
+        showIndex: Boolean = false,
+        showLabel: Boolean = true,
+        maxColumnWidth: Int = 50,
+    ): String {
+        return toString(
+            showHeader = showHeader,
+            showIndex = showIndex,
+            showLabel = showLabel,
+            startRow = (lastIndex ?: 0) - n + 1,
+            endRow = lastIndex ?: 0,
+            maxColumnWidth = maxColumnWidth
+        )
+    }
+
+    public override fun clone(): DataFrame {
+        return DataFrame(body = body.clone())
     }
 
     override fun iterator(): Iterator<Map<String, Any?>> {

@@ -354,6 +354,53 @@ internal class DataframeTest: StringSpec({
         rows[2] shouldBe mapOf("name" to "Charlie", "age" to 35)
     }
 
+    "clone" {
+        val original = DataFrame().apply {
+            addRow(mapOf("name" to "Alice", "age" to 25))
+            addRow(mapOf("name" to "Bob", "age" to 30))
+        }
+
+        val clone = original.clone()
+
+        clone.size shouldBe original.size
+        clone.getRow(0) shouldBe original.getRow(0)
+        clone.getRow(1) shouldBe original.getRow(1)
+
+        // Modify the clone and check that the original is not affected
+        clone.setData(0, "age", 26)
+        clone.getRow(0)["age"] shouldBe 26
+        original.getRow(0)["age"] shouldBe 25
+    }
+
+    "print tail and head" {
+        val dataframe = DataFrame().apply {
+            addRow(mapOf("name" to "Alice", "age" to 25))
+            addRow(mapOf("name" to "Bob", "age" to 30))
+            addRow(mapOf("name" to "Charlie", "age" to 35))
+            addRow(mapOf("name" to "David", "age" to 40))
+            addRow(mapOf("name" to "Eve", "age" to 45))
+        }
+
+        dataframe.head(3) shouldBe """
+            +-------+---+
+            |name   |age|
+            +-------+---+
+            |Alice  | 25|
+            |Bob    | 30|
+            |Charlie| 35|
+            +-------+---+            
+        """.trimIndent().trim()
+
+        dataframe.tail(2) shouldBe """
+            +-----+---+
+            |name |age|
+            +-----+---+
+            |David| 40|
+            |Eve  | 45|
+            +-----+---+            
+        """.trimIndent().trim()
+    }
+
 })
 
 data class Person(
