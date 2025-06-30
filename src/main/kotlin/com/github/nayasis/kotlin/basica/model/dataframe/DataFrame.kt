@@ -10,8 +10,11 @@ class DataFrame: Serializable, Cloneable, Iterable<Map<String, Any?>> {
     val lastIndex: Int?
         get() = body.values.mapNotNull { it.lastIndex }.maxOrNull()
 
+    val firstIndex: Int?
+        get() = body.values.mapNotNull { it.firstIndex }.minOrNull()
+
     val size: Int
-        get() = lastIndex?.inc() ?: 0
+        get() = lastIndex?.inc()?.minus( firstIndex ?: 0 ) ?: 0
 
     fun isEmpty(): Boolean {
         return size == 0
@@ -49,7 +52,7 @@ class DataFrame: Serializable, Cloneable, Iterable<Map<String, Any?>> {
     }
 
     fun getData(r: Int, key: String): Any? {
-        return body[key]?.get(r) ?: throw NoSuchElementException("No column found for key $key")
+        return body[key]?.get(r)
     }
 
     fun setData(r: Int, c: Int, value: Any?) {
@@ -130,7 +133,7 @@ class DataFrame: Serializable, Cloneable, Iterable<Map<String, Any?>> {
     fun toString(
         showHeader: Boolean = true,
         showIndex: Boolean = false,
-        showLabel: Boolean = false,
+        showLabel: Boolean = true,
         startRow: Int = 0,
         endRow: Int = Int.MAX_VALUE,
         maxColumnWidth: Int = 50,
@@ -149,7 +152,7 @@ class DataFrame: Serializable, Cloneable, Iterable<Map<String, Any?>> {
     override fun iterator(): Iterator<Map<String, Any?>> {
         return object: Iterator<Map<String,Any?>> {
             private val size = this@DataFrame.size
-            private var index = 0
+            private var index = firstIndex ?: 0
             override fun hasNext(): Boolean = index < size
             override fun next(): Map<String,Any?> = getRow(index++)
         }

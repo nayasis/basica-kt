@@ -1,7 +1,7 @@
 package com.github.nayasis.kotlin.basica.model.dataframe
 
 import com.github.nayasis.kotlin.basica.core.extension.isEmpty
-import com.github.nayasis.kotlin.basica.reflection.Reflector
+import com.github.nayasis.kotlin.basica.core.validator.cast
 import java.util.*
 import java.util.stream.DoubleStream
 import kotlin.math.ceil
@@ -17,10 +17,15 @@ open class Column: Cloneable {
 
     private val indices = TreeSet<Int>()
 
+    internal val firstIndex: Int?
+        get() = indices.firstOrNull()
+
     internal val lastIndex: Int?
         get() = indices.lastOrNull()
 
     val last: Any? = lastIndex?.let { values[it] }
+
+    val first: Any? = firstIndex?.let { values[it] }
 
     val size: Int
         get() = values.size
@@ -82,27 +87,20 @@ open class Column: Cloneable {
     }
 
     fun std(): Double {
-        val stats = toNumerics().parallel().summaryStatistics()
-                .also { if(it.isEmpty()) return Double.NaN }
-
+        val stats       = toNumerics().parallel().summaryStatistics().also { if(it.isEmpty()) return Double.NaN }
         val avg         = stats.average
         val squaredDiff = toNumerics().parallel().map { (it - avg).pow(2) }
         val variance    = squaredDiff.parallel().sum() / stats.count
-
         return sqrt(variance)
     }
 
     fun percentile(percentile: Double): Double {
         if (values.isEmpty() || percentile < 0.0 || percentile > 100.0) return Double.NaN
-
         val sorted = toNumerics().parallel().sorted().toList()
                 .also { if(it.isEmpty()) return Double.NaN }
-
-        val pos = percentile * (sorted.size - 1) / 100.0
-
+        val pos   = percentile * (sorted.size - 1) / 100.0
         val lower = floor(pos).toInt()
         val upper = ceil(pos).toInt()
-
         return when {
             lower == upper -> sorted[lower]
             else -> sorted[lower] + (pos - lower) * (sorted[upper] - sorted[lower])
@@ -111,16 +109,12 @@ open class Column: Cloneable {
 
     fun percentile(vararg percentiles: Double): Map<Double, Double> {
         if (values.isEmpty()) return emptyMap()
-
         val sorted = toNumerics().parallel().sorted().toList()
             .also { if(it.isEmpty()) return emptyMap() }
-
         return percentiles.filter { it in 0.0..100.0 }.sorted().associateWith { percentile ->
-            val pos = percentile * (sorted.size - 1) / 100.0
-
+            val pos   = percentile * (sorted.size - 1) / 100.0
             val lower = floor(pos).toInt()
             val upper = ceil(pos).toInt()
-
             when {
                 lower == upper -> sorted[lower]
                 else -> sorted[lower] + (pos - lower) * (sorted[upper] - sorted[lower])
@@ -132,15 +126,7 @@ open class Column: Cloneable {
         val list = ArrayList<T?>()
         if(values.isNotEmpty()) {
             for(i in 0 .. lastIndex!!) {
-                try {
-                    list.add( values[i]?.let { Reflector.toObject(it, typeClass) } )
-                } catch (e: Exception) {
-                    if( !ignoreError ) {
-                        list.add(null)
-                    } else {
-                        throw e
-                    }
-                }
+                list.add(values[i]?.cast(typeClass, ignoreError))
             }
         }
         return list

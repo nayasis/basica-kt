@@ -9,17 +9,14 @@ class Columns: LinkedHashMap<String, Column>() {
         private var _keyByIndex: Map<Int, String>? = null
 
     override fun clear() {
-        labels.clear()
-        super.clear()
+        values.forEach { it.clear() }
     }
 
     fun getLabel(key: String): String? {
-        if( ! containsKey(key) ) return null
         return labels[key] ?: key
     }
 
     fun setLabel(key: String, label: String) {
-        if (!containsKey(key)) return
         labels[key] = label
     }
 

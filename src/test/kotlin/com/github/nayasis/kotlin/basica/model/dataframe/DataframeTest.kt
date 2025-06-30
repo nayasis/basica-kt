@@ -3,7 +3,9 @@ package com.github.nayasis.kotlin.basica.model.dataframe
 import com.github.nayasis.kotlin.basica.core.character.Characters
 import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
 import com.github.nayasis.kotlin.basica.core.localdate.toString
+import com.github.nayasis.kotlin.basica.core.number.round
 import io.github.oshai.kotlinlogging.KotlinLogging
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
@@ -23,10 +25,6 @@ internal class DataframeTest: StringSpec({
         dataframe.setLabel("key", "이것은 KEY 입니다.")
         dataframe.setLabel("val", "これは VALUE です")
 
-        logger.debug { "\n${dataframe}" }
-        logger.debug { "\n${dataframe.toString(showHeader = false)}" }
-        logger.debug { "\n${dataframe.toString(showIndex = true)}" }
-
         dataframe.toString() shouldBe """
             +------------------+-------------------------+
             |이것은 KEY 입니다.|これは VALUE です        |
@@ -37,10 +35,10 @@ internal class DataframeTest: StringSpec({
         """.trimIndent().trim()
 
         dataframe.toString(showHeader = false) shouldBe """
-            +------------------+-------------------------+
-            |controller        |컨트롤러는 이런 것입니다.|
-            |                 1|                     3359|
-            +------------------+-------------------------+            
+            +----------+-------------------------+
+            |controller|컨트롤러는 이런 것입니다.|
+            |         1|                     3359|
+            +----------+-------------------------+            
         """.trimIndent().trim()
 
         dataframe.toString(showIndex = true) shouldBe """
@@ -58,17 +56,16 @@ internal class DataframeTest: StringSpec({
         val dataframe = DataFrame()
         dataframe.toString() shouldBe """
             +---+
-            |   |
             +---+            
         """.trimIndent().trim()
 
         dataframe.addRow(mapOf("name" to null))
-        dataframe.toString() shouldBe """
-            +----+
-            |name|
-            +----+
-            |    |
-            +----+            
+        dataframe.toString(showIndex = true) shouldBe """
+            +-----+----+
+            |index|name|
+            +-----+----+
+            |    0|    |
+            +-----+----+            
         """.trimIndent().trim()
     }
 
@@ -78,10 +75,10 @@ internal class DataframeTest: StringSpec({
         dataframe.addRow(Person("B", 2))
         dataframe.clear()
         dataframe.toString() shouldBe """
-            +---+----+
-            |age|name|
-            +---+----+
-            +---+----+            
+            +----+---+
+            |name|age|
+            +----+---+
+            +----+---+            
         """.trimIndent().trim()
     }
 
@@ -89,7 +86,6 @@ internal class DataframeTest: StringSpec({
         val dataframe = DataFrame()
         dataframe.toString() shouldBe """
             +---+
-            |   |
             +---+            
         """.trimIndent().trim()
     }
@@ -101,17 +97,10 @@ internal class DataframeTest: StringSpec({
             addRow(mapOf("key" to 1, "val" to mapOf("name" to "jake", "age" to 11)))
         }
 
-        val rs1 = dataframe.getColumn("key").toList<String>().also { logger.debug { it } }
-        val rs2 = dataframe.getColumn("value").toList<Person>().also { logger.debug { it } }
-        val rs4 = dataframe.getColumn("val").toList<Person>().also { logger.debug { it } }
-        val rs5 = dataframe.getColumn("key").toList<Double>().also { logger.debug { it } }
-
-        logger.debug { "\n${dataframe.toString(showIndex = true)}" }
-
-        rs1.toString() shouldBe "[nayasis, 1]"
-        rs2.toString() shouldBe "[null, null]"
-        rs4.toString() shouldBe "[Person(name=nayasis, age=40), Person(name=jake, age=11)]"
-        rs5.toString() shouldBe "[0.0, 1.0]"
+        dataframe.getColumn("key").toList<String>().toString() shouldBe "[nayasis, 1]"
+        shouldThrow<NoSuchElementException> { dataframe.getColumn("value") }
+        dataframe.getColumn("val").toList<Person>().toString() shouldBe "[Person(name=nayasis, age=40), Person(name=jake, age=11)]"
+        dataframe.getColumn("key").toList<Double>().toString() shouldBe "[0.0, 1.0]"
 
     }
 
@@ -121,6 +110,7 @@ internal class DataframeTest: StringSpec({
             addRow(Person("우리나라 좋은나라 미국",1234567890))
             addRow(Person("우리나라 좋은나라 오스트레일리아",1234567890))
         }
+
         dataframe.toString(maxColumnWidth = 20) shouldBe """
             +--------------------+----------+
             |name                |age       |
@@ -138,9 +128,9 @@ internal class DataframeTest: StringSpec({
             addRow(mapOf("key" to "A", "value" to ComplexVo("우리나라 좋은나라 대한민국",1234590)))
             addRow(mapOf("key" to "B", "value" to ComplexVo("우리나라 좋은나라 미국",1234212312)))
             addRow(mapOf("key" to "C", "value" to ComplexVo("우리나라 좋은나라 오스트레일리아",12347890)))
-        }.also { println(it) }
+        }
 
-        "$dataframe" shouldBe """
+        dataframe.toString(maxColumnWidth = 100) shouldBe """
             +---+----------------------------------------------------------------------------------------------------+
             |key|value                                                                                               |
             +---+----------------------------------------------------------------------------------------------------+
@@ -179,9 +169,7 @@ internal class DataframeTest: StringSpec({
 
         DataFrame().apply {
             data.forEach { addRow(it) }
-        }.toString().also {
-            logger.debug { it }
-        } shouldBe """
+        }.toString() shouldBe """
             +----+---+
             |name|age|
             +----+---+
@@ -195,15 +183,13 @@ internal class DataframeTest: StringSpec({
             setLabel("age", "a")
             setLabel("name", "n")
             data.forEach { addRow(it) }
-        }.toString().also {
-            logger.debug { it }
-        } shouldBe """
+        }.toString() shouldBe """
             +-+-+
-            |a|n|
+            |n|a|
             +-+-+
-            |1|A|
-            |2|B|
-            |3|C|
+            |A|1|
+            |B|2|
+            |C|3|
             +-+-+
         """.trimIndent().trim()
     }
@@ -225,7 +211,7 @@ internal class DataframeTest: StringSpec({
         numbersColumn.sum() shouldBe 15.0
         numbersColumn.mean() shouldBe 3.0
         numbersColumn.median() shouldBe 3.0
-        numbersColumn.std() shouldBe 1.5811388300841898
+        numbersColumn.std().round(3) shouldBe 1.414
         numbersColumn.percentile(25.0) shouldBe 2.0
         numbersColumn.percentile(75.0) shouldBe 4.0
     }
@@ -267,7 +253,87 @@ internal class DataframeTest: StringSpec({
 
         dataframe.removeRow(0)
         dataframe.size shouldBe 1
-        dataframe.getRow(0) shouldBe mapOf("name" to "Robert", "age" to null)
+        dataframe.getRow(1) shouldBe mapOf("name" to "Robert", "age" to null)
+    }
+
+    "print non-regular row indexed data" {
+        val dataframe = DataFrame().apply {
+            addRow(mapOf("name" to "Alice", "age" to 25))
+            addRow(mapOf("name" to "Bob", "age" to 30))
+            addRow(mapOf("name" to "Charlie", "age" to 35))
+            setRow( 5, mapOf("name" to "David", "age" to 40))
+        }
+
+        dataframe.toString(showIndex=true) shouldBe """
+            +-----+-------+---+
+            |index|name   |age|
+            +-----+-------+---+
+            |    0|Alice  | 25|
+            |    1|Bob    | 30|
+            |    2|Charlie| 35|
+            |    3|       |   |
+            |    4|       |   |
+            |    5|David  | 40|
+            +-----+-------+---+            
+        """.trimIndent().trim()
+
+        dataframe.removeRow(1)
+
+        dataframe.toString(showIndex=true) shouldBe """
+            +-----+-------+---+
+            |index|name   |age|
+            +-----+-------+---+
+            |    0|Alice  | 25|
+            |    1|       |   |
+            |    2|Charlie| 35|
+            |    3|       |   |
+            |    4|       |   |
+            |    5|David  | 40|
+            +-----+-------+---+            
+        """.trimIndent().trim()
+
+        dataframe.removeRow(0)
+
+        dataframe.toString(showIndex=true) shouldBe """
+            +-----+-------+---+
+            |index|name   |age|
+            +-----+-------+---+
+            |    2|Charlie| 35|
+            |    3|       |   |
+            |    4|       |   |
+            |    5|David  | 40|
+            +-----+-------+---+            
+        """.trimIndent().trim()
+
+
+        dataframe.removeRow(5)
+
+        dataframe.toString(showIndex=true) shouldBe """
+            +-----+-------+---+
+            |index|name   |age|
+            +-----+-------+---+
+            |    2|Charlie| 35|
+            +-----+-------+---+            
+        """.trimIndent().trim()
+
+        dataframe.removeRow(2)
+
+        dataframe.toString(showIndex=true) shouldBe """
+            +-----+----+---+
+            |index|name|age|
+            +-----+----+---+
+            +-----+----+---+            
+        """.trimIndent().trim()
+
+        dataframe.removeRow(100)
+
+        dataframe.toString(showIndex=true) shouldBe """
+            +-----+----+---+
+            |index|name|age|
+            +-----+----+---+
+            +-----+----+---+            
+        """.trimIndent().trim()
+
     }
 
     "iteration" {

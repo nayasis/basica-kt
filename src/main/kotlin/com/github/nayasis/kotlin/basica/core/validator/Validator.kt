@@ -3,6 +3,7 @@
 package com.github.nayasis.kotlin.basica.core.validator
 
 import com.github.nayasis.kotlin.basica.model.NGrid
+import com.github.nayasis.kotlin.basica.model.dataframe.DataFrame
 import java.io.InputStream
 
 fun isEmpty(value: Any?): Boolean {
@@ -21,6 +22,7 @@ fun isEmpty(value: Any?): Boolean {
         is DoubleArray -> value.isEmpty()
         is BooleanArray -> value.isEmpty()
         is NGrid -> value.size == 0
+        is DataFrame -> value.size == 0
         is InputStream -> value.available() == 0
         else -> false
     }

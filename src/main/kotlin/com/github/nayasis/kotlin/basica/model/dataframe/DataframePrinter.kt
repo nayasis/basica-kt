@@ -1,9 +1,13 @@
 package com.github.nayasis.kotlin.basica.model.dataframe
 
+import com.github.nayasis.kotlin.basica.core.character.Characters
 import com.github.nayasis.kotlin.basica.core.character.fontWidth
+import com.github.nayasis.kotlin.basica.core.character.isCJK
+import com.github.nayasis.kotlin.basica.core.character.isFullWidth
 import com.github.nayasis.kotlin.basica.core.character.isHalfWidth
 import com.github.nayasis.kotlin.basica.core.character.repeat
 import com.github.nayasis.kotlin.basica.core.extension.isEmpty
+import com.github.nayasis.kotlin.basica.core.extension.isNotEmpty
 import com.github.nayasis.kotlin.basica.core.string.dpadEnd
 import com.github.nayasis.kotlin.basica.core.string.dpadStart
 import kotlin.math.ceil
@@ -11,7 +15,6 @@ import kotlin.math.log10
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
-import kotlin.properties.Delegates
 import kotlin.text.iterator
 
 class DataframePrinter(
@@ -27,7 +30,7 @@ class DataframePrinter(
 
     override fun toString(): String {
 
-        val line  = meta.makeLine('-', '+')
+        val line  = meta.makeLine(showIndex,'-', '+')
         val body  = StringBuilder().append(line)
 
         if (showHeader && ! dataframe.keys.isEmpty()) {
@@ -35,10 +38,8 @@ class DataframePrinter(
             body.append('\n').append(line)
         }
 
-        if (dataframe.isEmpty()) {
-            body.append('\n').append(meta.makeLine(' ', '|'))
-        } else {
-            for (i in max(startRow, 0) .. min(endRow, dataframe.lastIndex ?: 0)) {
+        if (dataframe.isNotEmpty()) {
+            for (i in max(startRow, dataframe.firstIndex ?: 0) .. min(endRow, dataframe.lastIndex ?: 0)) {
                 body.append('\n').append(toString(dataframe, i, showIndex))
             }
         }
@@ -90,14 +91,12 @@ private class PrintHelper(
     end: Int?,
 ) {
 
-    val columnWidths = LinkedHashMap<String, Int>()
+    val columnWidths = LinkedHashMap<String,Int>()
 
-    var indexColumnWidth by Delegates.notNull<Int>()
+    var indexColumnWidth = max(ceil(log10(dataframe.size.toDouble())).toInt(), INDEX_COLUMN_NAME.length)
 
     init {
-        val dataSize = dataframe.size
         if (showHeader) {
-            indexColumnWidth = max(ceil(log10(dataSize.toDouble())).toInt(), INDEX_COLUMN_NAME.length)
             dataframe.keys.forEach { key ->
                 columnWidths[key] = if(showAlias) {
                     dataframe.getLabel(key)
@@ -109,7 +108,7 @@ private class PrintHelper(
         dataframe.keys.forEach { key ->
             columnWidths[key] = maxOf(
                 columnWidths[key] ?: 0,
-                dataframe.getColumn(key).getWidth(start, end ?: dataSize, maxColumnWidth).roundToInt()
+                dataframe.getColumn(key).getWidth(start, end ?: dataframe.size, maxColumnWidth).roundToInt()
             )
         }
     }
@@ -118,11 +117,14 @@ private class PrintHelper(
         return columnWidths[key] ?: 0
     }
 
-    fun makeLine(base: Char, delimiter: Char): String {
+    fun makeLine(showIndex: Boolean, base: Char, delimiter: Char): String {
         val sb = StringBuilder().append(delimiter)
         if( columnWidths.isEmpty() ) {
             sb.append( base.repeat(3) ).append(delimiter)
         } else {
+            if(showIndex) {
+                sb.append( base.repeat(indexColumnWidth) ).append(delimiter)
+            }
             for( w in columnWidths.values ) {
                 sb.append( base.repeat(w) ).append(delimiter)
             }
@@ -132,7 +134,7 @@ private class PrintHelper(
 
 }
 
-private fun Any?.toDisplayString(maxWidth: Double): String {
+fun Any?.toDisplayString(maxWidth: Double): String {
 
     val value = when {
         this == null                            -> return ""
@@ -145,14 +147,29 @@ private fun Any?.toDisplayString(maxWidth: Double): String {
     val sb = ArrayList<Any>()
     var size = 0.0
 
+    val onFullwidth = Characters.fullwidth > Characters.halfwidth
+
     value.forEachIndexed { i, c ->
         val w = c.displayWidth
-        if (size + w > maxWidth) {
-            return when {
-                c in setOf('\n', '\r', '\b', '\t') -> sb
-                value.getOrNull(i-1).isHalfWidth() -> sb.subList(0, sb.lastIndex - 1)
-                else -> sb
-            }.joinToString("", postfix = "..")
+        if(onFullwidth) {
+            if(size + w == maxWidth && i < value.lastIndex) {
+                return when {
+                    c in setOf('\n', '\r', '\b', '\t') -> sb
+                    c.isFullWidth() -> sb
+                    else -> sb.subList(0, sb.size - 1)
+                }.joinToString("", postfix = "..")
+            } else if(size + w > maxWidth) {
+                return sb.subList(0, sb.size - 1).joinToString("", postfix = "..")
+            }
+        } else {
+            if(size + w == maxWidth && i < value.lastIndex) {
+                return when {
+                    c in setOf('\n', '\r', '\b', '\t') -> sb
+                    else -> sb.subList(0, sb.size - 1)
+                }.joinToString("", postfix = "..")
+            } else if(size + w > maxWidth) {
+                return sb.subList(0, sb.size - 1).joinToString("", postfix = "..")
+            }
         }
         sb.add(when (c) {
             '\n' -> "\\n"
@@ -164,7 +181,7 @@ private fun Any?.toDisplayString(maxWidth: Double): String {
         size += w
     }
 
-    return sb.toString()
+    return sb.joinToString("")
 }
 
 private fun Column.getWidth(startRow: Int, endRow: Int, maxWidth: Double): Double {
