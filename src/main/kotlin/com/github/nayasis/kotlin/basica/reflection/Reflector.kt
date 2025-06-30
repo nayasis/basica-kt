@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.addDeserializer
 import com.fasterxml.jackson.module.kotlin.addSerializer
+import com.fasterxml.jackson.module.kotlin.jacksonTypeRef
 import com.fasterxml.jackson.module.kotlin.jsonMapper
 import com.fasterxml.jackson.module.kotlin.kotlinModule
 import com.github.nayasis.kotlin.basica.core.string.escapeRegex
@@ -90,7 +91,7 @@ class Reflector { companion object {
         }
     }
 
-    private fun mapper(ignoreNull: Boolean = true) : ObjectMapper = if( ignoreNull ) mapper else nullMapper
+    fun mapper(ignoreNull: Boolean = true) : ObjectMapper = if( ignoreNull ) mapper else nullMapper
 
     @JvmStatic
     fun toJson(obj: Any?, pretty: Boolean = false, ignoreNull: Boolean = true, view: Class<*>? = null): String {
@@ -115,9 +116,9 @@ class Reflector { companion object {
     }
 
     @JvmStatic
-    fun <T> toObject(src: Any?, ignoreNull: Boolean = true): T {
+    inline fun <reified T> toObject(src: Any?, ignoreNull: Boolean = true): T {
         val mapper    = mapper(ignoreNull)
-        val typeref   = object : TypeReference<T>() {}
+        val typeref   = jacksonTypeRef<T>()
         return when (src) {
             null            -> mapper.readValue(emptyJson(typeref), typeref)
             is CharSequence -> mapper.readValue(src.toString().ifEmpty{emptyJson(typeref)}, typeref)
@@ -270,7 +271,7 @@ class Reflector { companion object {
 
 }}
 
-private fun emptyJson(typeref: TypeReference<*>): String {
+fun emptyJson(typeref: TypeReference<*>): String {
     return try {
         val klass = (typeref.type as ParameterizedType).rawType as Class<*>
         emptyJson(klass.kotlin)
