@@ -401,6 +401,46 @@ internal class DataframeTest: StringSpec({
         """.trimIndent().trim()
     }
 
+    "iterator는 각 row를 Map<String, Any?>로 순회한다" {
+        val dataframe = DataFrame().apply {
+            addRow(mapOf("a" to 1, "b" to "x"))
+            addRow(mapOf("a" to 2, "b" to "y"))
+            addRow(mapOf("a" to 3, "b" to "z"))
+        }
+
+        val rows = dataframe.toList()
+        rows.size shouldBe 3
+        rows[0] shouldBe mapOf("a" to 1, "b" to "x")
+        rows[1] shouldBe mapOf("a" to 2, "b" to "y")
+        rows[2] shouldBe mapOf("a" to 3, "b" to "z")
+    }
+
+    // setData로 3, 7, 9번째 row에만 값을 세팅한 경우 iterator 동작 테스트
+    "setData로 특정 row에만 값을 세팅한 경우 iterator는 firstIndex~lastIndex 범위의 row를 모두 반환한다" {
+        val dataframe = DataFrame()
+        dataframe.setData(3, "a", 100)
+        dataframe.setData(7, "a", 200)
+        dataframe.setData(9, "a", 300)
+
+        val rows = dataframe.toList()
+        rows.size shouldBe 7 // 3~9까지 7개
+        val expectedIndices = (3..9).toList()
+        val actualIndices = (dataframe.firstIndex!!..dataframe.lastIndex!!).toList()
+        actualIndices shouldBe expectedIndices
+
+        // 각 row의 index가 3~9로 순서대로 나오는지 확인
+        var idx = dataframe.firstIndex!!
+        for (row in dataframe) {
+            row["a"] shouldBe when(idx) {
+                3 -> 100
+                7 -> 200
+                9 -> 300
+                else -> null
+            }
+            idx++
+        }
+    }
+
 })
 
 data class Person(
