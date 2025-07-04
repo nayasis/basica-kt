@@ -343,6 +343,8 @@ internal class DataframeTest: StringSpec({
             addRow(mapOf("name" to "Charlie", "age" to 35))
         }
 
+        logger.debug { "\n$dataframe" }
+
         val rows = mutableListOf<Map<String, Any?>>()
         for (row in dataframe) {
             rows.add(row)
@@ -399,6 +401,46 @@ internal class DataframeTest: StringSpec({
             |Eve  | 45|
             +-----+---+            
         """.trimIndent().trim()
+    }
+
+    "iterator iterates each row as Map<String, Any?>" {
+        val dataframe = DataFrame().apply {
+            addRow(mapOf("a" to 1, "b" to "x"))
+            addRow(mapOf("a" to 2, "b" to "y"))
+            addRow(mapOf("a" to 3, "b" to "z"))
+        }
+
+        val rows = dataframe.toList()
+        rows.size shouldBe 3
+        rows[0] shouldBe mapOf("a" to 1, "b" to "x")
+        rows[1] shouldBe mapOf("a" to 2, "b" to "y")
+        rows[2] shouldBe mapOf("a" to 3, "b" to "z")
+    }
+
+    // Test iterator behavior when setData is called only for the 3rd, 7th, and 9th rows
+    "When setData is called only for specific rows, the iterator should return all rows in the firstIndex~lastIndex range" {
+        val dataframe = DataFrame()
+        dataframe.setData(3, "a", 100)
+        dataframe.setData(7, "a", 200)
+        dataframe.setData(9, "a", 300)
+
+        val rows = dataframe.toList()
+        rows.size shouldBe 7 // 3~9까지 7개
+        val expectedIndices = (3..9).toList()
+        val actualIndices = (dataframe.firstIndex!!..dataframe.lastIndex!!).toList()
+        actualIndices shouldBe expectedIndices
+
+        // Check that the index of each row appears sequentially from 3 to 9
+        var idx = dataframe.firstIndex!!
+        for (row in dataframe) {
+            row["a"] shouldBe when(idx) {
+                3 -> 100
+                7 -> 200
+                9 -> 300
+                else -> null
+            }
+            idx++
+        }
     }
 
 })

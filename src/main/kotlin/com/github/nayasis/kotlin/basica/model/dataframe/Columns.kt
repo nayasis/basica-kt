@@ -12,7 +12,7 @@ class Columns: LinkedHashMap<String, Column>() {
         values.forEach { it.clear() }
     }
 
-    fun getLabel(key: String): String? {
+    fun getLabel(key: String): String {
         return labels[key] ?: key
     }
 

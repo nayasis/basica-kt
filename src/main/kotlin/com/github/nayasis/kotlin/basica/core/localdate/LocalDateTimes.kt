@@ -131,23 +131,17 @@ fun String.toLocalTime(): LocalTime = toLocalTime(native=false)
 
 fun String.toLocalTime(format: DateTimeFormatter): LocalTime = LocalTime.parse(this, format)
 
-fun String.toZonedDateTime(format: DateTimeFormatter = DateTimeFormatter.ISO_ZONED_DATE_TIME, zoneId: ZoneId = ZoneId.systemDefault()): ZonedDateTime {
-    return runCatching {
-        ZonedDateTime.parse(this, format)
-    }.recoverCatching {
-        ZonedDateTime.of(this.toLocalDateTime(format), zoneId)
-    }.getOrElse {
-        ZonedDateTime.of(this.toLocalDateTime(), zoneId)
-    }
-}
+fun String.toZonedDateTime(format: String = "", native: Boolean = false, zoneId: ZoneId = ZoneId.systemDefault()): ZonedDateTime =
+    ZonedDateTime.of( this.toLocalDateTime(format,native), zoneId )
 
-fun String.toDate(format: String = "", native: Boolean = false, zoneId: ZoneId = ZoneId.systemDefault()): Date {
-    return this.toLocalDateTime(format, native).toDate(zoneId)
-}
+fun String.toZonedDateTime(format: DateTimeFormatter, zoneId: ZoneId = ZoneId.systemDefault()): ZonedDateTime =
+    ZonedDateTime.of( this.toLocalDateTime(format), zoneId )
 
-fun String.toDate(format: DateTimeFormatter, zoneId: ZoneId = ZoneId.systemDefault()): Date {
-    return this.toLocalDateTime(format).toDate(zoneId)
-}
+fun String.toDate(format: String = "", native: Boolean = false, zoneId: ZoneId = ZoneId.systemDefault()): Date =
+    Date.from( this.toZonedDateTime(format,native,zoneId).toInstant() )
+
+fun String.toDate(format: DateTimeFormatter, zoneId: ZoneId = ZoneId.systemDefault()): Date =
+    Date.from( this.toZonedDateTime(format,zoneId).toInstant() )
 
 fun String.toCalendar(format: String = "", native: Boolean = false, zoneId: ZoneId = ZoneId.systemDefault()): Calendar =
     this.toDate(format, native, zoneId).toCalendar(zoneId)
@@ -245,26 +239,6 @@ fun LocalDateTime.withOffset(offset: ZoneOffset): LocalDateTime =
 
 fun Calendar.toDate(): Date = this.time
 
-fun Calendar.toZonedDateTime(zoneId: ZoneId? = null): ZonedDateTime {
-    val targetZoneId = zoneId ?: this.timeZone.toZoneId()
-    return ZonedDateTime.ofInstant(this.toInstant(), targetZoneId)
-}
-
-fun Calendar.toLocalDateTime(zoneId: ZoneId? = null): LocalDateTime =
-    this.toZonedDateTime(zoneId).toLocalDateTime()
-
-fun Calendar.toLocalDate(zoneId: ZoneId? = null): LocalDate =
-    this.toZonedDateTime(zoneId).toLocalDate()
-
-// ZonedDateTime extension functions for timezone conversion
-fun ZonedDateTime.toLocalDateTime(targetZoneId: ZoneId): LocalDateTime =
-    this.withZoneSameInstant(targetZoneId).toLocalDateTime()
-
-fun ZonedDateTime.toLocalDate(targetZoneId: ZoneId): LocalDate =
-    this.withZoneSameInstant(targetZoneId).toLocalDate()
-
-fun ZonedDateTime.toLocalTime(targetZoneId: ZoneId): LocalTime =
-    this.withZoneSameInstant(targetZoneId).toLocalTime()
 
 /**
   DateTimeFormatter extension functions

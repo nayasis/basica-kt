@@ -1,8 +1,6 @@
 package com.github.nayasis.kotlin.basica.model.dataframe.helper.exporter
 
 import com.github.nayasis.kotlin.basica.model.dataframe.DataFrame
-import com.github.nayasis.kotlin.basica.model.dataframe.helper.isDateObject
-import com.github.nayasis.kotlin.basica.model.dataframe.helper.toOdsDate
 import java.io.OutputStream
 import java.io.OutputStreamWriter
 import java.io.PrintWriter
@@ -19,23 +17,18 @@ class CsvExporter(
     private val delimiter: String = ",",
     private val showLabel: Boolean = true,
     private val charset: Charset = Charsets.UTF_8,
-    startIndex: Int? = null,
+    private val startIndex: Int? = null,
 ): DataFrameExporter() {
-
-    private val first: Int = startIndex?.takeIf { it >= 0 } ?: 0
-    private val last: Int  = dataframe.lastIndex ?: -1
 
     override fun export(outputStream: OutputStream) {
         PrintWriter(OutputStreamWriter(outputStream, charset)).use { writer ->
             val keys = dataframe.keys.also { if(it.isEmpty()) return }
             // write header
-            (if (showLabel) dataframe.labels else keys).let {
-                writer.write(it)
-            }
+            (if (showLabel) dataframe.labels else keys).let { writer.write(it) }
             // write body
-            for(i in first .. last) {
-                writer.println()
+            for(i in (startIndex ?: dataframe.firstIndex ?: 0) .. (dataframe.lastIndex ?: -1)) {
                 keys.map { key -> dataframe.getData(i,key) }.let { writer.write(it) }
+                writer.println()
             }
         }
     }
@@ -44,14 +37,11 @@ class CsvExporter(
         values.joinToString(delimiter) { value ->
             when {
                 value == null -> ""
-                isDateObject(value) -> toOdsDate(value) ?: "$value"
                 value is CharSequence && value.isEmpty() -> ""
                 value is Number -> value.toString()
                 else -> value.toString().replace("\"", "\"\"").let { "\"$it\"" }
             }
-        }.let {
-            print(it)
-        }
+        }.let { print(it) }
     }
 
 }

@@ -2,18 +2,14 @@ package com.github.nayasis.kotlin.basica.model.dataframe.helper
 
 import com.github.nayasis.kotlin.basica.core.localdate.format
 import com.github.nayasis.kotlin.basica.core.localdate.toDate
-import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
-import com.github.nayasis.kotlin.basica.xml.XmlReader
+import com.github.nayasis.kotlin.basica.core.localdate.toString
+import com.github.nayasis.kotlin.basica.model.dataframe.toDisplayString
 import org.w3c.dom.Document
-import org.w3c.dom.Element
-import java.io.InputStream
-import java.nio.charset.Charset
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
 import java.util.*
 import java.util.zip.ZipEntry
-import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 import javax.xml.transform.OutputKeys
 import javax.xml.transform.TransformerFactory
@@ -46,19 +42,6 @@ fun ZipOutputStream.writeEntry(name: String, content: Document) {
     closeEntry()
 }
 
-fun ZipInputStream.toDocument(charset: Charset = Charsets.UTF_8): Element {
-    return XmlReader.read(UnclosableInputStream(this), charset)
-}
-
-private class UnclosableInputStream(
-    private val wrapped: InputStream
-) : InputStream() {
-    override fun read(): Int = wrapped.read()
-    override fun read(b: ByteArray): Int = wrapped.read(b)
-    override fun read(b: ByteArray, off: Int, len: Int): Int = wrapped.read(b, off, len)
-    override fun close() { /* do nothing */ }
-}
-
 fun isDateObject(value: Any?): Boolean {
     return value is LocalDate || value is LocalDateTime || value is ZonedDateTime || value is Date || value is Calendar
 }
@@ -88,22 +71,16 @@ fun toExcelDate(value: Any?): Double? {
             epochSecond / 86400.0 + 25569.0
         }
         is ZonedDateTime -> {
-            // Excel doesn't store timezone info, so we convert to local time
-            val localDateTime = value.toLocalDateTime()
-            val epochSecond = localDateTime.toEpochSecond(java.time.ZoneOffset.UTC)
+            val epochSecond = value.toEpochSecond()
             epochSecond / 86400.0 + 25569.0
         }
         is Date -> {
-            // Convert Date to LocalDateTime first to avoid timezone issues
-            val localDateTime = value.toLocalDateTime()
-            val epochSecond = localDateTime.toEpochSecond(java.time.ZoneOffset.UTC)
-            epochSecond / 86400.0 + 25569.0
+            // Convert Date to milliseconds and calculate Excel date
+            value.time / (1000.0 * 86400.0) + 25569.0
         }
         is Calendar -> {
-            // Convert Calendar to LocalDateTime first to avoid timezone issues
-            val localDateTime = value.toLocalDateTime()
-            val epochSecond = localDateTime.toEpochSecond(java.time.ZoneOffset.UTC)
-            epochSecond / 86400.0 + 25569.0
+            // Convert Calendar to milliseconds and calculate Excel date
+            value.timeInMillis / (1000.0 * 86400.0) + 25569.0
         }
         else -> null
     }

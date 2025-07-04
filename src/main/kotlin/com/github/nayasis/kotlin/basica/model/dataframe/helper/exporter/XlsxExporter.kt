@@ -25,12 +25,13 @@ class XlsxExporter(
     startIndex: Int? = null,
 ) : DataFrameExporter() {
 
-    private val first: Int = startIndex?.takeIf { it >= 0 } ?: dataframe.firstIndex ?: 0
+    private val first: Int = startIndex ?: dataframe.firstIndex ?: 0
     private val last: Int  = dataframe.lastIndex ?: -1
 
     private val stringIndexMap = buildSharedStrings()
 
     override fun export(outputStream: OutputStream) {
+
         ZipOutputStream(outputStream).use { zos ->
             writeContentTypes(zos)
             writeRels(zos)
@@ -51,7 +52,6 @@ class XlsxExporter(
         }
         // read data
         for (r in first..last) {
-            if(dataframe.isRowEmpty(r)) continue
             for (key in dataframe.keys) {
                 dataframe.getData(r, key).takeIf { it != null && it !is Number && !isDateObject(it) }?.let { value ->
                     uniqueStrings.add(value.toString())
@@ -62,7 +62,6 @@ class XlsxExporter(
     }
 
     private fun writeContentTypes(zos: ZipOutputStream) {
-        // TODO: Check content_Types.xml for correctness
         zos.writeEntry("[Content_Types].xml", """
             <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
             <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
@@ -118,7 +117,7 @@ class XlsxExporter(
             setAttribute("uniqueCount", stringIndexMap.size.toString())
         }
 
-        stringIndexMap.forEach {(value, _) ->
+        stringIndexMap.forEach {(value, index) ->
             sst.appendElement("si").appendElement("t").textContent = value
         }
 
@@ -187,14 +186,13 @@ class XlsxExporter(
         }
 
         for (row in first.. last) {
-            if(dataframe.isRowEmpty(row)) continue
             val dataRow = sheetData.appendElement("row").apply {
-                setAttribute("r", (row + 2).toString())
+                setAttribute("r", (row + 1).toString())
             }
             dataframe.keys.forEachIndexed { col, key ->
                 doc.createCell(
                     dataframe.getData(row, key),
-                    toCellAddress(row + 2, col),
+                    toCellAddress(row + 1, col),
                 ).appendTo(dataRow)
             }
         }
@@ -212,7 +210,7 @@ class XlsxExporter(
                 colNum = colNum / 26 - 1
             }
         }
-        return "$colRef${row}" // row is 1-based in Excel
+        return "$colRef${row}"
     }
 
     private fun Document.createCell(value: Any?, cellRef: String): Element {
