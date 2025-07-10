@@ -21,6 +21,7 @@ import org.w3c.dom.traversal.TreeWalker
 import java.io.StringWriter
 import javax.xml.xpath.XPathConstants
 import javax.xml.xpath.XPathFactory
+import kotlin.coroutines.CoroutineContext
 
 private val parserXpath = XPathFactory.newInstance().newXPath()
 
@@ -60,11 +61,18 @@ fun Node.appendFromXml(xml: String, ignoreDtd: Boolean = true): Node {
 fun Node.appendTextNode(text: String?): Node =
     this.appendChild(ownerDocument.createTextNode(text?:""))
 
-fun Node.appendElement(tagName: String): Node =
-    this.appendChild(ownerDocument.createElement(tagName))
+fun Node.appendElement(tagName: String): Element {
+    return (ownerDocument ?: this as Document).createElement(tagName).also {
+        this.appendChild(it)
+    }
+}
 
 fun Node.appendComment(comment: String?): Node =
     this.appendChild(ownerDocument.createComment(comment?:""))
+
+fun Node.appendTo(parent: Node): Node {
+    return parent.appendChild(this)
+}
 
 fun Node.remove(): Node {
     this.parentNode?.removeChild(this)

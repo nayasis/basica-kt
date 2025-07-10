@@ -36,6 +36,7 @@ import java.nio.file.Path
 import java.util.*
 import java.util.regex.Matcher
 import java.util.regex.Pattern
+import java.util.zip.CRC32
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 import kotlin.math.min
@@ -835,4 +836,8 @@ fun String.wrap(open: String = "\"", close: String = open, escapeChar: Char? = n
 
 fun String.loadClass(classLoader: ClassLoader? = null): Class<*> {
     return (classLoader ?: Classes.classLoader).loadClass(this)
+}
+
+fun String.getCrc32(charset: Charset = Charsets.UTF_8): Long {
+    return CRC32().also { it.update(this.toByteArray(charset)) }.value
 }
