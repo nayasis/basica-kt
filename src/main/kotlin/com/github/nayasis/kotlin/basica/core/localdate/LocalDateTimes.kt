@@ -9,7 +9,6 @@ import com.github.nayasis.kotlin.basica.core.string.extractDigit
 import java.nio.file.attribute.FileTime
 import java.time.*
 import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeFormatter.*
 import java.time.temporal.ChronoField
 import java.time.temporal.Temporal
 import java.util.*
@@ -56,7 +55,6 @@ fun String.toLocalDateTime(format: String = "", native: Boolean = false): LocalD
             pattern.append('.')
             value.append('.')
         }
-
     }
 
     return toLocalDateTime("$value", "$pattern").let {
@@ -104,7 +102,7 @@ private fun String.cleansing(): String {
 }
 
 private fun toLocalDateTime(value: String, pattern: String): LocalDateTime {
-    return value.toLocalDateTime(pattern.toDateTimeFormatter(true)!!)
+    return value.toLocalDateTime(pattern.toDateTimeFormatter(true))
 }
 
 private fun toLocalTime(value: String, pattern: String): LocalTime {
@@ -155,6 +153,12 @@ fun String.toDate(format: String = "", native: Boolean = false, zoneId: ZoneId =
 fun String.toDate(format: DateTimeFormatter, zoneId: ZoneId = ZoneId.systemDefault()): Date =
     Date.from( this.toZonedDateTime(format,zoneId).toInstant() )
 
+fun String.toCalendar(format: String = "", native: Boolean = false, zoneId: ZoneId = ZoneId.systemDefault()): Calendar =
+    this.toDate(format, native, zoneId).toCalendar(zoneId)
+
+fun String.toCalendar(format: DateTimeFormatter, zoneId: ZoneId = ZoneId.systemDefault()): Calendar =
+    this.toDate(format, zoneId).toCalendar(zoneId)
+
 fun String.toSqlDate(format: String = "", native: Boolean = false): java.sql.Date =
     java.sql.Date.valueOf(this.toLocalDate(format,native))
 
@@ -178,33 +182,6 @@ fun LocalDateTime.atEndOfDay(): LocalDateTime =
 // [LocalDate.atStartOfDay()] is already exists.
 
 fun LocalDate.atEndOfDay(): LocalDateTime = LocalDateTime.of(this, LocalTime.MAX)
-
-// format, toString
-
-fun LocalDateTime.format(format: String = "", native: Boolean = false): String =
-    this.format(format.toDateTimeFormatter(native) ?: ISO_LOCAL_DATE_TIME)
-
-fun LocalDate.format(format: String = "", native: Boolean = false): String =
-    this.format(format.toDateTimeFormatter(native) ?: ISO_LOCAL_DATE)
-
-fun LocalTime.format(format: String = "", native: Boolean = false): String =
-    this.format(format.toTimeFormatter(native) ?: ISO_LOCAL_TIME)
-
-fun Date.format(format: String = "", native: Boolean = false, zoneId: ZoneId = ZoneId.systemDefault()): String =
-    this.toLocalDateTime(zoneId).format(format.toDateTimeFormatter(native) ?: ISO_LOCAL_DATE_TIME)
-
-fun SqlDate.format(format: String = "", native: Boolean = false): String =
-    this.toLocalDate().format(format.toDateTimeFormatter(native) ?: ISO_LOCAL_DATE_TIME)
-
-fun LocalDateTime.toString(format: String = ""): String = this.format(format)
-
-fun LocalDate.toString(format: String = ""): String = this.format(format)
-
-fun LocalTime.toString(format: String = ""): String = this.format(format)
-
-fun Date.toString(format: String = "", native: Boolean = false, zoneId: ZoneId = ZoneId.systemDefault()): String = this.format(format,native,zoneId)
-
-fun SqlDate.toString(format: String = ""): String = this.format(format)
 
 // [LocalDateTime -> LocalDate] is already exists.
 
@@ -271,3 +248,37 @@ fun LocalDateTime.withOffset(offset: ZoneOffset): LocalDateTime =
     this.atOffset(ZoneOffset.UTC).withOffsetSameInstant(offset).toLocalDateTime()
 
 fun Calendar.toDate(): Date = this.time
+
+
+/**
+  DateTimeFormatter extension functions
+
+  - toDateTimeFormat, toTimeFormat
+  - toDateTimeFormatter, toTimeFormatter
+  - cleansing
+**/
+
+fun LocalDateTime.format(format: String = "", native: Boolean = false): String =
+    this.format(format.toDateTimeFormatter(native))
+
+fun LocalDate.format(format: String = "", native: Boolean = false): String =
+    this.format(format.toDateTimeFormatter(native))
+
+fun LocalTime.format(format: String = "", native: Boolean = false): String =
+    this.format(format.toTimeFormatter(native))
+
+fun Date.format(format: String = "", native: Boolean = false, zoneId: ZoneId = ZoneId.systemDefault()): String =
+    this.toLocalDateTime(zoneId).format(format.toDateTimeFormatter(native))
+
+fun SqlDate.format(format: String = "", native: Boolean = false): String =
+    this.toLocalDate().format(format.toDateTimeFormatter(native))
+
+fun LocalDateTime.toString(format: String = ""): String = this.format(format)
+
+fun LocalDate.toString(format: String = ""): String = this.format(format)
+
+fun LocalTime.toString(format: String = ""): String = this.format(format)
+
+fun Date.toString(format: String = "", native: Boolean = false, zoneId: ZoneId = ZoneId.systemDefault()): String = this.format(format,native,zoneId)
+
+fun SqlDate.toString(format: String = ""): String = this.format(format)

@@ -1,14 +1,14 @@
 package com.github.nayasis.kotlin.basica.core.localdate
 
 import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeFormatter.ofPattern
+import java.time.format.DateTimeFormatter.*
 
 private val REGEX_USER_TEXT = "'.*?'".toRegex()
 private val REGEX_YEAR      = "YYYY".toRegex()
 private val REGEX_DATE      = "(^|[^D])DD([^D]|$)".toRegex()
 private val REGEX_MIN       = "MI".toRegex()
 private val REGEX_SEC       = "(^|[^S])SS([^S]|$)".toRegex()
-private val REGEX_MILISEC   = "(^|[^F])FFF([^F]|$)".toRegex()
+private val REGEX_MILLI_SEC = "(^|[^F])FFF([^F]|$)".toRegex()
 
 
 private val cacheDateFormat    = HashMap<String,String>()
@@ -25,7 +25,7 @@ fun String.toDateTimeFormat(native: Boolean = false): String {
                 .replace(REGEX_DATE, "$1dd$2")
                 .replace(REGEX_MIN, "mm")
                 .replace(REGEX_SEC, "$1ss$2")
-                .replace(REGEX_MILISEC, "$1SSS$2")
+                .replace(REGEX_MILLI_SEC, "$1SSS$2")
             } catch (e: Exception) {
                 throw IllegalArgumentException("Invalid pattern : $this", e)
             }
@@ -42,9 +42,9 @@ fun String.toTimeFormat(native: Boolean = false): String {
     }
 }
 
-fun String.toDateTimeFormatter(native: Boolean = false): DateTimeFormatter? {
+fun String.toDateTimeFormatter(native: Boolean = false): DateTimeFormatter {
     return when {
-        isEmpty() -> null
+        isEmpty() -> ISO_LOCAL_DATE_TIME
         else -> {
             try {
                 val key = this to native
@@ -57,9 +57,9 @@ fun String.toDateTimeFormatter(native: Boolean = false): DateTimeFormatter? {
     }
 }
 
-fun String.toTimeFormatter(native: Boolean = false): DateTimeFormatter? {
+fun String.toTimeFormatter(native: Boolean = false): DateTimeFormatter {
     return when {
-        isEmpty() -> null
+        isEmpty() -> ISO_LOCAL_DATE
         else -> {
             try {
                 val key = this to native

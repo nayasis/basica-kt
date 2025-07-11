@@ -8,6 +8,12 @@ import com.github.nayasis.kotlin.basica.xml.appendTo
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 import java.io.OutputStream
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Calendar
+import java.util.Date
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import javax.xml.parsers.DocumentBuilderFactory
@@ -22,10 +28,10 @@ class XlsxExporter(
     startIndex: Int? = null,
 ) : DataFrameExporter() {
 
-    private val stringIndexMap = buildSharedStrings()
-
     private val first: Int = startIndex ?: dataframe.firstIndex ?: 0
     private val last: Int  = dataframe.lastIndex ?: -1
+
+    private val stringIndexMap = buildSharedStrings()
 
     override fun export(outputStream: OutputStream) {
 
@@ -50,12 +56,45 @@ class XlsxExporter(
         // read data
         for (r in first..last) {
             for (key in dataframe.keys) {
-                dataframe.getData(r, key).takeIf { it != null && it !is Number }?.let { value ->
+                dataframe.getData(r, key).takeIf { it != null && it !is Number && !isDateObject(it) }?.let { value ->
                     uniqueStrings.add(value.toString())
                 }
             }
         }
         return uniqueStrings.mapIndexed { index, value -> value to index }.toMap()
+    }
+
+    private fun isDateObject(value: Any?): Boolean {
+        return value is LocalDate || value is LocalDateTime || value is ZonedDateTime || value is Date || value is Calendar
+    }
+
+    private fun convertToExcelDate(value: Any?): Double? {
+        return when (value) {
+            is LocalDate -> {
+                // Excel date is the number of days since 1990-01-01
+                val epochDay = value.toEpochDay()
+                // Excel counts 1990-01-01 as 1, so add 25569
+                epochDay + 25569.0
+            }
+            is LocalDateTime -> {
+                val epochSecond = value.toEpochSecond(java.time.ZoneOffset.UTC)
+                // Excel uses days, not seconds, so divide by 86400 (seconds in a day)
+                epochSecond / 86400.0 + 25569.0
+            }
+            is ZonedDateTime -> {
+                val epochSecond = value.toEpochSecond()
+                epochSecond / 86400.0 + 25569.0
+            }
+            is Date -> {
+                // Convert Date to milliseconds and calculate Excel date
+                value.time / (1000.0 * 86400.0) + 25569.0
+            }
+            is Calendar -> {
+                // Convert Calendar to milliseconds and calculate Excel date
+                value.timeInMillis / (1000.0 * 86400.0) + 25569.0
+            }
+            else -> null
+        }
     }
 
     private fun writeContentTypes(zos: ZipOutputStream) {
@@ -86,7 +125,7 @@ class XlsxExporter(
             <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
             <workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
               <sheets>
-                <sheet name="Sheet1" sheetId="1" r:id="rId1"/>
+                <sheet name="${sheetName}" sheetId="1" r:id="rId1"/>
               </sheets>
             </workbook>
         """.trimIndent())
@@ -114,7 +153,7 @@ class XlsxExporter(
             setAttribute("uniqueCount", stringIndexMap.size.toString())
         }
 
-        stringIndexMap.forEach { value, index ->
+        stringIndexMap.forEach {(value, index) ->
             sst.appendElement("si").appendElement("t").textContent = value
         }
 
@@ -126,7 +165,10 @@ class XlsxExporter(
         zos.writeEntry("xl/styles.xml", """
             <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
             <styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
-              <numFmts count="0"/>
+              <numFmts count="2">
+                <numFmt numFmtId="14" formatCode="yyyy-mm-dd"/>
+                <numFmt numFmtId="15" formatCode="yyyy-mm-dd hh:mm:ss"/>
+              </numFmts>
               <fonts count="1">
                 <font>
                   <sz val="11"/>
@@ -150,8 +192,10 @@ class XlsxExporter(
               <cellStyleXfs count="1">
                 <xf numFmtId="0" fontId="0" fillId="0" borderId="0"/>
               </cellStyleXfs>
-              <cellXfs count="1">
+              <cellXfs count="3">
                 <xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>
+                <xf numFmtId="14" fontId="0" fillId="0" borderId="0" xfId="0"/>
+                <xf numFmtId="15" fontId="0" fillId="0" borderId="0" xfId="0"/>
               </cellXfs>
             </styleSheet>
         """.trimIndent())
@@ -179,12 +223,12 @@ class XlsxExporter(
 
         for (row in first.. last) {
             val dataRow = sheetData.appendElement("row").apply {
-                setAttribute("r", (row + 2).toString())
+                setAttribute("r", (row + 1).toString())
             }
             dataframe.keys.forEachIndexed { col, key ->
                 doc.createCell(
                     dataframe.getData(row, key),
-                    toCellAddress(row + 2, col),
+                    toCellAddress(row + 1, col),
                 ).appendTo(dataRow)
             }
         }
@@ -208,8 +252,24 @@ class XlsxExporter(
     private fun Document.createCell(value: Any?, cellRef: String): Element {
         return this.createElement("c").apply {
             setAttribute("r", cellRef)
-            when (value) {
-                is Number -> appendElement("v").textContent = value.toString()
+            when {
+                value == null -> {}
+                value is Number -> {
+                    appendElement("v").textContent = value.toString()
+                }
+                isDateObject(value) -> {
+                    val excelDate = convertToExcelDate(value)
+                    if (excelDate != null) {
+                        setAttribute("s", when (value) {
+                            is LocalDate -> "1" // date
+                            else -> "2"         // datetime
+                        })
+                        appendElement("v").textContent = excelDate.toString()
+                    } else {
+                        setAttribute("t", "s")
+                        appendElement("v").textContent = stringIndexMap[value.toString()]?.toString() ?: "0"
+                    }
+                }
                 else -> {
                     setAttribute("t", "s")
                     appendElement("v").textContent = stringIndexMap.get(value.toString())?.toString() ?: "0"

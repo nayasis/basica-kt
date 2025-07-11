@@ -1,5 +1,11 @@
 package com.github.nayasis.kotlin.basica.model.dataframe.helper.exporter
 
+import com.github.nayasis.kotlin.basica.core.character.Characters
+import com.github.nayasis.kotlin.basica.core.localdate.toCalendar
+import com.github.nayasis.kotlin.basica.core.localdate.toDate
+import com.github.nayasis.kotlin.basica.core.localdate.toLocalDate
+import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
+import com.github.nayasis.kotlin.basica.core.localdate.toZonedDateTime
 import com.github.nayasis.kotlin.basica.core.string.toPath
 import com.github.nayasis.kotlin.basica.model.dataframe.DataFrame
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -7,15 +13,20 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import java.io.ByteArrayOutputStream
+import java.time.LocalDate
+import java.util.Calendar
 import java.util.zip.ZipInputStream
 
 private val logger = KotlinLogging.logger {}
 
 internal class XlsxExporterTest : StringSpec({
 
-    "기본 XLSX 파일 만들기" {
-        val testdata = createTestDataframe().also { logger.debug { "\n$it" } }
+    Characters.fullwidth = 2.0
+
+    "create basic XLSX file" {
+        val testdata = createTestDataframe().also { logger.debug { "\n${it.toString(showIndex = true)}" } }
         XlsxExporter(testdata).export("c:/Users/hwasu.jung/Downloads/test.xlsx".toPath())
+//        XlsxExporter(testdata).export("e:/download/test.xlsx".toPath())
     }
 
     "기본 XLSX 내보내기" {
@@ -261,8 +272,14 @@ internal class XlsxExporterTest : StringSpec({
 
 fun createTestDataframe(): DataFrame {
     return DataFrame().apply {
-        addRow(mapOf("key" to "controller", "val" to "컨트롤러는 이런 것입니다."))
-        addRow(mapOf("key" to 1, "val" to 3359))
+        setRow(10, mapOf("key" to "controller", "val" to "컨트롤러는 이런 것입니다."))
+        setRow(13, mapOf("key" to 1, "val" to 3359))
+        setRow(14, mapOf("key" to "LocalDate", "val" to "2025-07-10".toLocalDate()))
+        setRow(15, mapOf("key" to "날짜시간", "val" to "2025-07-10".toLocalDateTime()))
+        setRow(16, mapOf("key" to "date", "val" to "2025-07-10".toDate()))
+        setRow(17, mapOf("key" to "날짜시간", "val" to "2025-07-10 11:23:49".toDate()))
+        setRow(18, mapOf("key" to "Calendar", "val" to "2025-07-10 14:30:25".toCalendar()))
+        setRow(19, mapOf("key" to "ZonedDateTime", "val" to "2025-07-10T15:45:30+09:00".toZonedDateTime()))
         setLabel("key", "이것은 KEY 입니다.")
         setLabel("val", "これは VALUE です")
     }

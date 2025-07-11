@@ -1,11 +1,7 @@
 package com.github.nayasis.kotlin.basica.model.dataframe
 
 import com.github.nayasis.kotlin.basica.reflection.Reflector
-import com.github.nayasis.kotlin.basica.model.dataframe.helper.exporter.*
-import com.github.nayasis.kotlin.basica.model.dataframe.helper.importer.*
-import java.io.OutputStream
 import java.io.Serializable
-import java.nio.file.Path
 
 class DataFrame(
     private val body: Columns = Columns()
@@ -53,65 +49,65 @@ class DataFrame(
         return body.getColumnBy(index) ?: throw NoSuchElementException("No column found for index[$index]")
     }
 
-    fun getData(r: Int, c: Int): Any? {
-        val key = body.getKeyBy(c) ?: throw NoSuchElementException("No column found for index[$c]")
-        return body[key]?.get(r)
+    fun getData(row: Int, col: Int): Any? {
+        val key = body.getKeyBy(col) ?: throw NoSuchElementException("No column found for index[$col]")
+        return body[key]?.get(row)
     }
 
-    fun getData(r: Int, key: String): Any? {
-        return body[key]?.get(r)
+    fun getData(row: Int, key: String): Any? {
+        return body[key]?.get(row)
     }
 
-    fun setData(r: Int, c: Int, value: Any?) {
-        val key = body.getKeyBy(c) ?: throw NoSuchElementException("No column found for index[$c]")
-        body[key]?.set(r, value)
+    fun setData(row: Int, col: Int, value: Any?) {
+        val key = body.getKeyBy(col) ?: throw NoSuchElementException("No column found for index[$col]")
+        body[key]?.set(row, value)
     }
 
-    fun setData(r: Int, key: String, value: Any?) {
+    fun setData(row: Int, key: String, value: Any?) {
         if (body[key] == null) {
             body[key] = Column()
         }
-        body[key]!!.set(r, value)
+        body[key]!![row] = value
     }
 
-    fun removeData(r: Int, c: Int) {
-        val key = body.getKeyBy(c) ?: throw NoSuchElementException("No column found for index[$c]")
-        body[key]?.remove(r)
+    fun removeData(row: Int, col: Int) {
+        val key = body.getKeyBy(col) ?: throw NoSuchElementException("No column found for index[$col]")
+        body[key]?.remove(row)
     }
 
-    fun removeData(r: Int, key: String) {
-        body[key]?.remove(r) ?: throw NoSuchElementException("No column found for key $key")
+    fun removeData(row: Int, key: String) {
+        (body[key]?: throw NoSuchElementException("No column found for key $key")).remove(row)
     }
 
-    fun setRow(r: Int, value: Any?) {
+    fun setRow(row: Int, value: Any?) {
         when(value) {
             null -> {
                 body.forEach { (_, column) ->
-                    column.set(r, null)
+                    column.set(row, null)
                 }
             }
             is Map<*, *> -> {
-                for ((key, value) in value) {
-                    setData(r, "$key", value)
+                for ((key, v) in value) {
+                    setData(row, "$key", v)
                 }
             }
             is Collection<*> -> {
-                var start = r
+                var start = row
                 value.forEach { setRow(start++, it) }
             }
             is Array<*> -> {
-                var start = r
+                var start = row
                 value.forEach { setRow(start++, it) }
             }
             is CharSequence -> {
                 val json = value.toString()
                 try {
-                    setRow(r, Reflector.toObject<ArrayList<Map<String, Any?>>>(json))
+                    setRow(row, Reflector.toObject<ArrayList<Map<String, Any?>>>(json))
                 } catch (e: Exception) {
-                    setRow(r, Reflector.toMap(json))
+                    setRow(row, Reflector.toMap(json))
                 }
             }
-            else -> setRow(r, Reflector.toMap(value))
+            else -> setRow(row, Reflector.toMap(value))
         }
     }
 
@@ -119,13 +115,13 @@ class DataFrame(
         setRow(size, value)
     }
 
-    fun getRow(r: Int): Map<String, Any?> {
-        return body.mapValues { (_, column) -> column.get(r) }
+    fun getRow(row: Int): Map<String, Any?> {
+        return body.mapValues { (_, column) -> column[row] }
     }
 
-    fun removeRow(r: Int) {
+    fun removeRow(row: Int) {
         body.forEach { (_, column) ->
-            column.remove(r)
+            column.remove(row)
         }
     }
 
