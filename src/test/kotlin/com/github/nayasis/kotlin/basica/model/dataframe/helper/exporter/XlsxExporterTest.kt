@@ -29,6 +29,11 @@ internal class XlsxExporterTest : StringSpec({
 //        XlsxExporter(testdata).export("e:/download/test.xlsx".toPath())
     }
 
+    "create basic Ods Exporter" {
+        val testdata = createTestDataframe().also { logger.debug { "\n${it.toString(showIndex = true)}" } }
+        OdsExporter(testdata).export("c:/Users/hwasu.jung/Downloads/test.ods".toPath())
+    }
+
     "기본 XLSX 내보내기" {
         val dataframe = createTestDataframe()
         val outputStream = ByteArrayOutputStream()

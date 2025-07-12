@@ -2,6 +2,8 @@ package com.github.nayasis.kotlin.basica.model.dataframe.helper.exporter
 
 import com.github.nayasis.kotlin.basica.core.string.getCrc32
 import com.github.nayasis.kotlin.basica.model.dataframe.DataFrame
+import com.github.nayasis.kotlin.basica.model.dataframe.helper.toOdsDate
+import com.github.nayasis.kotlin.basica.model.dataframe.helper.isDateObject
 import com.github.nayasis.kotlin.basica.model.dataframe.helper.writeEntry
 import com.github.nayasis.kotlin.basica.xml.appendElement
 import org.w3c.dom.Element
@@ -68,15 +70,29 @@ class OdsExporter(
 
     private fun Element.appendCell(value: Any?): Element {
         return this.appendElement("table:table-cell").apply {
-            when (value) {
-                is Number -> {
+            when {
+                value == null -> {
+                    setAttribute("office:value-type", "string")
+                }
+                value is Number -> {
                     setAttribute("office:value-type", "float")
                     setAttribute("office:value", value.toString())
                 }
-                else -> setAttribute("office:value-type", "string")
+                isDateObject(value) -> {
+                    val odsDate = toOdsDate(value)
+                    if (odsDate != null) {
+                        setAttribute("office:value-type", "date")
+                        setAttribute("office:date-value", odsDate)
+                    } else {
+                        setAttribute("office:value-type", "string")
+                    }
+                }
+                else -> {
+                    setAttribute("office:value-type", "string")
+                }
             }
         }.appendElement("text:p").apply {
-            textContent = value.toString()
+            textContent = value?.toString() ?: ""
         }
     }
 
@@ -90,7 +106,7 @@ class OdsExporter(
     }
 
     private fun writeManifest(zos: ZipOutputStream) {
-        zos.writeEntry("meta.xml", """
+        zos.writeEntry("META-INF/manifest.xml", """
             <?xml version="1.0" encoding="UTF-8"?>
             <manifest:manifest xmlns:manifest="urn:oasis:names:tc:opendocument:xmlns:manifest:1.0" manifest:version="1.2">
               <manifest:file-entry manifest:full-path="/" manifest:version="1.2" manifest:media-type="application/vnd.oasis.opendocument.spreadsheet"/>
@@ -129,7 +145,7 @@ class OdsExporter(
     }
 
     private fun writeStyles(zos: ZipOutputStream) {
-        zos.writeEntry("meta.xml", """
+        zos.writeEntry("styles.xml", """
             <?xml version="1.0" encoding="UTF-8"?>
             <office:document-styles xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0" xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0" office:version="1.2">
               <office:font-face-decls>

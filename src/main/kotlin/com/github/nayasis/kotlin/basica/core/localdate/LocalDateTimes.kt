@@ -267,6 +267,9 @@ fun LocalDate.format(format: String = "", native: Boolean = false): String =
 fun LocalTime.format(format: String = "", native: Boolean = false): String =
     this.format(format.toTimeFormatter(native))
 
+fun ZonedDateTime.format(format: String = "yyyy-MM-dd'T'HH:mm:ssXXX", native: Boolean = false): String =
+    this.format(format.toDateTimeFormatter(native))
+
 fun Date.format(format: String = "", native: Boolean = false, zoneId: ZoneId = ZoneId.systemDefault()): String =
     this.toLocalDateTime(zoneId).format(format.toDateTimeFormatter(native))
 
@@ -278,6 +281,8 @@ fun LocalDateTime.toString(format: String = ""): String = this.format(format)
 fun LocalDate.toString(format: String = ""): String = this.format(format)
 
 fun LocalTime.toString(format: String = ""): String = this.format(format)
+
+fun ZonedDateTime.toString(format: String = "yyyy-MM-dd'T'HH:mm:ssXXX", native: Boolean = false): String = this.format(format,native)
 
 fun Date.toString(format: String = "", native: Boolean = false, zoneId: ZoneId = ZoneId.systemDefault()): String = this.format(format,native,zoneId)
 

@@ -1,6 +1,8 @@
 package com.github.nayasis.kotlin.basica.model.dataframe.helper.exporter
 
 import com.github.nayasis.kotlin.basica.model.dataframe.DataFrame
+import com.github.nayasis.kotlin.basica.model.dataframe.helper.toExcelDate
+import com.github.nayasis.kotlin.basica.model.dataframe.helper.isDateObject
 import com.github.nayasis.kotlin.basica.model.dataframe.helper.write
 import com.github.nayasis.kotlin.basica.model.dataframe.helper.writeEntry
 import com.github.nayasis.kotlin.basica.xml.appendElement
@@ -9,11 +11,6 @@ import org.w3c.dom.Document
 import org.w3c.dom.Element
 import java.io.OutputStream
 import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
-import java.util.Calendar
-import java.util.Date
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import javax.xml.parsers.DocumentBuilderFactory
@@ -62,39 +59,6 @@ class XlsxExporter(
             }
         }
         return uniqueStrings.mapIndexed { index, value -> value to index }.toMap()
-    }
-
-    private fun isDateObject(value: Any?): Boolean {
-        return value is LocalDate || value is LocalDateTime || value is ZonedDateTime || value is Date || value is Calendar
-    }
-
-    private fun convertToExcelDate(value: Any?): Double? {
-        return when (value) {
-            is LocalDate -> {
-                // Excel date is the number of days since 1990-01-01
-                val epochDay = value.toEpochDay()
-                // Excel counts 1990-01-01 as 1, so add 25569
-                epochDay + 25569.0
-            }
-            is LocalDateTime -> {
-                val epochSecond = value.toEpochSecond(java.time.ZoneOffset.UTC)
-                // Excel uses days, not seconds, so divide by 86400 (seconds in a day)
-                epochSecond / 86400.0 + 25569.0
-            }
-            is ZonedDateTime -> {
-                val epochSecond = value.toEpochSecond()
-                epochSecond / 86400.0 + 25569.0
-            }
-            is Date -> {
-                // Convert Date to milliseconds and calculate Excel date
-                value.time / (1000.0 * 86400.0) + 25569.0
-            }
-            is Calendar -> {
-                // Convert Calendar to milliseconds and calculate Excel date
-                value.timeInMillis / (1000.0 * 86400.0) + 25569.0
-            }
-            else -> null
-        }
     }
 
     private fun writeContentTypes(zos: ZipOutputStream) {
@@ -258,7 +222,7 @@ class XlsxExporter(
                     appendElement("v").textContent = value.toString()
                 }
                 isDateObject(value) -> {
-                    val excelDate = convertToExcelDate(value)
+                    val excelDate = toExcelDate(value)
                     if (excelDate != null) {
                         setAttribute("s", when (value) {
                             is LocalDate -> "1" // date
