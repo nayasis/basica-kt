@@ -43,7 +43,7 @@ internal class LocalDatesKtTest: StringSpec({
         val zonedDateTime = ZonedDateTime.of(2025, 7, 10, 15, 45, 30, 0, ZoneId.of("Asia/Seoul"))
         
         // 기본 format 테스트
-        zonedDateTime.toString() shouldBe "2025-07-10T15:45:30+09:00"
+        zonedDateTime.format() shouldBe "2025-07-10T15:45:30+09:00"
         
         // 사용자 정의 format 테스트
         zonedDateTime.format("yyyy-MM-dd") shouldBe "2025-07-10"
@@ -59,10 +59,10 @@ internal class LocalDatesKtTest: StringSpec({
         
         // 다른 timezone 테스트
         val utcDateTime = ZonedDateTime.of(2025, 7, 10, 15, 45, 30, 0, ZoneId.of("UTC"))
-        utcDateTime.toString() shouldBe "2025-07-10T15:45:30Z"
+        utcDateTime.format() shouldBe "2025-07-10T15:45:30Z"
         
         val estDateTime = ZonedDateTime.of(2025, 7, 10, 15, 45, 30, 0, ZoneId.of("America/New_York"))
-        estDateTime.toString() shouldBe "2025-07-10T15:45:30-04:00"
+        estDateTime.format() shouldBe "2025-07-10T15:45:30-04:00"
     }
 
     "ZonedDateTime with different timezones" {
@@ -71,9 +71,9 @@ internal class LocalDatesKtTest: StringSpec({
         val newYorkTime = ZonedDateTime.of(2025, 7, 10, 15, 45, 30, 0, ZoneId.of("America/New_York"))
         
         // 각 timezone의 기본 format
-        seoulTime.toString() shouldBe "2025-07-10T15:45:30+09:00"
-        tokyoTime.toString() shouldBe "2025-07-10T15:45:30+09:00"
-        newYorkTime.toString() shouldBe "2025-07-10T15:45:30-04:00"
+        seoulTime.format() shouldBe "2025-07-10T15:45:30+09:00"
+        tokyoTime.format() shouldBe "2025-07-10T15:45:30+09:00"
+        newYorkTime.format() shouldBe "2025-07-10T15:45:30-04:00"
         
         // 사용자 정의 format으로 timezone 정보 제거
         seoulTime.format("yyyy-MM-dd HH:mm:ss") shouldBe "2025-07-10 15:45:30"
@@ -82,13 +82,13 @@ internal class LocalDatesKtTest: StringSpec({
     }
 
     "ZonedDateTime edge cases" {
-        val midnight = ZonedDateTime.of(2025, 7, 10, 0, 0, 0, 0, ZoneId.of("Asia/Seoul"))
-        val noon = ZonedDateTime.of(2025, 7, 10, 12, 0, 0, 0, ZoneId.of("Asia/Seoul"))
-        val endOfDay = ZonedDateTime.of(2025, 7, 10, 23, 59, 59, 999999999, ZoneId.of("Asia/Seoul"))
+        val midnight = ZonedDateTime.of(2025, 7, 10,  0,  0,  0, 0,         ZoneId.of("Asia/Seoul"))
+        val noon     = ZonedDateTime.of(2025, 7, 10, 12,  0,  0, 0,         ZoneId.of("Asia/Seoul"))
+        val endOfDay = ZonedDateTime.of(2025, 7, 10, 23, 59, 59, 987654321, ZoneId.of("Asia/Seoul"))
         
-        midnight.toString() shouldBe "2025-07-10T00:00:00+09:00"
-        noon.toString() shouldBe "2025-07-10T12:00:00+09:00"
-        endOfDay.toString() shouldBe "2025-07-10T23:59:59.999999999+09:00"
+        midnight.format() shouldBe "2025-07-10T00:00:00+09:00"
+        noon.format() shouldBe "2025-07-10T12:00:00+09:00"
+        endOfDay.format("yyyy-MM-dd'T'HH:mm:ss.SSSSXXX") shouldBe "2025-07-10T23:59:59.9876+09:00"
         
         midnight.format("HH:mm:ss") shouldBe "00:00:00"
         noon.format("HH:mm:ss") shouldBe "12:00:00"

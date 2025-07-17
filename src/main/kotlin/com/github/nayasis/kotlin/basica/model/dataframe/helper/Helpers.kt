@@ -1,5 +1,7 @@
 package com.github.nayasis.kotlin.basica.model.dataframe.helper
 
+import com.github.nayasis.kotlin.basica.core.localdate.format
+import com.github.nayasis.kotlin.basica.core.localdate.toDate
 import com.github.nayasis.kotlin.basica.core.localdate.toString
 import com.github.nayasis.kotlin.basica.model.dataframe.toDisplayString
 import org.w3c.dom.Document
@@ -46,55 +48,11 @@ fun isDateObject(value: Any?): Boolean {
 
 fun toOdsDate(value: Any?): String? {
     return when (value) {
-        is LocalDate -> {
-            // ODS date format: YYYY-MM-DD
-            value.toString()
-        }
-        is LocalDateTime -> {
-            // ODS datetime format: YYYY-MM-DDTHH:MM:SS
-            value.toString()
-        }
-        is ZonedDateTime -> {
-            // ODS datetime format: YYYY-MM-DDTHH:MM:SS+HH:MM
-            value.toDisplayString()
-        }
-        is Date -> {
-            value.toString()
-            // Convert Date to ISO format
-            val calendar = Calendar.getInstance()
-            calendar.time = value
-            val year = calendar.get(Calendar.YEAR)
-            val month = calendar.get(Calendar.MONTH) + 1
-            val day = calendar.get(Calendar.DAY_OF_MONTH)
-            val hour = calendar.get(Calendar.HOUR_OF_DAY)
-            val minute = calendar.get(Calendar.MINUTE)
-            val second = calendar.get(Calendar.SECOND)
-            
-            if (hour == 0 && minute == 0 && second == 0) {
-                // Date only
-                String.format("%04d-%02d-%02d", year, month, day)
-            } else {
-                // Date and time
-                String.format("%04d-%02d-%02dT%02d:%02d:%02d", year, month, day, hour, minute, second)
-            }
-        }
-        is Calendar -> {
-            // Convert Calendar to ISO format
-            val year = value.get(Calendar.YEAR)
-            val month = value.get(Calendar.MONTH) + 1
-            val day = value.get(Calendar.DAY_OF_MONTH)
-            val hour = value.get(Calendar.HOUR_OF_DAY)
-            val minute = value.get(Calendar.MINUTE)
-            val second = value.get(Calendar.SECOND)
-            
-            if (hour == 0 && minute == 0 && second == 0) {
-                // Date only
-                String.format("%04d-%02d-%02d", year, month, day)
-            } else {
-                // Date and time
-                String.format("%04d-%02d-%02dT%02d:%02d:%02d", year, month, day, hour, minute, second)
-            }
-        }
+        is LocalDate -> value.format()
+        is LocalDateTime -> value.format()
+        is ZonedDateTime -> value.format()
+        is Date -> value.format()
+        is Calendar -> value.toDate().format()
         else -> null
     }
 }
@@ -108,8 +66,8 @@ fun toExcelDate(value: Any?): Double? {
             epochDay + 25569.0
         }
         is LocalDateTime -> {
-            val epochSecond = value.toEpochSecond(java.time.ZoneOffset.UTC)
             // Excel uses days, not seconds, so divide by 86400 (seconds in a day)
+            val epochSecond = value.toEpochSecond(java.time.ZoneOffset.UTC)
             epochSecond / 86400.0 + 25569.0
         }
         is ZonedDateTime -> {

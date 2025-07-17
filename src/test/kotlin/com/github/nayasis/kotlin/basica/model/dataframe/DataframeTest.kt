@@ -343,6 +343,8 @@ internal class DataframeTest: StringSpec({
             addRow(mapOf("name" to "Charlie", "age" to 35))
         }
 
+        logger.debug { "\n$dataframe" }
+
         val rows = mutableListOf<Map<String, Any?>>()
         for (row in dataframe) {
             rows.add(row)
@@ -401,7 +403,7 @@ internal class DataframeTest: StringSpec({
         """.trimIndent().trim()
     }
 
-    "iterator는 각 row를 Map<String, Any?>로 순회한다" {
+    "iterator iterates each row as Map<String, Any?>" {
         val dataframe = DataFrame().apply {
             addRow(mapOf("a" to 1, "b" to "x"))
             addRow(mapOf("a" to 2, "b" to "y"))
@@ -415,8 +417,8 @@ internal class DataframeTest: StringSpec({
         rows[2] shouldBe mapOf("a" to 3, "b" to "z")
     }
 
-    // setData로 3, 7, 9번째 row에만 값을 세팅한 경우 iterator 동작 테스트
-    "setData로 특정 row에만 값을 세팅한 경우 iterator는 firstIndex~lastIndex 범위의 row를 모두 반환한다" {
+    // Test iterator behavior when setData is called only for the 3rd, 7th, and 9th rows
+    "When setData is called only for specific rows, the iterator should return all rows in the firstIndex~lastIndex range" {
         val dataframe = DataFrame()
         dataframe.setData(3, "a", 100)
         dataframe.setData(7, "a", 200)
@@ -428,7 +430,7 @@ internal class DataframeTest: StringSpec({
         val actualIndices = (dataframe.firstIndex!!..dataframe.lastIndex!!).toList()
         actualIndices shouldBe expectedIndices
 
-        // 각 row의 index가 3~9로 순서대로 나오는지 확인
+        // Check that the index of each row appears sequentially from 3 to 9
         var idx = dataframe.firstIndex!!
         for (row in dataframe) {
             row["a"] shouldBe when(idx) {

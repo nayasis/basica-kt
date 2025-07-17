@@ -36,7 +36,8 @@ internal class ReflectorTest: StringSpec({
         val obj1 = Reflector.toObject<Dummy>(json)
             .also { println("obj1: $it") }
 
-        obj1.C.format() shouldBe "2021-03-26T15:16:31.154"
+        obj1.C.format() shouldBe "2021-03-26T15:16:31"
+        obj1.C.format("YYYY-MM-DD HH:MI:SS.SSS") shouldBe "2021-03-26 15:16:31.154"
 
     }
 

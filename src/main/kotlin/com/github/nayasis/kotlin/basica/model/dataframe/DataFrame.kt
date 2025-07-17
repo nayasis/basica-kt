@@ -115,6 +115,11 @@ class DataFrame(
         setRow(size, value)
     }
 
+    fun addRows(values: Iterable<Any?>) {
+        var index = size
+        values.forEach { setRow(index++, it) }
+    }
+
     fun getRow(row: Int): Map<String, Any?> {
         return body.mapValues { (_, column) -> column[row] }
     }
@@ -195,7 +200,7 @@ class DataFrame(
             private val size = this@DataFrame.size
             private var i    = firstIndex ?: 0
             private val end  = lastIndex ?: -1
-            override fun hasNext(): Boolean = i < end
+            override fun hasNext(): Boolean = i <= end
             override fun next(): Map<String,Any?> = getRow(i++)
         }
     }

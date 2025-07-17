@@ -1,5 +1,7 @@
 package com.github.nayasis.kotlin.basica.model.dataframe.helper.exporter
 
+import com.github.nayasis.kotlin.basica.core.localdate.format
+import com.github.nayasis.kotlin.basica.core.localdate.toDate
 import com.github.nayasis.kotlin.basica.core.string.getCrc32
 import com.github.nayasis.kotlin.basica.model.dataframe.DataFrame
 import com.github.nayasis.kotlin.basica.model.dataframe.helper.toOdsDate
@@ -11,6 +13,12 @@ import java.io.OutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import javax.xml.parsers.DocumentBuilderFactory
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Calendar
+import java.util.Date
 
 
 /**
@@ -23,7 +31,7 @@ class OdsExporter(
     startIndex: Int? = null,
 ): DataFrameExporter() {
 
-    private val first: Int = startIndex ?: dataframe.firstIndex ?: 0
+    private val first: Int = 0
     private val last: Int  = dataframe.lastIndex ?: -1
 
     override fun export(outputStream: OutputStream) {
@@ -44,8 +52,46 @@ class OdsExporter(
             setAttribute("xmlns:office", "urn:oasis:names:tc:opendocument:xmlns:office:1.0")
             setAttribute("xmlns:table", "urn:oasis:names:tc:opendocument:xmlns:table:1.0")
             setAttribute("xmlns:text", "urn:oasis:names:tc:opendocument:xmlns:text:1.0")
+            setAttribute("xmlns:style", "urn:oasis:names:tc:opendocument:xmlns:style:1.0")
+            setAttribute("xmlns:number", "urn:oasis:names:tc:opendocument:xmlns:datastyle:1.0")
             setAttribute("office:version", "1.2")
-            appendElement("office:automatic-styles")
+            // 날짜 스타일 추가
+            appendElement("office:automatic-styles").apply {
+                appendElement("number:date-style").apply {
+                    setAttribute("style:name", "styleDate")
+                    appendElement("number:year").setAttribute("number:style", "long")
+                    appendElement("number:text").textContent = "-"
+                    appendElement("number:month").setAttribute("number:style", "long")
+                    appendElement("number:text").textContent = "-"
+                    appendElement("number:day").setAttribute("number:style", "long")
+                }
+                appendElement("number:date-style").apply {
+                    setAttribute("style:name", "styleDatetime")
+                    appendElement("number:year").setAttribute("number:style", "long")
+                    appendElement("number:text").textContent = "-"
+                    appendElement("number:month").setAttribute("number:style", "long")
+                    appendElement("number:text").textContent = "-"
+                    appendElement("number:day").setAttribute("number:style", "long")
+                    appendElement("number:text").textContent = " "
+                    appendElement("number:hours").setAttribute("number:style", "long")
+                    appendElement("number:text").textContent = ":"
+                    appendElement("number:minutes").setAttribute("number:style", "long")
+                    appendElement("number:text").textContent = ":"
+                    appendElement("number:seconds").setAttribute("number:style", "long")
+                }
+                appendElement("style:style").apply {
+                    setAttribute("style:name", "cellstyleDate")
+                    setAttribute("style:family", "table-cell")
+                    setAttribute("style:parent-style-name", "Default")
+                    setAttribute("style:data-style-name", "styleDate")
+                }
+                appendElement("style:style").apply {
+                    setAttribute("style:name", "cellstyleDatetime")
+                    setAttribute("style:family", "table-cell")
+                    setAttribute("style:parent-style-name", "Default")
+                    setAttribute("style:data-style-name", "styleDatetime")
+                }
+            }
         }
         val body   = root.appendElement("office:body")
         val spread = body.appendElement("office:spreadsheet")
@@ -83,16 +129,22 @@ class OdsExporter(
                     if (odsDate != null) {
                         setAttribute("office:value-type", "date")
                         setAttribute("office:date-value", odsDate)
+                        when (value) {
+                            is LocalDateTime, is Date, is ZonedDateTime
+                                 -> setAttribute("table:style-name", "cellstyleDatetime")
+                            else -> setAttribute("table:style-name", "cellstyleDate")
+                        }
                     } else {
                         setAttribute("office:value-type", "string")
                     }
                 }
                 else -> {
                     setAttribute("office:value-type", "string")
+                    value.toString().takeIf { it.isNotEmpty() }?.let { text ->
+                        appendElement("text:p").textContent = text
+                    }
                 }
             }
-        }.appendElement("text:p").apply {
-            textContent = value?.toString() ?: ""
         }
     }
 
