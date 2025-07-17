@@ -13,8 +13,6 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import java.io.ByteArrayOutputStream
-import java.time.LocalDate
-import java.util.Calendar
 import java.util.zip.ZipInputStream
 
 private val logger = KotlinLogging.logger {}
@@ -23,10 +21,19 @@ internal class XlsxExporterTest : StringSpec({
 
     Characters.fullwidth = 2.0
 
+    "create XLS file" {
+        val testdata = createTestDataframe().also { logger.debug { "\n${it.toString(showIndex = true)}" } }
+        XlsExporter(testdata).export("c:/Users/hwasu.jung/Downloads/test.xls".toPath())
+    }
+
+    "create simple XLS file" {
+        val testdata = createTestDataframe().also { logger.debug { "\n${it.toString(showIndex = true)}" } }
+        HtmlXlsExporter(testdata).export("c:/Users/hwasu.jung/Downloads/test-simple.xls".toPath())
+    }
+
     "create basic XLSX file" {
         val testdata = createTestDataframe().also { logger.debug { "\n${it.toString(showIndex = true)}" } }
         XlsxExporter(testdata).export("c:/Users/hwasu.jung/Downloads/test.xlsx".toPath())
-//        XlsxExporter(testdata).export("e:/download/test.xlsx".toPath())
     }
 
     "create basic Ods Exporter" {

@@ -180,8 +180,8 @@ fun String?.displaySubstr(startIndex: Int, length: Int): String {
     return bf.toString()
 }
 
-fun String?.toCamel(): String {
-    if( this.isNullOrEmpty() ) return ""
+fun String.toCamel(): String {
+    if( this.isEmpty() ) return ""
     val sb = StringBuffer()
     val matcher = REGEX_CAMEL.matcher(this.lowercase())
     while(matcher.find()) {
@@ -192,8 +192,8 @@ fun String?.toCamel(): String {
     return sb.toString()
 }
 
-fun String?.toSnake(): String {
-    if( this.isNullOrEmpty() ) return ""
+fun String.toSnake(): String {
+    if( this.isEmpty() ) return ""
     val sb = StringBuffer()
     val matcher = REGEX_SNAKE.matcher(this.lowercase())
     while(matcher.find()) {
@@ -205,8 +205,8 @@ fun String?.toSnake(): String {
     return sb.toString()
 }
 
-fun String?.escape(): String {
-    if(this.isNullOrEmpty()) return ""
+fun String.escape(): String {
+    if(this.isEmpty()) return ""
     val sb = StringBuilder()
     for( ch in this ) {
         when (ch) {
@@ -227,8 +227,41 @@ fun String?.escape(): String {
     return sb.toString()
 }
 
-fun String?.unescape(): String {
-    if(this.isNullOrEmpty()) return ""
+fun String.escapeXml(): String {
+    return buildString {
+        for (ch in this@escapeXml) {
+            when (ch) {
+                '&' -> append("&amp;")
+                '<' -> append("&lt;")
+                '>' -> append("&gt;")
+                '"' -> append("&quot;")
+                '\'' -> append("&apos;")
+                else -> append(ch)
+            }
+        }
+    }
+}
+
+fun String.unescapeXml(): String {
+    if(this.isEmpty()) return ""
+    val sb = StringBuffer()
+    val matcher = "&(amp|lt|gt|quot|apos);".toPattern().matcher(this)
+    while(matcher.find()) {
+        when(matcher.group(1)) {
+            "amp"  -> matcher.appendReplacement(sb, "&")
+            "lt"   -> matcher.appendReplacement(sb, "<")
+            "gt"   -> matcher.appendReplacement(sb, ">")
+            "quot" -> matcher.appendReplacement(sb, "\"")
+            "apos" -> matcher.appendReplacement(sb, "'")
+        }
+    }
+    matcher.appendTail(sb)
+    return sb.toString()
+}
+
+
+fun String.unescape(): String {
+    if(this.isEmpty()) return ""
     val sb = StringBuffer()
     val matcher = "\\\\(b|t|n|f|r|\\\"|\\\'|\\\\)|([u|U][0-9a-fA-F]{4})".toPattern().matcher(this)
     while(matcher.find()) {
@@ -244,9 +277,9 @@ fun String?.unescape(): String {
     return sb.toString()
 }
 
-fun String?.toCapitalize(locale: Locale = Locale.getDefault()): String {
+fun String.toCapitalize(locale: Locale = Locale.getDefault()): String {
     return when {
-        isNullOrEmpty() -> ""
+        isEmpty() -> ""
         else -> replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
     }
 }
@@ -267,12 +300,12 @@ private fun unescapeChar(escaped: String): String {
 }
 
 @JvmOverloads
-fun String?.urlEncode(charset: Charset = Charsets.UTF_8, legacyMode: Boolean = true): String =
-    if( this.isNullOrEmpty() ) "" else URLCodec().encode(this,charset,legacyMode)
+fun String.urlEncode(charset: Charset = Charsets.UTF_8, legacyMode: Boolean = true): String =
+    if( this.isEmpty() ) "" else URLCodec().encode(this,charset,legacyMode)
 
 @JvmOverloads
-fun String?.urlDecode(charset: Charset = Charsets.UTF_8, legacyMode: Boolean = true): String =
-    if( this.isNullOrEmpty() ) "" else URLCodec().decode(this,charset,legacyMode)
+fun String.urlDecode(charset: Charset = Charsets.UTF_8, legacyMode: Boolean = true): String =
+    if( this.isEmpty() ) "" else URLCodec().decode(this,charset,legacyMode)
 
 @JvmOverloads
 fun String?.toMapFromUrlParam(charset: Charset = Charsets.UTF_8 ): Map<String,String?> {
@@ -280,7 +313,7 @@ fun String?.toMapFromUrlParam(charset: Charset = Charsets.UTF_8 ): Map<String,St
     return this.split("&").mapNotNull {
         val tokens = it.split("=")
         when {
-            tokens.isNullOrEmpty() -> null
+            tokens.isEmpty() -> null
             tokens.size == 1 -> {
                 when {
                     tokens[0].isNullOrEmpty() -> null
@@ -297,8 +330,8 @@ fun String?.toMapFromUrlParam(charset: Charset = Charsets.UTF_8 ): Map<String,St
  *
  * @return escaped pattern string
  */
-fun String?.escapeRegex(): String {
-    if( this == null ) return ""
+fun String.escapeRegex(): String {
+    if( this.isEmpty() ) return ""
     val buf = StringBuilder()
     val chars = "[](){}.*+?\$^|#\\".toCharArray()
     for( c in this ) {
@@ -310,19 +343,19 @@ fun String?.escapeRegex(): String {
 }
 
 @JvmOverloads
-fun String?.toSingleSpace(includeLineBreaker: Boolean = false): String =
-    if (this.isNullOrEmpty()) "" else this.replace((includeLineBreaker) then REGEX_SPACE_ENTER ?: REGEX_SPACE, " ").trim()
+fun String.toSingleSpace(includeLineBreaker: Boolean = false): String =
+    if (this.isEmpty()) "" else this.replace((includeLineBreaker) then REGEX_SPACE_ENTER ?: REGEX_SPACE, " ").trim()
 
-fun String?.toSingleEnter(): String =
-    if( this.isNullOrEmpty() ) "" else this.replace(REGEX_LINE_REMAIN, "\n").replace(REGEX_LINE, "\n")
+fun String.toSingleEnter(): String =
+    if( this.isEmpty() ) "" else this.replace(REGEX_LINE_REMAIN, "\n").replace(REGEX_LINE, "\n")
 
-fun String?.extractDigit(): String  = if( this.isNullOrEmpty() ) "" else this.replace(REGEX_EXTRACT_DIGIT, "")
-fun String?.extractUppers(): String = if( this.isNullOrEmpty() ) "" else this.replace(REGEX_EXTRACT_UPPER, "")
-fun String?.extractLowers(): String = if( this.isNullOrEmpty() ) "" else this.replace(REGEX_EXTRACT_LOWER, "")
+fun String.extractDigit(): String  = if( this.isEmpty() ) "" else this.replace(REGEX_EXTRACT_DIGIT, "")
+fun String.extractUppers(): String = if( this.isEmpty() ) "" else this.replace(REGEX_EXTRACT_UPPER, "")
+fun String.extractLowers(): String = if( this.isEmpty() ) "" else this.replace(REGEX_EXTRACT_LOWER, "")
 
 @JvmOverloads
-fun String?.removeSpace(includeLineBreaker: Boolean = false): String =
-    if (this.isNullOrEmpty()) "" else this.replace((includeLineBreaker) then REGEX_SPACE_ENTER ?: REGEX_SPACE, "")
+fun String.removeSpace(includeLineBreaker: Boolean = false): String =
+    if (this.isEmpty()) "" else this.replace((includeLineBreaker) then REGEX_SPACE_ENTER ?: REGEX_SPACE, "")
 
 fun String?.tokenize(delimiter: String, returnDelimiter: Boolean = false): List<String> {
     if( this.isNullOrEmpty() ) return emptyList()
@@ -337,8 +370,8 @@ fun String?.tokenize(delimiter: String, returnDelimiter: Boolean = false): List<
  * compress text
  * @return compressed text
  */
-fun String?.compress(): String {
-    if( this.isNullOrEmpty() ) return ""
+fun String.compress(): String {
+    if( this.isEmpty() ) return ""
     ByteArrayOutputStream().use { out ->
         GZIPOutputStream(out).use { gzip ->
             gzip.write(this.toByteArray())
@@ -352,8 +385,8 @@ fun String?.compress(): String {
  * decompress text
  * @return decompressed text
  */
-fun String?.decompress(): String {
-    if( this.isNullOrEmpty() ) return ""
+fun String.decompress(): String {
+    if( this.isEmpty() ) return ""
     ByteArrayInputStream(this.toByteArray(ISO_8859_1)).use { input ->
         GZIPInputStream(input).use { gzip ->
             BufferedReader(InputStreamReader(gzip)).use { bufferReader ->
@@ -409,8 +442,8 @@ fun String?.capture(regex: Regex): List<String> {
  *
  * @return secured string
  */
-fun String?.clearXss(): String {
-    if( this.isNullOrEmpty() ) return ""
+fun String.clearXss(): String {
+    if( this.isEmpty() ) return ""
     val sb = StringBuilder()
     for (ch in this) {
         when (ch) {
@@ -433,8 +466,8 @@ fun String?.clearXss(): String {
  *
  * @return unsecured string
  */
-fun String?.restoreXss(): String {
-    if( this.isNullOrEmpty() ) return ""
+fun String.restoreXss(): String {
+    if( this.isEmpty() ) return ""
     val sb = StringBuilder()
     val chars = this.toCharArray()
     var i = 0
@@ -554,9 +587,9 @@ fun String?.toMap(): Map<String,*> {
  * @param modifyKorean if true modify first outer character of parameter binding markup by rule of korean.
  * @return formatted string
  */
-fun String?.bind(vararg parameter: Any?, modifyKorean: Boolean = true): String {
+fun String.bind(vararg parameter: Any?, modifyKorean: Boolean = true): String {
     return when {
-        this.isNullOrEmpty() -> ""
+        this.isEmpty() -> ""
         else -> FORMATTER.bind(this, *parameter, modifyKorean = modifyKorean)
     }
 }
@@ -589,12 +622,12 @@ inline fun <reified T> String.decodeBase64(): T {
     }
 }
 
-fun String?.ifBlank(fn:() -> String): String {
-    return if(this.isNullOrBlank()) fn() else this
+fun String.ifBlank(fn:() -> String): String {
+    return if(this.isBlank()) fn() else this
 }
 
-fun String?.ifNotBlank(fn: (String) -> Unit) {
-    if(!this.isNullOrBlank()) fn(this)
+fun String.ifNotBlank(fn: (String) -> Unit) {
+    if(this.isNotBlank()) fn(this)
 }
 
 /**
@@ -622,8 +655,8 @@ fun String?.ifNotBlank(fn: (String) -> Unit) {
  * @return masked string
  */
 @JvmOverloads
-fun String?.mask(pattern: String?, pass: Char = '#', hide: Char = '*' ): String {
-    if(this.isNullOrEmpty() || pattern.isNullOrEmpty()) return ""
+fun String.mask(pattern: String?, pass: Char = '#', hide: Char = '*' ): String {
+    if(this.isEmpty() || pattern.isNullOrEmpty()) return ""
     val sb = StringBuilder()
     var p = 0; var w = 0
     while ( w < this.length && p < pattern.length ) {
@@ -663,8 +696,8 @@ fun String?.mask(pattern: String?, pass: Char = '#', hide: Char = '*' ): String 
  * @return unmasked string
  */
 @JvmOverloads
-fun String?.unmask(pattern: String?, pass: Char = '#', hide: Char = '*'): String {
-    if(this.isNullOrEmpty() || pattern.isNullOrEmpty()) return ""
+fun String.unmask(pattern: String?, pass: Char = '#', hide: Char = '*'): String {
+    if(this.isEmpty() || pattern.isNullOrEmpty()) return ""
     val sb = StringBuilder()
     var p = 0; var w = 0
     while ( w < this.length && p < pattern.length ) {
@@ -809,7 +842,7 @@ fun String.isBigDecimal(mathContext: MathContext? = null): Boolean {
 }
 
 fun String?.add(text: String): String {
-    return if(this == null) {
+    return if(this.isNullOrEmpty()) {
         text
     } else {
         "$this${text}"

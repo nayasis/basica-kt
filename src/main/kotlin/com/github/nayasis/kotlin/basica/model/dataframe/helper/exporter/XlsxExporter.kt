@@ -25,7 +25,7 @@ class XlsxExporter(
     startIndex: Int? = null,
 ) : DataFrameExporter() {
 
-    private val first: Int = startIndex ?: dataframe.firstIndex ?: 0
+    private val first: Int = startIndex?.takeIf { it >= 0 } ?: dataframe.firstIndex ?: 0
     private val last: Int  = dataframe.lastIndex ?: -1
 
     private val stringIndexMap = buildSharedStrings()

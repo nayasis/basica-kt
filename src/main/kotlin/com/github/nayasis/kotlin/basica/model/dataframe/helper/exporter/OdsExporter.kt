@@ -31,7 +31,7 @@ class OdsExporter(
     startIndex: Int? = null,
 ): DataFrameExporter() {
 
-    private val first: Int = 0
+    private val first: Int = startIndex?.takeIf { it >= 0 } ?: 0
     private val last: Int  = dataframe.lastIndex ?: -1
 
     override fun export(outputStream: OutputStream) {

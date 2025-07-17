@@ -17,8 +17,11 @@ class CsvExporter(
     private val delimiter: String = ",",
     private val showLabel: Boolean = true,
     private val charset: Charset = Charsets.UTF_8,
-    private val startIndex: Int? = null,
+    startIndex: Int? = null,
 ): DataFrameExporter() {
+
+    private val first: Int = startIndex?.takeIf { it >= 0 } ?: 0
+    private val last: Int  = dataframe.lastIndex ?: -1
 
     override fun export(outputStream: OutputStream) {
         PrintWriter(OutputStreamWriter(outputStream, charset)).use { writer ->
@@ -26,7 +29,7 @@ class CsvExporter(
             // write header
             (if (showLabel) dataframe.labels else keys).let { writer.write(it) }
             // write body
-            for(i in (startIndex ?: dataframe.firstIndex ?: 0) .. (dataframe.lastIndex ?: -1)) {
+            for(i in first .. last) {
                 keys.map { key -> dataframe.getData(i,key) }.let { writer.write(it) }
                 writer.println()
             }
