@@ -1,24 +1,19 @@
 package com.github.nayasis.kotlin.basica.model.dataframe.helper.exporter
 
-import com.github.nayasis.kotlin.basica.core.localdate.format
-import com.github.nayasis.kotlin.basica.core.localdate.toDate
 import com.github.nayasis.kotlin.basica.core.string.getCrc32
 import com.github.nayasis.kotlin.basica.model.dataframe.DataFrame
-import com.github.nayasis.kotlin.basica.model.dataframe.helper.toOdsDate
 import com.github.nayasis.kotlin.basica.model.dataframe.helper.isDateObject
+import com.github.nayasis.kotlin.basica.model.dataframe.helper.toOdsDate
 import com.github.nayasis.kotlin.basica.model.dataframe.helper.writeEntry
 import com.github.nayasis.kotlin.basica.xml.appendElement
 import org.w3c.dom.Element
 import java.io.OutputStream
+import java.time.LocalDateTime
+import java.time.ZonedDateTime
+import java.util.*
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import javax.xml.parsers.DocumentBuilderFactory
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
-import java.util.Calendar
-import java.util.Date
 
 
 /**
@@ -31,7 +26,7 @@ class OdsExporter(
     startIndex: Int? = null,
 ): DataFrameExporter() {
 
-    private val first: Int = 0
+    private val first: Int = startIndex?.takeIf { it >= 0 } ?: 0
     private val last: Int  = dataframe.lastIndex ?: -1
 
     override fun export(outputStream: OutputStream) {
@@ -104,10 +99,36 @@ class OdsExporter(
             header.appendCell(label)
         }
 
+        var emptyRowCount = 0
         for (i in first..last) {
-            val row = sheet.appendElement("table:table-row")
-            for (key in dataframe.keys) {
-                row.appendCell(dataframe.getData(i, key))
+            val isEmptyRow = dataframe.isRowEmpty(i)
+            if (isEmptyRow) {
+                emptyRowCount++
+            } else {
+                if (emptyRowCount > 0) {
+                    // print empty rows
+                    sheet.appendElement("table:table-row").apply {
+                        setAttribute("table:number-rows-repeated", emptyRowCount.toString())
+                        appendElement("table:table-cell").apply {
+                            setAttribute("table:number-columns-repeated", dataframe.keys.size.toString())
+                        }
+                    }
+                    emptyRowCount = 0
+                }
+                // print row
+                val row = sheet.appendElement("table:table-row")
+                for (key in dataframe.keys) {
+                    row.appendCell(dataframe.getData(i, key))
+                }
+            }
+        }
+        // print empty rows remained
+        if (emptyRowCount > 0) {
+            sheet.appendElement("table:table-row").apply {
+                setAttribute("table:number-rows-repeated", emptyRowCount.toString())
+                appendElement("table:table-cell").apply {
+                    setAttribute("table:number-columns-repeated", dataframe.keys.size.toString())
+                }
             }
         }
 

@@ -20,6 +20,10 @@ class DataFrame(
         return size == 0
     }
 
+    fun isRowEmpty(row: Int): Boolean {
+        return body.values.all { it[row] == null }
+    }
+
     fun setLabel(key: String, label: String) {
         body.setLabel(key, label)
     }
@@ -36,6 +40,12 @@ class DataFrame(
 
     val labels: List<String>
         get() = body.keys.map { body.getLabel(it) }
+
+    fun addKey(key: String) {
+        if (body[key] == null) {
+            body[key] = Column()
+        }
+    }
 
     fun removeKey(key: String) {
         body.remove(key)
@@ -64,9 +74,7 @@ class DataFrame(
     }
 
     fun setData(row: Int, key: String, value: Any?) {
-        if (body[key] == null) {
-            body[key] = Column()
-        }
+        addKey(key)
         body[key]!![row] = value
     }
 

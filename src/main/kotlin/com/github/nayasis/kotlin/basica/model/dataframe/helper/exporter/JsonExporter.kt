@@ -13,14 +13,15 @@ import java.nio.charset.Charset
 class JsonExporter(
     private val dataframe: DataFrame,
     private val prettyPrint: Boolean = false,
-    private val startIndex: Int? = null,
+    startIndex: Int? = null,
 ) : DataFrameExporter() {
+
+    private val first: Int = startIndex?.takeIf { it >= 0 } ?: 0
+    private val last: Int  = dataframe.lastIndex ?: -1
 
     override fun export(outputStream: OutputStream) {
         val newLine = if (prettyPrint) "\n" else ""
         PrintWriter(OutputStreamWriter(outputStream, Charsets.UTF_8)).use { writer ->
-            val first = startIndex ?: dataframe.firstIndex ?: 0
-            val last  = dataframe.lastIndex ?: -1
             writer.print("[${newLine}")
             for (i in first..last) {
                 val json = Reflector.toJson(dataframe.getRow(i), prettyPrint)

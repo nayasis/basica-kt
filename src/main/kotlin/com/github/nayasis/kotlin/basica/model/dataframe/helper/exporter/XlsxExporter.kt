@@ -25,13 +25,12 @@ class XlsxExporter(
     startIndex: Int? = null,
 ) : DataFrameExporter() {
 
-    private val first: Int = startIndex ?: dataframe.firstIndex ?: 0
+    private val first: Int = startIndex?.takeIf { it >= 0 } ?: dataframe.firstIndex ?: 0
     private val last: Int  = dataframe.lastIndex ?: -1
 
     private val stringIndexMap = buildSharedStrings()
 
     override fun export(outputStream: OutputStream) {
-
         ZipOutputStream(outputStream).use { zos ->
             writeContentTypes(zos)
             writeRels(zos)
@@ -187,12 +186,12 @@ class XlsxExporter(
 
         for (row in first.. last) {
             val dataRow = sheetData.appendElement("row").apply {
-                setAttribute("r", (row + 1).toString())
+                setAttribute("r", (row + 2).toString())
             }
             dataframe.keys.forEachIndexed { col, key ->
                 doc.createCell(
                     dataframe.getData(row, key),
-                    toCellAddress(row + 1, col),
+                    toCellAddress(row + 2, col),
                 ).appendTo(dataRow)
             }
         }
@@ -210,7 +209,7 @@ class XlsxExporter(
                 colNum = colNum / 26 - 1
             }
         }
-        return "$colRef${row}"
+        return "$colRef${row}" // row is 1-based in Excel
     }
 
     private fun Document.createCell(value: Any?, cellRef: String): Element {

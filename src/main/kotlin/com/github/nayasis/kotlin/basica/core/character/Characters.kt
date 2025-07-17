@@ -85,7 +85,6 @@ class Characters { companion object {
  * @return character array (null if it can not be resolved.)
  */
 fun Char.disassembleHangul(): CharArray? {
-    if( this == null ) return null
     var c = this.code
     if (c < 0xAC00 || c > 0xD79F) return null
     c -= 0xAC00
