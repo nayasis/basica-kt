@@ -1,7 +1,8 @@
 import com.vanniktech.maven.publish.SonatypeHost
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "2.1.20"
+    kotlin("jvm") version "2.2.0"
     java
     signing
     id("com.vanniktech.maven.publish") version "0.31.0"
@@ -79,4 +80,8 @@ mavenPublishing {
             url.set("https://github.com/nayasis/basica-kt/tree/master")
         }
     }
+}
+val compileKotlin: KotlinCompile by tasks
+compileKotlin.compilerOptions {
+    freeCompilerArgs.set(listOf("-XXLanguage:+BreakContinueInInlineLambdas"))
 }

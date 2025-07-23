@@ -104,10 +104,36 @@ class OdsExporter(
             header.appendCell(label)
         }
 
+        var emptyRowCount = 0
         for (i in first..last) {
-            val row = sheet.appendElement("table:table-row")
-            for (key in dataframe.keys) {
-                row.appendCell(dataframe.getData(i, key))
+            val isEmptyRow = dataframe.isRowEmpty(i)
+            if (isEmptyRow) {
+                emptyRowCount++
+            } else {
+                if (emptyRowCount > 0) {
+                    // print empty rows
+                    sheet.appendElement("table:table-row").apply {
+                        setAttribute("table:number-rows-repeated", emptyRowCount.toString())
+                        appendElement("table:table-cell").apply {
+                            setAttribute("table:number-columns-repeated", dataframe.keys.size.toString())
+                        }
+                    }
+                    emptyRowCount = 0
+                }
+                // print row
+                val row = sheet.appendElement("table:table-row")
+                for (key in dataframe.keys) {
+                    row.appendCell(dataframe.getData(i, key))
+                }
+            }
+        }
+        // print empty rows remained
+        if (emptyRowCount > 0) {
+            sheet.appendElement("table:table-row").apply {
+                setAttribute("table:number-rows-repeated", emptyRowCount.toString())
+                appendElement("table:table-cell").apply {
+                    setAttribute("table:number-columns-repeated", dataframe.keys.size.toString())
+                }
             }
         }
 

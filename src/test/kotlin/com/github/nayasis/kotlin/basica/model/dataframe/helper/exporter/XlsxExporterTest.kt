@@ -1,6 +1,8 @@
 package com.github.nayasis.kotlin.basica.model.dataframe.helper.exporter
 
 import com.github.nayasis.kotlin.basica.core.character.Characters
+import com.github.nayasis.kotlin.basica.core.io.Path
+import com.github.nayasis.kotlin.basica.core.io.Paths
 import com.github.nayasis.kotlin.basica.core.localdate.toCalendar
 import com.github.nayasis.kotlin.basica.core.localdate.toDate
 import com.github.nayasis.kotlin.basica.core.localdate.toLocalDate
@@ -8,6 +10,7 @@ import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
 import com.github.nayasis.kotlin.basica.core.localdate.toZonedDateTime
 import com.github.nayasis.kotlin.basica.core.string.toPath
 import com.github.nayasis.kotlin.basica.model.dataframe.DataFrame
+import com.github.nayasis.kotlin.basica.model.dataframe.helper.importer.XlsxImporter
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
@@ -19,21 +22,25 @@ private val logger = KotlinLogging.logger {}
 
 internal class XlsxExporterTest : StringSpec({
 
+    Paths.userHome
+
     Characters.fullwidth = 2.0
 
     "create XLS file" {
         val testdata = createTestDataframe().also { logger.debug { "\n${it.toString(showIndex = true)}" } }
-        XlsExporter(testdata).export("c:/Users/hwasu.jung/Downloads/test.xls".toPath())
+        XlsExporter(testdata).export(Paths.userHome.resolve("/basica-test/exporter/text.xls"))
     }
 
     "create simple XLS file" {
         val testdata = createTestDataframe().also { logger.debug { "\n${it.toString(showIndex = true)}" } }
-        HtmlXlsExporter(testdata).export("c:/Users/hwasu.jung/Downloads/test-simple.xls".toPath())
+        HtmlXlsExporter(testdata).export(Paths.userHome.resolve("/basica-test/exporter/text-simple.xls"))
     }
 
     "create basic XLSX file" {
+        val filePath = Paths.userHome.resolve("basica-test/exporter/text.xlsx")
         val testdata = createTestDataframe().also { logger.debug { "\n${it.toString(showIndex = true)}" } }
-        XlsxExporter(testdata).export("c:/Users/hwasu.jung/Downloads/test.xlsx".toPath())
+        XlsxExporter(testdata).export(filePath)
+        XlsxImporter().import(filePath).let { dataframe -> logger.debug { "\n${dataframe.toString(showIndex = true)}" } }
     }
 
     "create basic Ods Exporter" {

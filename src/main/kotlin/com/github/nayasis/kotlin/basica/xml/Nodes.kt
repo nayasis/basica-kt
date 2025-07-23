@@ -19,6 +19,8 @@ import org.w3c.dom.traversal.DocumentTraversal
 import org.w3c.dom.traversal.NodeFilter
 import org.w3c.dom.traversal.TreeWalker
 import java.io.StringWriter
+import java.nio.charset.Charset
+import java.nio.charset.StandardCharsets
 import javax.xml.xpath.XPathConstants
 import javax.xml.xpath.XPathFactory
 import kotlin.coroutines.CoroutineContext
@@ -52,8 +54,8 @@ fun Node?.isNewline(): Boolean =
 fun Node.rename(tagName: String): Node =
     ownerDocument.renameNode(this, this.namespaceURI, tagName )
 
-fun Node.appendFromXml(xml: String, ignoreDtd: Boolean = true): Node {
-    val doc = XmlReader.read(xml,ignoreDtd)
+fun Node.appendFromXml(xml: String, charset: Charset = StandardCharsets.UTF_8, ignoreDtd: Boolean = true): Node {
+    val doc = XmlReader.read(xml, charset, ignoreDtd)
     val children = ownerDocument.importNode( doc, true)
     return this.appendChild(children)
 }
@@ -97,7 +99,7 @@ fun Node.setAttr(key: String, value: String?): Boolean {
 }
 
 fun Node.hasAttr(key: String, ignoreCase: Boolean = false): Boolean =
-    attributes(key,ignoreCase) != null
+    attribute(key,ignoreCase) != null
 
 fun Node.attr(key: String, ignoreCase: Boolean = false): String? {
     val attrs = this.attrs()
@@ -109,15 +111,6 @@ fun Node.attr(key: String, ignoreCase: Boolean = false): String? {
 }
 
 fun Node.attribute(key: String, ignoreCase: Boolean = false): Attr? {
-    val attrs = this.attributes()
-    return if( ignoreCase ) {
-        attrs.filterKeys { it.equals(key,ignoreCase = true) }.map { it.value }.firstOrNull()
-    } else {
-        attrs[key]
-    }
-}
-
-fun Node.attributes(key: String, ignoreCase: Boolean = false): Attr? {
     val attrs = this.attributes()
     return if( ignoreCase ) {
         attrs.filterKeys { it.equals(key,ignoreCase = true) }.map { it.value }.firstOrNull()

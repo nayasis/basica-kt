@@ -234,6 +234,28 @@ internal class StringsTest: StringSpec({
         """.trimIndent().trim()
     }
 
+    "camel" {
+        "camelCase".toCamel() shouldBe "camelCase"
+        "camel_case".toCamel() shouldBe "camelCase"
+        "CamelCase".toCamel() shouldBe "camelCase"
+        "Camel_Case".toCamel() shouldBe "camelCase"
+        "camel-case".toCamel() shouldBe "camelCase"
+        "Camel-Case".toCamel() shouldBe "camelCase"
+        "camel case".toCamel() shouldBe "camelCase"
+        "Camel Case".toCamel() shouldBe "camelCase"
+    }
+
+    "snake" {
+        "snake_case".toSnake() shouldBe "snake_case"
+        "snakeCase".toSnake() shouldBe "snake_case"
+        "SnakeCase".toSnake() shouldBe "snake_case"
+        "Snake_Case".toSnake() shouldBe "snake_case"
+        "snake-case".toSnake() shouldBe "snake_case"
+        "Snake-Case".toSnake() shouldBe "snake_case"
+        "snake case".toSnake() shouldBe "snake_case"
+        "Snake Case".toSnake() shouldBe "snake_case"
+    }
+
 })
 
 data class Dummy(

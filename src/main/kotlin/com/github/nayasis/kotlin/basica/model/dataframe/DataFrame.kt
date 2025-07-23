@@ -20,6 +20,10 @@ class DataFrame(
         return size == 0
     }
 
+    fun isRowEmpty(row: Int): Boolean {
+        return body.values.all { it[row] == null }
+    }
+
     fun setLabel(key: String, label: String) {
         body.setLabel(key, label)
     }

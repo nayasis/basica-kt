@@ -11,6 +11,7 @@ import java.io.File
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.net.URL
+import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 import java.nio.file.Path
 import javax.xml.parsers.DocumentBuilder
@@ -34,29 +35,33 @@ class XmlReader {
             return factory.newDocumentBuilder()
         }
 
-        fun read(path: Path, ignoreDtd: Boolean = true): Element =
-            read(path.inputStream(),ignoreDtd)
+        fun read(path: Path, charset: Charset = StandardCharsets.UTF_8, ignoreDtd: Boolean = true): Element =
+            read(path.inputStream(), charset, ignoreDtd)
 
-        fun read(file: File, ignoreDtd: Boolean = true): Element =
-            read(file.inputStream(),ignoreDtd)
+        fun read(file: File, charset: Charset = StandardCharsets.UTF_8, ignoreDtd: Boolean = true): Element =
+            read(file.inputStream(), charset, ignoreDtd)
 
-        fun read(xml: String, ignoreDtd: Boolean = true): Element =
-            read(ByteArrayInputStream(xml.toByteArray()), ignoreDtd)
+        fun read(xml: String, charset: Charset = StandardCharsets.UTF_8, ignoreDtd: Boolean = true): Element =
+            read(ByteArrayInputStream(xml.toByteArray()), charset, ignoreDtd)
 
-        fun read(url: URL, ignoreDtd: Boolean = true): Element =
-            read(Classes.getResourceStream(url), ignoreDtd)
+        fun read(url: URL, charset: Charset = StandardCharsets.UTF_8, ignoreDtd: Boolean = true): Element =
+            read(Classes.getResourceStream(url), charset, ignoreDtd)
 
-        fun read(inputStream: InputStream, ignoreDtd: Boolean = true): Element =
-            InputStreamReader(inputStream, StandardCharsets.UTF_8.toString()).use { reader ->
+        fun read(inputStream: InputStream, charset: Charset = StandardCharsets.UTF_8, ignoreDtd: Boolean = true): Element =
+            InputStreamReader(inputStream, charset.toString()).use { reader ->
                 return getBuilder(ignoreDtd).parse(InputSource(reader)).apply { xmlStandalone = true }
                     .documentElement
             }
 
-        fun createNew(rootTagName: String, ignoreDtd: Boolean = true): Element {
-            val doc = getBuilder(ignoreDtd).newDocument().apply { xmlStandalone = true }
-            val root = doc.createElement(rootTagName)
-            doc.appendChild(root)
-            return root
+        fun read(inputStreamReader: InputStreamReader, ignoreDtd: Boolean = true): Element =
+            inputStreamReader.use { reader ->
+                return getBuilder(ignoreDtd).parse(InputSource(reader)).apply { xmlStandalone = true }
+                    .documentElement
+            }
+
+        fun createDocument(rootTagName: String, ignoreDtd: Boolean = true): Element {
+            val doc = createDocument(ignoreDtd)
+            return doc.appendElement(rootTagName)
         }
 
         fun createDocument(ignoreDtd: Boolean = true): Document =

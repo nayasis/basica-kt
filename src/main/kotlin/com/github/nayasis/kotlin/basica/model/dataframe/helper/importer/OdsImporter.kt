@@ -12,8 +12,8 @@ import java.util.zip.ZipInputStream
  */
 class OdsImporter(
     private val sheetIndex: Int = 0,
-    private val hasHeader: Boolean = true
-) : DataFrameImporter {
+    private val hasHeader: Boolean = true,
+): DataFrameImporter() {
 
     override fun import(filePath: Path): DataFrame {
         return Files.newInputStream(filePath).use { stream ->
@@ -38,11 +38,6 @@ class OdsImporter(
         }
         
         return dataframe
-    }
-
-    override fun importFromString(content: String): DataFrame {
-        // ODS는 바이너리 형식이므로 문자열에서 직접 가져올 수 없습니다.
-        throw UnsupportedOperationException("ODS format cannot be imported from string")
     }
 
     private fun parseContent(zis: ZipInputStream, dataframe: DataFrame) {

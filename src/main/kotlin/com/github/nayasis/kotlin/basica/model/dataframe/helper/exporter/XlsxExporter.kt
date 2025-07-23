@@ -31,7 +31,6 @@ class XlsxExporter(
     private val stringIndexMap = buildSharedStrings()
 
     override fun export(outputStream: OutputStream) {
-
         ZipOutputStream(outputStream).use { zos ->
             writeContentTypes(zos)
             writeRels(zos)

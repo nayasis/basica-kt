@@ -43,12 +43,13 @@ import kotlin.math.min
 import kotlin.math.round
 import kotlin.reflect.KClass
 
-private val REGEX_CAMEL = "(_[a-zA-Z])".toPattern()
-private val REGEX_SNAKE = "([A-Z])".toPattern()
-private val REGEX_SPACE = "[ \t]+".toRegex()
-private val REGEX_SPACE_ENTER = "[ \t\n\r]+".toRegex()
-private val REGEX_LINE_REMAIN = " *[\n\r]".toRegex()
-private val REGEX_LINE = "[\n\r]+".toRegex()
+private val REGEX_CAMEL         = "[_\\- ][a-zA-Z]".toRegex()
+private val REGEX_SNAKE         = "([a-z0-9])([A-Z])".toRegex()
+private val REGEX_DELIM         = "[- ]".toRegex()
+private val REGEX_SPACE         = "[ \t]+".toRegex()
+private val REGEX_SPACE_ENTER   = "[ \t\n\r]+".toRegex()
+private val REGEX_LINE_REMAIN   = " *[\n\r]".toRegex()
+private val REGEX_LINE          = "[\n\r]+".toRegex()
 private val REGEX_EXTRACT_DIGIT = "[^0-9]".toRegex()
 private val REGEX_EXTRACT_UPPER = "[^A-Z]".toRegex()
 private val REGEX_EXTRACT_LOWER = "[^a-z]".toRegex()
@@ -181,28 +182,19 @@ fun String?.displaySubstr(startIndex: Int, length: Int): String {
 }
 
 fun String.toCamel(): String {
-    if( this.isEmpty() ) return ""
-    val sb = StringBuffer()
-    val matcher = REGEX_CAMEL.matcher(this.lowercase())
-    while(matcher.find()) {
-        val r = matcher.group().substring(1)
-        matcher.appendReplacement(sb, if(matcher.start() == 0) r else r.uppercase())
-    }
-    matcher.appendTail(sb)
-    return sb.toString()
+    if (this.isEmpty()) return ""
+    return REGEX_CAMEL.replace(this) { matchResult ->
+        val r = matchResult.value.substring(1)
+        if (matchResult.range.first == 0) r else r.uppercase()
+    }.replaceFirstChar { it.lowercaseChar() }
 }
 
 fun String.toSnake(): String {
-    if( this.isEmpty() ) return ""
-    val sb = StringBuffer()
-    val matcher = REGEX_SNAKE.matcher(this.lowercase())
-    while(matcher.find()) {
-        if(matcher.start() == 0) continue
-        val r = matcher.group()
-        matcher.appendReplacement(sb, "_${r.lowercase()}")
-    }
-    matcher.appendTail(sb)
-    return sb.toString()
+    if (this.isEmpty()) return ""
+    val replaced = REGEX_DELIM.replace(this, "_")
+    return REGEX_SNAKE.replace(replaced) {
+        "${it.groupValues[1]}_${it.groupValues[2]}"
+    }.lowercase()
 }
 
 fun String.escape(): String {
@@ -344,7 +336,7 @@ fun String.escapeRegex(): String {
 
 @JvmOverloads
 fun String.toSingleSpace(includeLineBreaker: Boolean = false): String =
-    if (this.isEmpty()) "" else this.replace((includeLineBreaker) then REGEX_SPACE_ENTER ?: REGEX_SPACE, " ").trim()
+    if (this.isEmpty()) "" else this.replace(includeLineBreaker then REGEX_SPACE_ENTER ?: REGEX_SPACE, " ").trim()
 
 fun String.toSingleEnter(): String =
     if( this.isEmpty() ) "" else this.replace(REGEX_LINE_REMAIN, "\n").replace(REGEX_LINE, "\n")
@@ -355,7 +347,7 @@ fun String.extractLowers(): String = if( this.isEmpty() ) "" else this.replace(R
 
 @JvmOverloads
 fun String.removeSpace(includeLineBreaker: Boolean = false): String =
-    if (this.isEmpty()) "" else this.replace((includeLineBreaker) then REGEX_SPACE_ENTER ?: REGEX_SPACE, "")
+    if (this.isEmpty()) "" else this.replace(includeLineBreaker then REGEX_SPACE_ENTER ?: REGEX_SPACE, "")
 
 fun String?.tokenize(delimiter: String, returnDelimiter: Boolean = false): List<String> {
     if( this.isNullOrEmpty() ) return emptyList()
