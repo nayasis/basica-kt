@@ -405,3 +405,20 @@ val Node.document: Document
 
 fun Node.getTreeWalker(whatToShow: Int = NodeFilter.SHOW_ALL, filter: NodeFilter? = null, entityReferenceExpansion: Boolean = false ): TreeWalker =
     (document as DocumentTraversal).createTreeWalker(this,whatToShow,filter,entityReferenceExpansion)
+
+fun NodeList.iterator(): Iterator<Node> {
+    val e = this
+    return object : Iterator<Node> {
+        private var index = 0
+        override fun next(): Node {
+            if( ! hasNext() ) throw NoSuchElementException()
+            return e.item(index++)
+        }
+
+        override fun hasNext(): Boolean {
+            return index < e.length
+        }
+    }
+}
+
+fun NodeList.firstOrNull(): Node? = if( this.length > 0 ) this.item(0) else null

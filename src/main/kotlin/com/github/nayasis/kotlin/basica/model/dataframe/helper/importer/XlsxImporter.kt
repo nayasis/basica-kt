@@ -1,26 +1,17 @@
 package com.github.nayasis.kotlin.basica.model.dataframe.helper.importer
 
+import com.github.nayasis.kotlin.basica.core.extension.then
 import com.github.nayasis.kotlin.basica.core.string.unescapeXml
 import com.github.nayasis.kotlin.basica.model.dataframe.DataFrame
 import com.github.nayasis.kotlin.basica.xml.XmlReader
 import com.github.nayasis.kotlin.basica.xml.attr
 import com.github.nayasis.kotlin.basica.xml.childrenByTagName
-import org.w3c.dom.Document
+import com.github.nayasis.kotlin.basica.xml.firstOrNull
+import com.github.nayasis.kotlin.basica.xml.iterator
 import org.w3c.dom.Element
 import java.io.InputStream
 import java.nio.charset.Charset
 import java.util.zip.ZipInputStream
-
-private const val TAG_ROW_START           = "<row"
-private const val TAG_ROW_END             = "</row>"
-private const val TAG_CELL_START          = "<c"
-private const val TAG_CELL_END            = "</c>"
-private const val TAG_VALUE_START         = "<v>"
-private const val TAG_VALUE_END           = "</v>"
-private const val TAG_SHARED_STRING_START = "<si>"
-private const val TAG_SHARED_STRING_END   = "</si>"
-private const val TAG_TEXT_START          = "<t>"
-private const val TAG_TEXT_END            = "</t>"
 
 /**
  * XLSX importer
@@ -31,10 +22,12 @@ class XlsxImporter(
     private val charset: Charset = Charsets.UTF_8,
 ) : DataFrameImporter() {
 
+    private val REGEX_EXPONENTIAL = "[eE][+-]?\\d+".toRegex()
+
     override fun import(inputStream: InputStream): DataFrame {
         var sharedStrings: MutableList<String>? = null
         var firstSheet: Element? = null
-        var dateStyleIndexes: Set<Int>? = null
+        var dateStyleIndexes: DateStyleIndexes? = null
 
         ZipInputStream(inputStream).use { zis ->
             var entry: java.util.zip.ZipEntry?
@@ -55,92 +48,137 @@ class XlsxImporter(
             }
         }
 
-        return firstSheet?.let { toDataframe(it, sharedStrings ?: emptyList(), dateStyleIndexes ?: emptySet()) } ?: DataFrame()
+        return firstSheet?.let { toDataframe(it, sharedStrings ?: emptyList(), dateStyleIndexes ?: DateStyleIndexes()) } ?: DataFrame()
     }
 
     private fun toDataframe(
         sheet: Element,
         sharedStrings: List<String>,
-        dateStyleIndexes: Set<Int>,
+        dateStyleIndexes: DateStyleIndexes,
     ): DataFrame {
         val dataframe = DataFrame()
         val rows = sheet.childrenByTagName("row")
-        var headers = ArrayList<String>()
-        rows.forEachIndexed { rowIdx, row ->
+        rows.forEachIndexed { index, row ->
             val cells  = row.childrenByTagName("c")
+            val rowIdx = row.attr("r")?.toIntOrNull() ?: (index + 1)
             val values = cells.map { cell ->
                 val type  = cell.attr("t")
                 val sIdx  = cell.attr("s")?.toIntOrNull()
                 val vElem = cell.childrenByTagName("v").firstOrNull()
                 val value = vElem?.textContent ?: ""
                 when {
-                    type == null -> value.toDoubleOrNull() ?: value
-                    sIdx in dateStyleIndexes -> excelSerialToDate(value) ?: value
+                    sIdx in dateStyleIndexes.dateIndexes -> {
+                        excelSerialToDate(value) ?: value
+                    }
+                    sIdx in dateStyleIndexes.dateTimeIndexes -> {
+                        excelSerialToDateTime(value) ?: value
+                    }
+                    type == null -> parseNumber(value) ?: value
                     type == "s" -> sharedStrings.getOrNull(value.toIntOrNull() ?: -1) ?: ""
                     type == "b" -> value == "1"
                     else -> value
                 }
             }
-            if(rowIdx == 0) {
-                values.forEachIndexed { colIdx, value ->
-                    if(useHeader) {
-                        headers.add("$value")
-                    } else {
-                        headers.add("$colIdx")
+            // set header
+            if(index == 0) {
+                if(useHeader) {
+                    values.forEachIndexed { colIdx, value ->
+                        dataframe.addKey("$value")
+                    }
+                } else {
+                    values.forEachIndexed { colIdx, value ->
+                        dataframe.addKey("$colIdx")
+                        dataframe.setData(rowIdx, colIdx, value)
                     }
                 }
-            }
-
-
-
-            if (rowIdx == 0 && useHeader) {
-
-                headers = values.indices.map { it.toString() }
-                values.forEachIndexed { col, label ->
-                    dataframe.setLabel(col.toString(), label)
-                }
+            // set body
             } else {
-                if (headers == null) headers = values.indices.map { it.toString() }
-                values.forEachIndexed { col, value ->
-                    dataframe.setData(
-                        if (useHeader) rowIdx - 1 else rowIdx,
-                        headers!![col],
-                        value
-                    )
+                values.forEachIndexed { colIdx, value ->
+                    dataframe.setData(useHeader then rowIdx.minus(2) ?: rowIdx.minus(1), colIdx, value)
                 }
             }
         }
         return dataframe
     }
 
+    private fun parseRowIndex(address: String): Int {
+        val rowPart = address.takeLastWhile { it.isDigit() }
+        return rowPart.toIntOrNull() ?: 0
+    }
+
     private fun excelSerialToDate(serial: String): Any? {
         val d = serial.toDoubleOrNull() ?: return null
-        // 엑셀 기준: 1899-12-30 (1900 date system)
+        // Date on Excel starts from 1899-12-30 (1900 date system)
         return java.time.LocalDate.of(1899, 12, 30).plusDays(d.toLong())
     }
 
-    private fun getDateStyleIndexes(doc: Element): Set<Int> {
-        val numFmtIdToDate = mutableSetOf<Int>()
-        val builtInDateFmtIds = setOf(14, 15, 16, 17, 18, 19, 20, 21, 22, 45, 46, 47, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180)
-        val numFmts = doc.getElementsByTagName("numFmt")
-        for (i in 0 until numFmts.length) {
-            val node = numFmts.item(i)
-            val id = node.attributes?.getNamedItem("numFmtId")?.nodeValue?.toIntOrNull() ?: continue
-            val formatCode = node.attributes?.getNamedItem("formatCode")?.nodeValue?.lowercase() ?: ""
-            if (formatCode.contains("yy") || formatCode.contains("mm") || formatCode.contains("dd") || formatCode.contains("h") || formatCode.contains("s")) {
-                numFmtIdToDate.add(id)
+    private fun excelSerialToDateTime(serial: String): Any? {
+        val d = serial.toDoubleOrNull() ?: return null
+        // Excel datetime: integer part is days, decimal part is time
+        val days = d.toLong()
+        val seconds = ((d - days) * 24 * 60 * 60).toLong()
+        val baseDate = java.time.LocalDate.of(1899, 12, 30).plusDays(days)
+        return baseDate.atStartOfDay().plusSeconds(seconds)
+    }
+
+    private fun parseNumber(value: String): Number? {
+        if (value.isEmpty()) return null
+        
+        // Check for exponential notation (e.g., 1.23e+10, 1.23E-5)
+        if (value.contains(REGEX_EXPONENTIAL)) {
+            return value.toDoubleOrNull()
+        }
+        
+        // dot count
+        return when (value.count { it == '.' }) {
+            0 -> { // to int or long
+                val longValue = value.toLongOrNull()
+                when {
+                    longValue == null -> null
+                    longValue <= Int.MAX_VALUE && longValue >= Int.MIN_VALUE -> longValue.toInt()
+                    else -> longValue
+                }
+            }
+            1 -> value.toDoubleOrNull()
+            // this is to handle cases like "1.2.3" which should not be parsed as a number
+            else -> null
+        }
+    }
+
+    private data class DateStyleIndexes(
+        val dateIndexes: MutableSet<Int> = mutableSetOf(),
+        val dateTimeIndexes: MutableSet<Int> = mutableSetOf(),
+    )
+
+    private fun getDateStyleIndexes(doc: Element): DateStyleIndexes {
+
+        val numFmtIdToDate     = mutableSetOf<Int>()
+        val numFmtIdToDateTime = mutableSetOf<Int>()
+        val numFmtIdBuiltIn    = setOf(14, 15, 16, 17, 18, 19, 20, 21, 22, 45, 46, 47, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180)
+
+        doc.getElementsByTagName("numFmt").iterator().forEach { node ->
+            val id         = node.attr("numFmtId")?.toIntOrNull() ?: return@forEach
+            val formatCode = node.attr("formatCode")?.lowercase() ?: ""
+            when {
+                formatCode.contains("h") && formatCode.contains("s") -> numFmtIdToDateTime.add(id)
+                formatCode.contains("yy") && formatCode.contains("mm") && formatCode.contains("dd") -> numFmtIdToDate.add(id)
             }
         }
-        val dateStyleIndexes = mutableSetOf<Int>()
-        val cellXfs = doc.getElementsByTagName("xf")
-        for (i in 0 until cellXfs.length) {
-            val node = cellXfs.item(i)
-            val numFmtId = node.attributes?.getNamedItem("numFmtId")?.nodeValue?.toIntOrNull() ?: continue
-            if (numFmtId in builtInDateFmtIds || numFmtId in numFmtIdToDate) {
-                dateStyleIndexes.add(i)
+
+        // find date format style in [cellXfs > xf]
+        val rs = DateStyleIndexes()
+        doc.getElementsByTagName("cellXfs").firstOrNull()?.let { cellXfs ->
+            cellXfs.childrenByTagName("xf").forEachIndexed { index, xf ->
+                val numFmtId = xf.attr("numFmtId")?.toIntOrNull() ?: 0
+                when (numFmtId) {
+                    in numFmtIdToDate     -> rs.dateIndexes.add(index)
+                    in numFmtIdToDateTime -> rs.dateTimeIndexes.add(index)
+                    in numFmtIdBuiltIn    -> rs.dateTimeIndexes.add(index)
+                }
             }
         }
-        return dateStyleIndexes
+        
+        return rs
     }
 
     private fun getSharedStrings(doc: Element): MutableList<String> {
