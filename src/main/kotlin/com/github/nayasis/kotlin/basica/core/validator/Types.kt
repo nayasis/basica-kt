@@ -49,16 +49,10 @@ fun <T: Any> Any?.cast(typeClass: KClass<T>, ignoreError: Boolean = true): T? {
             this.toString().toNumber(typeClass as KClass<Number>) as T
         this is Number ->
             this.cast(typeClass as KClass<Number>) as T
-        else -> {
-            try {
-                Reflector.toObject(this, typeClass)
-            } catch (e: Exception) {
-                if( ignoreError ) {
-                    null
-                } else {
-                    throw ClassCastException("Value($this) cannot be cast to ${typeClass.simpleName}")
-                }
-            }
+        else -> runCatching {
+            Reflector.toObject(this, typeClass)
+        }.getOrElse { e ->
+            if(!ignoreError) null else throw ClassCastException("Value($this) cannot be cast to ${typeClass.simpleName}")
         }
     }
 }
