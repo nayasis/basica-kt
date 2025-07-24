@@ -2,6 +2,7 @@ package com.github.nayasis.kotlin.basica.model.dataframe
 
 import com.github.nayasis.kotlin.basica.reflection.Reflector
 import java.io.Serializable
+import kotlin.reflect.KClass
 
 class DataFrame(
     private val body: Columns = Columns()
@@ -21,7 +22,7 @@ class DataFrame(
     }
 
     fun isRowEmpty(row: Int): Boolean {
-        return body.values.all { it[row] == null }
+        return ! body.values.any { it.has(row) }
     }
 
     fun setLabel(key: String, label: String) {
@@ -199,13 +200,29 @@ class DataFrame(
         )
     }
 
+    inline fun <reified T: Any> toList(fromIndex: Int = 0, ignoreError: Boolean = true): List<T?> {
+        return toList(T::class,fromIndex,ignoreError)
+    }
+
+    fun <T: Any> toList(typeClass: KClass<T>, fromIndex: Int = 0, ignoreError: Boolean = true): List<T?> {
+        val list = ArrayList<T?>()
+        for( i in fromIndex .. (lastIndex ?: -1)) {
+            val row = if(isRowEmpty(i)) null else getRow(i)
+            list.add(row?.let { runCatching {
+                Reflector.toObject(it, typeClass)
+            }.getOrElse { e ->
+                if(!ignoreError) null else throw e
+            }})
+        }
+        return list
+    }
+
     public override fun clone(): DataFrame {
         return DataFrame(body = body.clone())
     }
 
     override fun iterator(): Iterator<Map<String, Any?>> {
         return object: Iterator<Map<String,Any?>> {
-            private val size = this@DataFrame.size
             private var i    = firstIndex ?: 0
             private val end  = lastIndex ?: -1
             override fun hasNext(): Boolean = i <= end

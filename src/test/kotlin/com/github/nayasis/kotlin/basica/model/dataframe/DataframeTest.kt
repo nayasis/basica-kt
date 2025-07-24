@@ -410,7 +410,7 @@ internal class DataframeTest: StringSpec({
             addRow(mapOf("a" to 3, "b" to "z"))
         }
 
-        val rows = dataframe.toList()
+        val rows = dataframe.toList<Map<String,Any?>>()
         rows.size shouldBe 3
         rows[0] shouldBe mapOf("a" to 1, "b" to "x")
         rows[1] shouldBe mapOf("a" to 2, "b" to "y")
@@ -424,8 +424,8 @@ internal class DataframeTest: StringSpec({
         dataframe.setData(7, "a", 200)
         dataframe.setData(9, "a", 300)
 
-        val rows = dataframe.toList()
-        rows.size shouldBe 7 // 3~9까지 7개
+        val rows = dataframe.toList<Map<String,Any?>>()
+        rows.size shouldBe 10
         val expectedIndices = (3..9).toList()
         val actualIndices = (dataframe.firstIndex!!..dataframe.lastIndex!!).toList()
         actualIndices shouldBe expectedIndices

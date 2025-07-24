@@ -2,8 +2,7 @@ package com.github.nayasis.kotlin.basica.model.dataframe.helper
 
 import com.github.nayasis.kotlin.basica.core.localdate.format
 import com.github.nayasis.kotlin.basica.core.localdate.toDate
-import com.github.nayasis.kotlin.basica.core.localdate.toString
-import com.github.nayasis.kotlin.basica.model.dataframe.toDisplayString
+import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
 import com.github.nayasis.kotlin.basica.xml.XmlReader
 import org.w3c.dom.Document
 import org.w3c.dom.Element
@@ -89,16 +88,22 @@ fun toExcelDate(value: Any?): Double? {
             epochSecond / 86400.0 + 25569.0
         }
         is ZonedDateTime -> {
-            val epochSecond = value.toEpochSecond()
+            // Excel doesn't store timezone info, so we convert to local time
+            val localDateTime = value.toLocalDateTime()
+            val epochSecond = localDateTime.toEpochSecond(java.time.ZoneOffset.UTC)
             epochSecond / 86400.0 + 25569.0
         }
         is Date -> {
-            // Convert Date to milliseconds and calculate Excel date
-            value.time / (1000.0 * 86400.0) + 25569.0
+            // Convert Date to LocalDateTime first to avoid timezone issues
+            val localDateTime = value.toLocalDateTime()
+            val epochSecond = localDateTime.toEpochSecond(java.time.ZoneOffset.UTC)
+            epochSecond / 86400.0 + 25569.0
         }
         is Calendar -> {
-            // Convert Calendar to milliseconds and calculate Excel date
-            value.timeInMillis / (1000.0 * 86400.0) + 25569.0
+            // Convert Calendar to LocalDateTime first to avoid timezone issues
+            val localDateTime = value.toLocalDateTime()
+            val epochSecond = localDateTime.toEpochSecond(java.time.ZoneOffset.UTC)
+            epochSecond / 86400.0 + 25569.0
         }
         else -> null
     }

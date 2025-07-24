@@ -8,7 +8,7 @@ import java.nio.charset.Charset
 
 class CsvImporter(
     private val delimiter: Char = ',',
-    private val useHeader: Boolean = true,
+    private val firstRowAsHeader: Boolean = true,
     private val charset: Charset = Charsets.UTF_8,
 ): DataFrameImporter() {
 
@@ -24,7 +24,7 @@ class CsvImporter(
             }
             // set header
             var rowIdx = 0
-            if (useHeader) {
+            if (firstRowAsHeader) {
                 firstRow.forEach { dataframe.addKey("$it") }
             } else {
                 firstRow.forEachIndexed { colIdx, value ->
