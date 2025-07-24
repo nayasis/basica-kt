@@ -1,6 +1,8 @@
 package com.github.nayasis.kotlin.basica.model.dataframe.helper.exporter
 
 import com.github.nayasis.kotlin.basica.model.dataframe.DataFrame
+import com.github.nayasis.kotlin.basica.model.dataframe.helper.isDateObject
+import com.github.nayasis.kotlin.basica.model.dataframe.helper.toOdsDate
 import java.io.OutputStream
 import java.io.OutputStreamWriter
 import java.io.PrintWriter
@@ -27,11 +29,13 @@ class CsvExporter(
         PrintWriter(OutputStreamWriter(outputStream, charset)).use { writer ->
             val keys = dataframe.keys.also { if(it.isEmpty()) return }
             // write header
-            (if (showLabel) dataframe.labels else keys).let { writer.write(it) }
+            (if (showLabel) dataframe.labels else keys).let {
+                writer.write(it)
+            }
             // write body
             for(i in first .. last) {
-                keys.map { key -> dataframe.getData(i,key) }.let { writer.write(it) }
                 writer.println()
+                keys.map { key -> dataframe.getData(i,key) }.let { writer.write(it) }
             }
         }
     }
@@ -40,11 +44,14 @@ class CsvExporter(
         values.joinToString(delimiter) { value ->
             when {
                 value == null -> ""
+                isDateObject(value) -> toOdsDate(value) ?: "$value"
                 value is CharSequence && value.isEmpty() -> ""
                 value is Number -> value.toString()
                 else -> value.toString().replace("\"", "\"\"").let { "\"$it\"" }
             }
-        }.let { print(it) }
+        }.let {
+            print(it)
+        }
     }
 
 }

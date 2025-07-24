@@ -10,6 +10,7 @@ import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
 import com.github.nayasis.kotlin.basica.core.localdate.toZonedDateTime
 import com.github.nayasis.kotlin.basica.core.string.toPath
 import com.github.nayasis.kotlin.basica.model.dataframe.DataFrame
+import com.github.nayasis.kotlin.basica.model.dataframe.helper.importer.CsvImporter
 import com.github.nayasis.kotlin.basica.model.dataframe.helper.importer.XlsxImporter
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.core.spec.style.StringSpec
@@ -41,6 +42,13 @@ internal class XlsxExporterTest : StringSpec({
         val testdata = createTestDataframe().also { logger.debug { "\n${it.toString(showIndex = true)}" } }
         XlsxExporter(testdata).export(filePath)
         XlsxImporter().import(filePath).let { dataframe -> logger.debug { "\n${dataframe.toString(showIndex = true)}" } }
+    }
+
+    "create basic CSV file" {
+        val filePath = Paths.userHome.resolve("basica-test/exporter/text.csv")
+        val testdata = createTestDataframe().also { logger.debug { "\n${it.toString(showIndex = true)}" } }
+        CsvExporter(testdata).export(filePath)
+        CsvImporter().import(filePath).let { dataframe -> logger.debug { "\n${dataframe.toString(showIndex = true)}" } }
     }
 
     "create basic Ods Exporter" {

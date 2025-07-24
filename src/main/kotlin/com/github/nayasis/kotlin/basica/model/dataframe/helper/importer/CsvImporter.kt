@@ -8,44 +8,53 @@ import java.nio.charset.Charset
 
 class CsvImporter(
     private val delimiter: Char = ',',
+    private val useHeader: Boolean = true,
     private val charset: Charset = Charsets.UTF_8,
-    private val useHeader: Boolean = true
 ): DataFrameImporter() {
 
     override fun import(inputStream: InputStream): DataFrame {
         val dataframe = DataFrame()
         BufferedReader(InputStreamReader(inputStream, charset)).use { reader ->
-            val firstLine = reader.readLine() ?: return dataframe
-            val firstRow = parseCsvLine(firstLine)
-            val headers = if (useHeader) { firstRow } else { firstRow.indices }.map { "$it" }
-            if (! useHeader) {
-                headers.forEachIndexed { col, value ->
-                    dataframe.setData(0, headers[col], value)
+            // read first until not empty line
+            lateinit var firstRow: List<Any>
+            while (true) {
+                val line = reader.readLine().also { if(it == null) return dataframe }
+                firstRow = parseCsvLine(line).also { if(it.isEmpty()) continue }
+                break
+            }
+            // set header
+            var rowIdx = 0
+            if (useHeader) {
+                firstRow.forEach { dataframe.addKey("$it") }
+            } else {
+                firstRow.forEachIndexed { colIdx, value ->
+                    dataframe.addKey("$colIdx")
+                    dataframe.setData(0, colIdx, value)
                 }
+                rowIdx++
             }
             // set data
-            var rowIndex = if(useHeader) 0 else 1
             reader.lineSequence().forEach { line ->
-                parseCsvLine(line).forEachIndexed { col, value ->
-                    if (col < headers.size) {
-                        dataframe.setData(rowIndex, headers[col], value)
-                    }
+                val row = parseCsvLine(line)
+                row.forEachIndexed { colIdx, value ->
+                    dataframe.setData(rowIdx, colIdx, value)
                 }
-                rowIndex++
+                rowIdx++
             }
         }
         return dataframe
     }
 
     private fun parseCsvLine(line: String): List<Any> {
+        if (line.isBlank() || line.all { it == delimiter }) return emptyList()
         val result = mutableListOf<Any>()
         var inQuotes = false
         val sb = StringBuilder()
         var i = 0
         while (i < line.length) {
             val c = line[i]
-            when {
-                c == '"' -> {
+            when (c) {
+                '"' -> {
                     if (inQuotes && i + 1 < line.length && line[i + 1] == '"') {
                         sb.append('"')
                         i++
@@ -53,7 +62,7 @@ class CsvImporter(
                         inQuotes = !inQuotes
                     }
                 }
-                c == delimiter && !inQuotes -> {
+                delimiter if !inQuotes -> {
                     result.add(sb.toString())
                     sb.clear()
                 }
