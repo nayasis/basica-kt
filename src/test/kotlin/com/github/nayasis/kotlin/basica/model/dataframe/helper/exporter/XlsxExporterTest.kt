@@ -11,6 +11,7 @@ import com.github.nayasis.kotlin.basica.core.localdate.toZonedDateTime
 import com.github.nayasis.kotlin.basica.core.string.toPath
 import com.github.nayasis.kotlin.basica.model.dataframe.DataFrame
 import com.github.nayasis.kotlin.basica.model.dataframe.helper.importer.CsvImporter
+import com.github.nayasis.kotlin.basica.model.dataframe.helper.importer.OdsImporter
 import com.github.nayasis.kotlin.basica.model.dataframe.helper.importer.XlsxImporter
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.core.spec.style.StringSpec
@@ -23,38 +24,32 @@ private val logger = KotlinLogging.logger {}
 
 internal class XlsxExporterTest : StringSpec({
 
-    Paths.userHome
+    val testDir = Paths.userHome.resolve("basica-test/dataframe")
 
     Characters.fullwidth = 2.0
 
-    "create XLS file" {
-        val testdata = createTestDataframe().also { logger.debug { "\n${it.toString(showIndex = true)}" } }
-        XlsExporter(testdata).export(Paths.userHome.resolve("/basica-test/exporter/text.xls"))
-    }
-
-    "create simple XLS file" {
-        val testdata = createTestDataframe().also { logger.debug { "\n${it.toString(showIndex = true)}" } }
-        HtmlXlsExporter(testdata).export(Paths.userHome.resolve("/basica-test/exporter/text-simple.xls"))
-    }
-
     "create basic XLSX file" {
-        val filePath = Paths.userHome.resolve("basica-test/exporter/text.xlsx")
+        val filePath = testDir.resolve("text.xlsx")
         val testdata = createTestDataframe().also { logger.debug { "\n${it.toString(showIndex = true)}" } }
         XlsxExporter(testdata).export(filePath)
         XlsxImporter().import(filePath).let { dataframe -> logger.debug { "\n${dataframe.toString(showIndex = true)}" } }
     }
 
     "create basic CSV file" {
-        val filePath = Paths.userHome.resolve("basica-test/exporter/text.csv")
+        val filePath = testDir.resolve("text.csv")
         val testdata = createTestDataframe().also { logger.debug { "\n${it.toString(showIndex = true)}" } }
         CsvExporter(testdata).export(filePath)
         CsvImporter().import(filePath).let { dataframe -> logger.debug { "\n${dataframe.toString(showIndex = true)}" } }
     }
 
-    "create basic Ods Exporter" {
+    "create basic ODS file" {
+        val filePath = testDir.resolve("text.ods")
         val testdata = createTestDataframe().also { logger.debug { "\n${it.toString(showIndex = true)}" } }
-        OdsExporter(testdata).export("c:/Users/hwasu.jung/Downloads/test.ods".toPath())
+        OdsExporter(testdata).export(filePath)
+        OdsImporter().import(filePath).let { dataframe -> logger.debug { "\n${dataframe.toString(showIndex = true)}" } }
     }
+
+
 
     "기본 XLSX 내보내기" {
         val dataframe = createTestDataframe()

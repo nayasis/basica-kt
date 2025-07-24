@@ -199,7 +199,7 @@ fun Node.childrenBy(attr: String, value: String): List<Node> =
     this.findNodes(".//*[@$attr='$value']")
 
 fun Node.children(): List<Node> =
-    toList(this.childNodes)
+    this.childNodes.toList()
 
 fun Node.hasChildren(): Boolean =
     this.hasChildNodes()
@@ -209,14 +209,6 @@ fun Node.elements(): List<Element> =
 
 fun Node.elementsByTagName(tagName: String): List<Element> =
     this.childrenByTagName(tagName).filterIsInstance<Element>()
-
-private fun toList(nodeList: NodeList): List<Node> {
-    val nodes = ArrayList<Node>()
-    for( i in 0 until nodeList.length) {
-        nodes.add(nodeList.item(i))
-    }
-    return nodes
-}
 
 fun Node.toSimpleString(): String {
     val attr = attrs().map { "${it.key}=\"${it.value}\"" }.joinToString(" ")
@@ -256,7 +248,7 @@ fun Node.toSimpleString(): String {
  * @return matched nodes
  */
 fun Node.findNodes(xpath: String): List<Node> =
-    toList(parserXpath.evaluate(xpath, this, XPathConstants.NODESET) as NodeList)
+    (parserXpath.evaluate(xpath, this, XPathConstants.NODESET) as NodeList).toList()
 
 /**
  * find node using Xpath expression.
@@ -422,3 +414,11 @@ fun NodeList.iterator(): Iterator<Node> {
 }
 
 fun NodeList.firstOrNull(): Node? = if( this.length > 0 ) this.item(0) else null
+
+fun NodeList.toList(): List<Node> {
+    val nodes = ArrayList<Node>()
+    for( i in 0 until this.length) {
+        nodes.add(this.item(i))
+    }
+    return nodes
+}

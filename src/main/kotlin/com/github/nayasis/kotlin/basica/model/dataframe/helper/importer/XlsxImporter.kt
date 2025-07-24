@@ -3,6 +3,7 @@ package com.github.nayasis.kotlin.basica.model.dataframe.helper.importer
 import com.github.nayasis.kotlin.basica.core.extension.then
 import com.github.nayasis.kotlin.basica.core.string.unescapeXml
 import com.github.nayasis.kotlin.basica.model.dataframe.DataFrame
+import com.github.nayasis.kotlin.basica.model.dataframe.helper.toDocument
 import com.github.nayasis.kotlin.basica.xml.XmlReader
 import com.github.nayasis.kotlin.basica.xml.attr
 import com.github.nayasis.kotlin.basica.xml.childrenByTagName
@@ -194,16 +195,4 @@ class XlsxImporter(
         return sharedStrings
     }
 
-    private fun ZipInputStream.toDocument(charset: Charset): Element {
-        return XmlReader.read(UnclosableInputStream(this), charset)
-    }
-
-    private class UnclosableInputStream(
-        private val wrapped: InputStream
-    ) : InputStream() {
-        override fun read(): Int = wrapped.read()
-        override fun read(b: ByteArray): Int = wrapped.read(b)
-        override fun read(b: ByteArray, off: Int, len: Int): Int = wrapped.read(b, off, len)
-        override fun close() { /* do nothing */ }
-    }
 } 
