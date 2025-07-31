@@ -21,14 +21,19 @@ import com.fasterxml.jackson.module.kotlin.jsonMapper
 import com.fasterxml.jackson.module.kotlin.kotlinModule
 import com.github.nayasis.kotlin.basica.core.string.escapeRegex
 import com.github.nayasis.kotlin.basica.core.validator.isEmpty
+import com.github.nayasis.kotlin.basica.reflection.serializer.CalendarDeserializer
+import com.github.nayasis.kotlin.basica.reflection.serializer.CalendarSerializer
 import com.github.nayasis.kotlin.basica.reflection.serializer.DateDeserializer
 import com.github.nayasis.kotlin.basica.reflection.serializer.DateSerializer
+import com.github.nayasis.kotlin.basica.reflection.serializer.ZonedDateTimeDeserializer
+import com.github.nayasis.kotlin.basica.reflection.serializer.ZonedDateTimeSerializer
 import java.beans.Transient
 import java.io.File
 import java.io.InputStream
 import java.io.Reader
 import java.lang.reflect.ParameterizedType
 import java.net.URL
+import java.time.ZonedDateTime
 import java.util.*
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
@@ -61,6 +66,10 @@ class Reflector { companion object {
             addModule( SimpleModule(javaClass.simpleName).apply {
                 addSerializer(Date::class, DateSerializer())
                 addDeserializer(Date::class, DateDeserializer())
+                addSerializer(Calendar::class, CalendarSerializer())
+                addDeserializer(Calendar::class, CalendarDeserializer())
+                addSerializer(ZonedDateTime::class, ZonedDateTimeSerializer())
+                addDeserializer(ZonedDateTime::class, ZonedDateTimeDeserializer())
             })
 
             // only convert by Class' field.

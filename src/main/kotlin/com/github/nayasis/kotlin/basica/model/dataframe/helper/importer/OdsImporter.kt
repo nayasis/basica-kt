@@ -4,7 +4,6 @@ import com.github.nayasis.kotlin.basica.model.dataframe.DataFrame
 import com.github.nayasis.kotlin.basica.model.dataframe.helper.toDocument
 import com.github.nayasis.kotlin.basica.xml.attr
 import com.github.nayasis.kotlin.basica.xml.children
-import com.github.nayasis.kotlin.basica.xml.childrenByTagName
 import com.github.nayasis.kotlin.basica.xml.toList
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.w3c.dom.Element
@@ -44,15 +43,15 @@ class OdsImporter(
         val table = doc.getElementsByTagName("table:table").toList().getOrNull(sheetIndex) ?: return dataframe
         val rows  = table.children().filter { it.nodeName == "table:table-row" }
 
-        var headerSet = false
+        var headerDone = false
+
         var rowIdx = 0
         for (row in rows) {
             row.attr("table:number-rows-repeated")?.toIntOrNull()?.run {
                 rowIdx += this
                 continue
             }
-            val cells = row.children().filter { it.nodeName == "table:table-cell" }
-            val parsedCells = cells.map { cell ->
+            val cells = row.children().filter { it.nodeName == "table:table-cell" }.map { cell ->
                 val valueType = cell.attr("office:value-type")
                 val label = cell.children().firstOrNull { it.nodeName == "text:p" }?.textContent ?: ""
                 val value = when (valueType) {
@@ -63,11 +62,19 @@ class OdsImporter(
                 }
                 OdsCell(label, value)
             }
-            if (!headerSet && useHeader) {
-                parsedCells.forEach { dataframe.addKey(it.label) }
-                headerSet = true
+            if( ! headerDone ) {
+                if(useHeader) {
+                    cells.forEach { dataframe.addKey(it.label) }
+                } else {
+                    cells.forEachIndexed { colIdx, cell ->
+                        dataframe.addKey("col$colIdx")
+                        dataframe.setData(rowIdx, colIdx, cell.value)
+                }
+                    rowIdx++
+                }
+                headerDone = true
             } else {
-                parsedCells.forEachIndexed { colIdx, cell ->
+                cells.forEachIndexed { colIdx, cell ->
                     dataframe.setData(rowIdx, colIdx, cell.value)
                 }
                 rowIdx++
@@ -90,7 +97,11 @@ class OdsImporter(
     private fun parseOdsDate(str: String?): Any? {
         if (str.isNullOrBlank()) return null
         return try {
-            if (str.length > 10) java.time.LocalDateTime.parse(str) else java.time.LocalDate.parse(str)
+            when {
+                str.length == 10 -> java.time.LocalDate.parse(str)
+                str.contains('+') -> java.time.ZonedDateTime.parse(str)
+                else -> java.time.LocalDateTime.parse(str)
+            }
         } catch (e: Exception) {
             logger.error(e) { "Error parsing OdsDate" }
             str
@@ -106,4 +117,4 @@ class OdsImporter(
         }
     }
 
-}
+} 

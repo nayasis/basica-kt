@@ -2,18 +2,20 @@ package com.github.nayasis.kotlin.basica.reflection
 
 import com.github.nayasis.kotlin.basica.core.collection.toJson
 import com.github.nayasis.kotlin.basica.core.localdate.format
+import com.github.nayasis.kotlin.basica.core.localdate.toCalendar
+import com.github.nayasis.kotlin.basica.core.localdate.toDate
 import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
+import com.github.nayasis.kotlin.basica.core.localdate.toZonedDateTime
 import com.github.nayasis.kotlin.basica.core.string.loadClass
+import com.github.nayasis.kotlin.basica.core.validator.cast
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.util.*
-import kotlin.collections.LinkedHashMap
 
-private val log = KotlinLogging.logger {}
+private val logger = KotlinLogging.logger {}
 
 @Suppress("UNCHECKED_CAST")
 internal class ReflectorTest: StringSpec({
@@ -187,6 +189,40 @@ internal class ReflectorTest: StringSpec({
         )
         val json = Reflector.toJson(list,pretty = true)
         println(json)
+    }
+
+    "calender" {
+
+        data class VoCalendar(
+            val A: ZonedDateTime,
+            val B: LocalDateTime,
+        )
+
+        // Create Calendar with explicit timezone
+        val calendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Seoul")).apply {
+            set(2025, 6, 10, 14, 30, 25) // July 10, 2025 14:30:25 (KST)
+            set(java.util.Calendar.MILLISECOND, 0)
+        }
+
+        // Debug: Check calendar timezone and ZonedDateTime conversion
+        logger.debug { ">> Calendar timezone: ${calendar.timeZone.id}" }
+        logger.debug { ">> Calendar toZonedDateTime: ${calendar.toZonedDateTime()}" }
+        logger.debug { ">> Calendar toZonedDateTime format: ${calendar.toZonedDateTime().format()}" }
+
+        val map = mapOf(
+            "A" to calendar,
+            "B" to "2025-07-10 14:30:25".toLocalDateTime(),
+        ).also { logger.debug { ">> map\n${(it["A"] as Calendar).toDate()}" } }
+
+        val json = Reflector.toJson(map,pretty = true).also { logger.debug { ">> json\n$it" } }
+
+        val converted = Reflector.toObject<VoCalendar>(json).also { logger.debug { ">> converted\n$it" } }
+
+        converted.A.also {
+            logger.debug { ">> A.toLocalDateTime() = ${it.toLocalDateTime()}" }
+        }.toLocalDateTime().format() shouldBe "2025-07-10T14:30:25"
+        converted.B.format() shouldBe "2025-07-10T14:30:25"
+
     }
 
 })

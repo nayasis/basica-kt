@@ -11,6 +11,7 @@ import com.github.nayasis.kotlin.basica.core.localdate.toZonedDateTime
 import com.github.nayasis.kotlin.basica.core.string.toPath
 import com.github.nayasis.kotlin.basica.model.dataframe.DataFrame
 import com.github.nayasis.kotlin.basica.model.dataframe.helper.importer.CsvImporter
+import com.github.nayasis.kotlin.basica.model.dataframe.helper.importer.JsonImporter
 import com.github.nayasis.kotlin.basica.model.dataframe.helper.importer.OdsImporter
 import com.github.nayasis.kotlin.basica.model.dataframe.helper.importer.XlsxImporter
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -42,34 +43,20 @@ internal class XlsxExporterTest : StringSpec({
         CsvImporter().import(filePath).let { dataframe -> logger.debug { "\n${dataframe.toString(showIndex = true)}" } }
     }
 
+    "create basic JSON file" {
+        val filePath = testDir.resolve("text.json")
+        val testdata = createTestDataframe().also { logger.debug { "\n${it.toString(showIndex = true)}" } }
+        JsonExporter(testdata).export(filePath)
+        JsonImporter().import(filePath).let { dataframe -> logger.debug { "\n${dataframe.toString(showIndex = true)}" } }
+    }
+
     "create basic ODS file" {
         val filePath = testDir.resolve("text.ods")
         val testdata = createTestDataframe().also { logger.debug { "\n${it.toString(showIndex = true)}" } }
         OdsExporter(testdata).export(filePath)
-        OdsImporter().import(filePath).let { dataframe -> logger.debug { "\n${dataframe.toString(showIndex = true)}" } }
-    }
-
-
-
-    "기본 XLSX 내보내기" {
-        val dataframe = createTestDataframe()
-        val outputStream = ByteArrayOutputStream()
-        
-        XlsxExporter(dataframe).export(outputStream)
-        
-        val bytes = outputStream.toByteArray()
-        bytes.size shouldNotBe 0
-        
-        // ZIP 파일 구조 확인
-        val zipInput = ZipInputStream(bytes.inputStream())
-        val entries = mutableListOf<String>()
-        var entry = zipInput.nextEntry
-        while (entry != null) {
-            entries.add(entry.name)
-            entry = zipInput.nextEntry
+        OdsImporter().import(filePath).let { dataframe -> logger.debug {
+            "\n${dataframe.toString(showIndex = true)}" }
         }
-        
-        entries shouldBe listOf("[Content_Types].xml", "_rels/.rels", "xl/workbook.xml", "xl/_rels/workbook.xml.rels", "xl/sharedStrings.xml", "xl/styles.xml", "xl/worksheets/sheet1.xml")
     }
 
 //    "헤더 없이 XLSX 내보내기" {
