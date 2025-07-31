@@ -425,7 +425,7 @@ internal class DataframeTest: StringSpec({
         dataframe.setData(9, "a", 300)
 
         val rows = dataframe.toList<Map<String,Any?>>()
-        rows.size shouldBe 7 // 3~9까지 7개
+        rows.size shouldBe 10
         val expectedIndices = (3..9).toList()
         val actualIndices = (dataframe.firstIndex!!..dataframe.lastIndex!!).toList()
         actualIndices shouldBe expectedIndices

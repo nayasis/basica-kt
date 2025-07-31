@@ -1,15 +1,14 @@
-package com.github.nayasis.kotlin.basica.model.dataframe.helper.exporter
+package com.github.nayasis.kotlin.basica.model.dataframe
 
 import com.github.nayasis.kotlin.basica.core.character.Characters
-import com.github.nayasis.kotlin.basica.core.io.Path
+import com.github.nayasis.kotlin.basica.core.extension.ifNull
 import com.github.nayasis.kotlin.basica.core.io.Paths
-import com.github.nayasis.kotlin.basica.core.localdate.toCalendar
-import com.github.nayasis.kotlin.basica.core.localdate.toDate
-import com.github.nayasis.kotlin.basica.core.localdate.toLocalDate
-import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
-import com.github.nayasis.kotlin.basica.core.localdate.toZonedDateTime
-import com.github.nayasis.kotlin.basica.core.string.toPath
-import com.github.nayasis.kotlin.basica.model.dataframe.DataFrame
+import com.github.nayasis.kotlin.basica.core.localdate.*
+import com.github.nayasis.kotlin.basica.core.validator.cast
+import com.github.nayasis.kotlin.basica.model.dataframe.helper.exporter.CsvExporter
+import com.github.nayasis.kotlin.basica.model.dataframe.helper.exporter.JsonExporter
+import com.github.nayasis.kotlin.basica.model.dataframe.helper.exporter.OdsExporter
+import com.github.nayasis.kotlin.basica.model.dataframe.helper.exporter.XlsxExporter
 import com.github.nayasis.kotlin.basica.model.dataframe.helper.importer.CsvImporter
 import com.github.nayasis.kotlin.basica.model.dataframe.helper.importer.JsonImporter
 import com.github.nayasis.kotlin.basica.model.dataframe.helper.importer.OdsImporter
@@ -17,9 +16,9 @@ import com.github.nayasis.kotlin.basica.model.dataframe.helper.importer.XlsxImpo
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
-import java.io.ByteArrayOutputStream
-import java.util.zip.ZipInputStream
+import java.time.LocalDateTime
+import java.time.ZonedDateTime
+import java.util.*
 
 private val logger = KotlinLogging.logger {}
 
@@ -31,32 +30,46 @@ internal class XlsxExporterTest : StringSpec({
 
     "create basic XLSX file" {
         val filePath = testDir.resolve("text.xlsx")
-        val testdata = createTestDataframe().also { logger.debug { "\n${it.toString(showIndex = true)}" } }
-        XlsxExporter(testdata).export(filePath)
-        XlsxImporter().import(filePath).let { dataframe -> logger.debug { "\n${dataframe.toString(showIndex = true)}" } }
+        val src = createTestDataframe().also { logger.debug { "\n${it.toString(showIndex = true)}" } }
+            .also { XlsxExporter(it).export(filePath) }
+        val trg = XlsxImporter().import(filePath).also { logger.debug { "\n${it.toString(showIndex = true)}" } }
+
+        for(row in src.firstIndex.ifNull{0} until src.lastIndex.ifNull{-1}) {
+            src.getData(row, 0) shouldBe trg.getData(row, 0)
+        }
+
+        src.getData(10, 1) shouldBe trg.getData(10, 1)
+        src.getData(11, 1) shouldBe trg.getData(11, 1)
+        src.getData(12, 1) shouldBe trg.getData(12, 1)
+        src.getData(13, 1) shouldBe trg.getData(13, 1)
+        src.getData(14, 1) shouldBe trg.getData(14, 1)
+        src.getData(15, 1) shouldBe trg.getData(15, 1)
+        src.getData(16, 1) shouldBe trg.getData(16, 1).cast<LocalDateTime>()?.toDate()
+        src.getData(17, 1) shouldBe trg.getData(17, 1).cast<LocalDateTime>()?.toDate()
+        src.getData(18, 1).cast<Calendar>()?.toLocalDateTime() shouldBe trg.getData(18, 1)
+        // ZonedDateTime loses timezone info when stored in Excel, so compare local time only
+        src.getData(19, 1).cast<ZonedDateTime>()?.toLocalDateTime() shouldBe trg.getData(19, 1).cast<LocalDateTime>()
     }
 
     "create basic CSV file" {
         val filePath = testDir.resolve("text.csv")
-        val testdata = createTestDataframe().also { logger.debug { "\n${it.toString(showIndex = true)}" } }
-        CsvExporter(testdata).export(filePath)
-        CsvImporter().import(filePath).let { dataframe -> logger.debug { "\n${dataframe.toString(showIndex = true)}" } }
+        val src = createTestDataframe().also { logger.debug { "\n${it.toString(showIndex = true)}" } }
+            .also { CsvExporter(it).export(filePath) }
+        val trg = CsvImporter().import(filePath).also { logger.debug { "\n${it.toString(showIndex = true)}" } }
     }
 
     "create basic JSON file" {
         val filePath = testDir.resolve("text.json")
-        val testdata = createTestDataframe().also { logger.debug { "\n${it.toString(showIndex = true)}" } }
-        JsonExporter(testdata).export(filePath)
-        JsonImporter().import(filePath).let { dataframe -> logger.debug { "\n${dataframe.toString(showIndex = true)}" } }
+        val src = createTestDataframe().also { logger.debug { "\n${it.toString(showIndex = true)}" } }
+            .also { JsonExporter(it).export(filePath) }
+        val trg = JsonImporter().import(filePath).also { logger.debug { "\n${it.toString(showIndex = true)}" } }
     }
 
     "create basic ODS file" {
         val filePath = testDir.resolve("text.ods")
-        val testdata = createTestDataframe().also { logger.debug { "\n${it.toString(showIndex = true)}" } }
-        OdsExporter(testdata).export(filePath)
-        OdsImporter().import(filePath).let { dataframe -> logger.debug {
-            "\n${dataframe.toString(showIndex = true)}" }
-        }
+        val src = createTestDataframe().also { logger.debug { "\n${it.toString(showIndex = true)}" } }
+            .also { OdsExporter(it).export(filePath) }
+        val trg = OdsImporter().import(filePath).also { logger.debug { "\n${it.toString(showIndex = true)}" } }
     }
 
 //    "헤더 없이 XLSX 내보내기" {
@@ -165,102 +178,7 @@ internal class XlsxExporterTest : StringSpec({
 //        }
 //    }
 //
-//    "Content Types 확인" {
-//        val dataframe = createTestDataframe()
-//        val outputStream = ByteArrayOutputStream()
 //
-//        XlsxExporter(dataframe).export(outputStream)
-//
-//        val bytes = outputStream.toByteArray()
-//        val zipInput = ZipInputStream(bytes.inputStream())
-//        var entry = zipInput.nextEntry
-//        while (entry != null) {
-//            if (entry.name == "[Content_Types].xml") {
-//                val content = zipInput.readAllBytes().toString(Charsets.UTF_8)
-//                content shouldBe content.contains("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml")
-//                content shouldBe content.contains("application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml")
-//                content shouldBe content.contains("application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml")
-//                content shouldBe content.contains("application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml")
-//                break
-//            }
-//            entry = zipInput.nextEntry
-//        }
-//    }
-//
-//    "Shared Strings 구조 확인" {
-//        val dataframe = createTestDataframe()
-//        val outputStream = ByteArrayOutputStream()
-//
-//        XlsxExporter(dataframe).export(outputStream)
-//
-//        val bytes = outputStream.toByteArray()
-//        val zipInput = ZipInputStream(bytes.inputStream())
-//        var entry = zipInput.nextEntry
-//        while (entry != null) {
-//            if (entry.name == "xl/sharedStrings.xml") {
-//                val content = zipInput.readAllBytes().toString(Charsets.UTF_8)
-//                content shouldBe content.contains("<sst")
-//                content shouldBe content.contains("</sst>")
-//                content shouldBe content.contains("<si>")
-//                content shouldBe content.contains("</si>")
-//                break
-//            }
-//            entry = zipInput.nextEntry
-//        }
-//    }
-//
-//    "Worksheet 구조 확인" {
-//        val dataframe = createTestDataframe()
-//        val outputStream = ByteArrayOutputStream()
-//
-//        XlsxExporter(dataframe).export(outputStream)
-//
-//        val bytes = outputStream.toByteArray()
-//        val zipInput = ZipInputStream(bytes.inputStream())
-//        var entry = zipInput.nextEntry
-//        while (entry != null) {
-//            if (entry.name == "xl/worksheets/sheet1.xml") {
-//                val content = zipInput.readAllBytes().toString(Charsets.UTF_8)
-//                content shouldBe content.contains("<worksheet")
-//                content shouldBe content.contains("</worksheet>")
-//                content shouldBe content.contains("<sheetData>")
-//                content shouldBe content.contains("</sheetData>")
-//                content shouldBe content.contains("<row")
-//                content shouldBe content.contains("</row>")
-//                break
-//            }
-//            entry = zipInput.nextEntry
-//        }
-//    }
-//
-//    "ZIP 파일 구조 검증" {
-//        val dataframe = createTestDataframe()
-//        val outputStream = ByteArrayOutputStream()
-//
-//        XlsxExporter(dataframe).export(outputStream)
-//
-//        val bytes = outputStream.toByteArray()
-//        val zipInput = ZipInputStream(bytes.inputStream())
-//
-//        val expectedEntries = listOf(
-//            "[Content_Types].xml",
-//            "_rels/.rels",
-//            "xl/workbook.xml",
-//            "xl/_rels/workbook.xml.rels",
-//            "xl/sharedStrings.xml",
-//            "xl/styles.xml",
-//            "xl/worksheets/sheet1.xml"
-//        )
-//        val actualEntries = mutableListOf<String>()
-//
-//        var entry = zipInput.nextEntry
-//        while (entry != null) {
-//            actualEntries.add(entry.name)
-//            entry = zipInput.nextEntry
-//        }
-//
-//        actualEntries shouldBe expectedEntries
-//    }
 //
 //    "복잡한 데이터 XLSX 내보내기" {
 //        val dataframe = DataFrame().apply {

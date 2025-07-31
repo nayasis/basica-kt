@@ -51,6 +51,7 @@ class XlsxExporter(
         }
         // read data
         for (r in first..last) {
+            if(dataframe.isRowEmpty(r)) continue
             for (key in dataframe.keys) {
                 dataframe.getData(r, key).takeIf { it != null && it !is Number && !isDateObject(it) }?.let { value ->
                     uniqueStrings.add(value.toString())
@@ -117,7 +118,7 @@ class XlsxExporter(
             setAttribute("uniqueCount", stringIndexMap.size.toString())
         }
 
-        stringIndexMap.forEach {(value, index) ->
+        stringIndexMap.forEach {(value, _) ->
             sst.appendElement("si").appendElement("t").textContent = value
         }
 
@@ -186,6 +187,7 @@ class XlsxExporter(
         }
 
         for (row in first.. last) {
+            if(dataframe.isRowEmpty(row)) continue
             val dataRow = sheetData.appendElement("row").apply {
                 setAttribute("r", (row + 2).toString())
             }

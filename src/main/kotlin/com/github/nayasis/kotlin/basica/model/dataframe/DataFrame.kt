@@ -1,10 +1,7 @@
 package com.github.nayasis.kotlin.basica.model.dataframe
 
-import com.github.nayasis.kotlin.basica.core.extension.then
-import com.github.nayasis.kotlin.basica.core.validator.cast
 import com.github.nayasis.kotlin.basica.reflection.Reflector
 import java.io.Serializable
-import java.util.ArrayList
 import kotlin.reflect.KClass
 
 class DataFrame(
@@ -25,7 +22,7 @@ class DataFrame(
     }
 
     fun isRowEmpty(row: Int): Boolean {
-        return body.values.all { it[row] == null }
+        return ! body.values.any { it.has(row) }
     }
 
     fun setLabel(key: String, label: String) {

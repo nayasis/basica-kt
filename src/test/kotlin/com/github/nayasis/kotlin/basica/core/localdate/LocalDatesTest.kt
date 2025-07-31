@@ -5,8 +5,7 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import java.time.ZoneId
 import java.time.ZonedDateTime
-import java.util.Calendar
-import java.util.TimeZone
+import java.util.*
 
 private val logger = KotlinLogging.logger {}
 
@@ -109,7 +108,7 @@ internal class LocalDatesTest: StringSpec({
         // Create Calendar with US Eastern timezone
         val usCalendar = Calendar.getInstance(TimeZone.getTimeZone("America/New_York")).apply {
             set(2025, 6, 10, 15, 45, 30) // July 10, 2025 15:45:30 (US Eastern Time)
-            set(java.util.Calendar.MILLISECOND, 0)
+            set(Calendar.MILLISECOND, 0)
         }
 
         // Convert to ZonedDateTime using Calendar's internal timezone (US Eastern)
@@ -161,7 +160,7 @@ internal class LocalDatesTest: StringSpec({
         // Create Calendar with Korean timezone
         val koreanCalendar = Calendar.getInstance(TimeZone.getTimeZone("Asia/Seoul")).apply {
             set(2025, 6, 10, 14, 30, 25) // July 10, 2025 14:30:25 (KST)
-            set(java.util.Calendar.MILLISECOND, 0)
+            set(Calendar.MILLISECOND, 0)
         }
 
         // Test Calendar.toZonedDateTime() with internal timezone
@@ -181,5 +180,13 @@ internal class LocalDatesTest: StringSpec({
         utcLocalDateTime.format("yyyy-MM-dd HH:mm:ss") shouldBe "2025-07-10 05:30:25"
     }
 
+    "Date to LocalDateTime" {
+        val a = "2025-07-10".toDate()
+        val b = a.toLocalDateTime()
+
+        logger.debug { "${a.format()} -> ${b.format()}" }
+
+        a shouldBe b.toDate()
+    }
 
 })

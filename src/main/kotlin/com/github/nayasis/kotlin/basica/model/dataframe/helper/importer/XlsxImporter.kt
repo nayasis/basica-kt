@@ -4,7 +4,6 @@ import com.github.nayasis.kotlin.basica.core.extension.then
 import com.github.nayasis.kotlin.basica.core.string.unescapeXml
 import com.github.nayasis.kotlin.basica.model.dataframe.DataFrame
 import com.github.nayasis.kotlin.basica.model.dataframe.helper.toDocument
-import com.github.nayasis.kotlin.basica.xml.XmlReader
 import com.github.nayasis.kotlin.basica.xml.attr
 import com.github.nayasis.kotlin.basica.xml.childrenByTagName
 import com.github.nayasis.kotlin.basica.xml.firstOrNull
@@ -12,7 +11,9 @@ import com.github.nayasis.kotlin.basica.xml.iterator
 import org.w3c.dom.Element
 import java.io.InputStream
 import java.nio.charset.Charset
+import java.time.LocalDate
 import java.util.zip.ZipInputStream
+import kotlin.math.roundToLong
 
 /**
  * XLSX importer
@@ -110,15 +111,16 @@ class XlsxImporter(
     private fun excelSerialToDate(serial: String): Any? {
         val d = serial.toDoubleOrNull() ?: return null
         // Date on Excel starts from 1899-12-30 (1900 date system)
-        return java.time.LocalDate.of(1899, 12, 30).plusDays(d.toLong())
+        return LocalDate.of(1899, 12, 30).plusDays(d.toLong())
     }
 
     private fun excelSerialToDateTime(serial: String): Any? {
         val d = serial.toDoubleOrNull() ?: return null
         // Excel datetime: integer part is days, decimal part is time
-        val days = d.toLong()
-        val seconds = ((d - days) * 24 * 60 * 60).toLong()
-        val baseDate = java.time.LocalDate.of(1899, 12, 30).plusDays(days)
+        val days     = d.toLong()
+        val seconds  = ((d - days) * 24 * 60 * 60).roundToLong()
+        val baseDate = LocalDate.of(1899, 12, 30).plusDays(days)
+        // Excel stores datetime as local time, so we should preserve it as LocalDateTime
         return baseDate.atStartOfDay().plusSeconds(seconds)
     }
 
