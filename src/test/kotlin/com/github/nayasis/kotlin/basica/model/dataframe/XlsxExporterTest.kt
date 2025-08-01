@@ -115,6 +115,7 @@ internal class XlsxExporterTest : StringSpec({
 
     "no header import" {
         val filePath = testDir.resolve("text.xlsx")
+        @Suppress("UnusedVariable")
         val src = createTestDataframe().also { logger.debug { "\n${it.toString(showIndex = true)}" } }
             .also { XlsxExporter(it).export(filePath) }
         val trg = XlsxImporter(firstRowAsHeader = false).import(filePath).also { logger.debug { "\n${it.toString(showIndex = true)}" } }
