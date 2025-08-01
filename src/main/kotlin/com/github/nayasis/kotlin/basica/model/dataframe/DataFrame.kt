@@ -133,6 +133,39 @@ class DataFrame(
         return body.mapValues { (_, column) -> column[row] }
     }
 
+    /**
+     * Selects specific rows from DataFrame to create a new DataFrame.
+     *
+     * @param rowIndices indices of rows to select
+     * @return new DataFrame object
+     */
+    fun selectRows(rowIndices: List<Int>): DataFrame {
+        val new = DataFrame()
+        rowIndices.sorted().forEach { rowIndex ->
+            if (!isRowEmpty(rowIndex)) {
+                new.addRow(getRow(rowIndex))
+            }
+        }
+        return new
+    }
+
+    /**
+     * Selects rows from DataFrame based on specified range.
+     *
+     * @param from starting index (inclusive)
+     * @param to ending index (inclusive)
+     * @return new DataFrame object containing selected rows
+     */
+    fun selectRows(from: Int? = null, to: Int? = null): DataFrame {
+        val new = DataFrame()
+        for(row in (from ?: firstIndex ?: 0) .. (to ?: lastIndex ?: -1)) {
+            if (!isRowEmpty(row)) {
+                new.addRow(getRow(row))
+            }
+        }
+        return new
+    }
+
     fun removeRow(row: Int) {
         body.forEach { (_, column) ->
             column.remove(row)
@@ -229,148 +262,5 @@ class DataFrame(
             override fun next(): Map<String,Any?> = getRow(i++)
         }
     }
-
-//    // ===== Export Methods =====
-//
-//    /**
-//     * DataFrame을 CSV 파일로 내보냅니다.
-//     */
-//    fun exportToCsv(filePath: Path, delimiter: Char = ',', hasQuotes: Boolean = true) {
-//        CsvExporter(delimiter, hasQuotes).export(this, filePath)
-//    }
-//
-//    /**
-//     * DataFrame을 CSV 형식의 문자열로 내보냅니다.
-//     */
-//    fun exportToCsvString(delimiter: Char = ',', hasQuotes: Boolean = true): String {
-//        return CsvExporter(delimiter, hasQuotes).exportToString(this)
-//    }
-//
-//    /**
-//     * DataFrame을 JSON 파일로 내보냅니다.
-//     */
-//    fun exportToJson(filePath: Path, prettyPrint: Boolean = false) {
-//        JsonExporter(prettyPrint).export(this, filePath)
-//    }
-//
-//    /**
-//     * DataFrame을 JSON 형식의 문자열로 내보냅니다.
-//     */
-//    fun exportToJsonString(prettyPrint: Boolean = false): String {
-//        return JsonExporter(prettyPrint).exportToString(this)
-//    }
-//
-//    /**
-//     * DataFrame을 XLSX 파일로 내보냅니다.
-//     */
-//    fun exportToXlsx(filePath: Path, sheetName: String = "Sheet1") {
-//        XlsxExporter(sheetName).export(this, filePath)
-//    }
-//
-//    /**
-//     * DataFrame을 ODS 파일로 내보냅니다.
-//     */
-//    fun exportToOds(filePath: Path, sheetName: String = "Sheet1") {
-//        OdsExporter(sheetName).export(this, filePath)
-//    }
-//
-//    /**
-//     * DataFrame을 OutputStream으로 내보냅니다.
-//     */
-//    fun exportToStream(outputStream: OutputStream, format: String, options: Map<String, Any> = emptyMap()) {
-//        when (format.lowercase()) {
-//            "csv" -> {
-//                val delimiter = options["delimiter"] as? Char ?: ','
-//                val hasQuotes = options["hasQuotes"] as? Boolean ?: true
-//                CsvExporter(delimiter, hasQuotes).export(this, outputStream)
-//            }
-//            "json" -> {
-//                val prettyPrint = options["prettyPrint"] as? Boolean ?: false
-//                JsonExporter(prettyPrint).export(this, outputStream)
-//            }
-//            "xlsx" -> {
-//                val sheetName = options["sheetName"] as? String ?: "Sheet1"
-//                XlsxExporter(sheetName).export(this, outputStream)
-//            }
-//            "ods" -> {
-//                val sheetName = options["sheetName"] as? String ?: "Sheet1"
-//                OdsExporter(sheetName).export(this, outputStream)
-//            }
-//            else -> throw IllegalArgumentException("Unsupported format: $format")
-//        }
-//    }
-//
-//    // ===== Import Methods =====
-//
-//    companion object {
-//        /**
-//         * CSV 파일에서 DataFrame을 가져옵니다.
-//         */
-//        fun fromCsv(filePath: Path, delimiter: Char = ',', hasQuotes: Boolean = true): DataFrame {
-//            return CsvImporter(delimiter, hasQuotes).import(filePath)
-//        }
-//
-//        /**
-//         * CSV 문자열에서 DataFrame을 가져옵니다.
-//         */
-//        fun fromCsvString(content: String, delimiter: Char = ',', hasQuotes: Boolean = true): DataFrame {
-//            return CsvImporter(delimiter, hasQuotes).importFromString(content)
-//        }
-//
-//        /**
-//         * JSON 파일에서 DataFrame을 가져옵니다.
-//         */
-//        fun fromJson(filePath: Path): DataFrame {
-//            return JsonImporter().import(filePath)
-//        }
-//
-//        /**
-//         * JSON 문자열에서 DataFrame을 가져옵니다.
-//         */
-//        fun fromJsonString(content: String): DataFrame {
-//            return JsonImporter().importFromString(content)
-//        }
-//
-//        /**
-//         * XLSX 파일에서 DataFrame을 가져옵니다.
-//         */
-//        fun fromXlsx(filePath: Path, sheetIndex: Int = 0, hasHeader: Boolean = true): DataFrame {
-//            return XlsxImporter(sheetIndex, hasHeader).import(filePath)
-//        }
-//
-//        /**
-//         * ODS 파일에서 DataFrame을 가져옵니다.
-//         */
-//        fun fromOds(filePath: Path, sheetIndex: Int = 0, hasHeader: Boolean = true): DataFrame {
-//            return OdsImporter(sheetIndex, hasHeader).import(filePath)
-//        }
-//
-//        /**
-//         * InputStream에서 DataFrame을 가져옵니다.
-//         */
-//        fun fromStream(inputStream: java.io.InputStream, format: String, options: Map<String, Any> = emptyMap()): DataFrame {
-//            return when (format.lowercase()) {
-//                "csv" -> {
-//                    val delimiter = options["delimiter"] as? Char ?: ','
-//                    val hasQuotes = options["hasQuotes"] as? Boolean ?: true
-//                    CsvImporter(delimiter, hasQuotes).import(inputStream)
-//                }
-//                "json" -> {
-//                    JsonImporter().import(inputStream)
-//                }
-//                "xlsx" -> {
-//                    val sheetIndex = options["sheetIndex"] as? Int ?: 0
-//                    val hasHeader = options["hasHeader"] as? Boolean ?: true
-//                    XlsxImporter(sheetIndex, hasHeader).import(inputStream)
-//                }
-//                "ods" -> {
-//                    val sheetIndex = options["sheetIndex"] as? Int ?: 0
-//                    val hasHeader = options["hasHeader"] as? Boolean ?: true
-//                    OdsImporter(sheetIndex, hasHeader).import(inputStream)
-//                }
-//                else -> throw IllegalArgumentException("Unsupported format: $format")
-//            }
-//        }
-//    }
 
 }
