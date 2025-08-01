@@ -9,6 +9,7 @@ import java.io.Serializable
 import java.util.*
 import kotlin.reflect.KClass
 
+@Deprecated("use DataFrame instead", ReplaceWith("DataFrame"))
 @Suppress("UNCHECKED_CAST")
 class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
 
