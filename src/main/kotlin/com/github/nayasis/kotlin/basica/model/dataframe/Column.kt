@@ -1,7 +1,9 @@
 package com.github.nayasis.kotlin.basica.model.dataframe
 
 import com.github.nayasis.kotlin.basica.core.extension.isEmpty
+import com.github.nayasis.kotlin.basica.core.extension.then
 import com.github.nayasis.kotlin.basica.core.validator.cast
+import com.github.nayasis.kotlin.basica.core.validator.castNullable
 import java.util.*
 import java.util.stream.DoubleStream
 import kotlin.math.ceil
@@ -126,7 +128,7 @@ open class Column: Cloneable {
         val list = ArrayList<T?>()
         if(values.isNotEmpty()) {
             for(i in 0 .. lastIndex!!) {
-                list.add(values[i]?.cast(typeClass, ignoreError))
+                list.add(values[i]?.let { ignoreError then it.cast(typeClass) ?: it.castNullable(typeClass) })
             }
         }
         return list

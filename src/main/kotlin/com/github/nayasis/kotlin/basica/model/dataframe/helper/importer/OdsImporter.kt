@@ -19,7 +19,7 @@ private val logger = KotlinLogging.logger {}
  */
 class OdsImporter(
     private val sheetIndex: Int = 0,
-    private val useHeader: Boolean = true,
+    private val firstRowAsHeader: Boolean = true,
     private val charset: Charset = Charsets.UTF_8,
 ) : DataFrameImporter() {
 
@@ -63,7 +63,7 @@ class OdsImporter(
                 OdsCell(label, value)
             }
             if( ! headerDone ) {
-                if(useHeader) {
+                if(firstRowAsHeader) {
                     cells.forEach { dataframe.addKey(it.label) }
                 } else {
                     cells.forEachIndexed { colIdx, cell ->

@@ -20,7 +20,7 @@ import kotlin.math.roundToLong
  */
 class XlsxImporter(
     private val sheetIndex: Int = 0,
-    private val useHeader: Boolean = true,
+    private val firstRowAsHeader: Boolean = true,
     private val charset: Charset = Charsets.UTF_8,
 ) : DataFrameImporter() {
 
@@ -83,7 +83,7 @@ class XlsxImporter(
             }
             // set header
             if(index == 0) {
-                if(useHeader) {
+                if(firstRowAsHeader) {
                     values.forEachIndexed { colIdx, value ->
                         dataframe.addKey("$value")
                     }
@@ -96,7 +96,7 @@ class XlsxImporter(
             // set body
             } else {
                 values.forEachIndexed { colIdx, value ->
-                    dataframe.setData(useHeader then rowIdx.minus(2) ?: rowIdx.minus(1), colIdx, value)
+                    dataframe.setData(firstRowAsHeader then rowIdx.minus(2) ?: rowIdx.minus(1), colIdx, value)
                 }
             }
         }

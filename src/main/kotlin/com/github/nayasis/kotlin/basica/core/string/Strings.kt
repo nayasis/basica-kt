@@ -8,22 +8,18 @@ import com.github.nayasis.kotlin.basica.core.character.isCJK
 import com.github.nayasis.kotlin.basica.core.extension.ifEmpty
 import com.github.nayasis.kotlin.basica.core.extension.isEmpty
 import com.github.nayasis.kotlin.basica.core.extension.then
-import com.github.nayasis.kotlin.basica.core.io.*
+import com.github.nayasis.kotlin.basica.core.io.Path
 import com.github.nayasis.kotlin.basica.core.io.Paths.Companion.FOLDER_SEPARATOR
 import com.github.nayasis.kotlin.basica.core.io.Paths.Companion.FOLDER_SEPARATOR_UNIX
+import com.github.nayasis.kotlin.basica.core.io.find
+import com.github.nayasis.kotlin.basica.core.io.isDirectory
 import com.github.nayasis.kotlin.basica.core.klass.Classes
 import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
 import com.github.nayasis.kotlin.basica.core.number.cast
 import com.github.nayasis.kotlin.basica.core.url.URLCodec
 import com.github.nayasis.kotlin.basica.model.Messages
 import com.github.nayasis.kotlin.basica.reflection.Reflector
-import java.io.BufferedReader
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.InputStreamReader
-import java.io.ObjectInputStream
-import java.io.ObjectOutputStream
+import java.io.*
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.math.MathContext
@@ -123,7 +119,7 @@ fun String?.dpadStart(length: Int, padChar: Char = ' ' ): String {
     val repeat = length - this.displayLength
     return when {
         repeat > 0 -> {
-            var sb = StringBuilder()
+            val sb = StringBuilder()
             for( n in 1..repeat )
                 sb.append(padChar)
             sb.append(this?:"")
@@ -255,7 +251,7 @@ fun String.unescapeXml(): String {
 fun String.unescape(): String {
     if(this.isEmpty()) return ""
     val sb = StringBuffer()
-    val matcher = "\\\\(b|t|n|f|r|\\\"|\\\'|\\\\)|([u|U][0-9a-fA-F]{4})".toPattern().matcher(this)
+    val matcher = "\\\\(b|t|n|f|r|\"|\\'|\\\\)|([u|U][0-9a-fA-F]{4})".toPattern().matcher(this)
     while(matcher.find()) {
         val unescaped: String? = if (matcher.start(1) >= 0) {
             unescapeChar(matcher.group(1))
@@ -505,7 +501,7 @@ fun String?.hasCjk(): Boolean {
 }
 
 @Suppress("UNCHECKED_CAST")
-fun <T:Number> String?.toNumber(type: KClass<T>): T {
+fun <T: Number> String?.toNumber(type: KClass<T>): T {
     if( this.isNullOrBlank() ) return 0.cast(type)
     return try {
         when(type) {
@@ -768,8 +764,8 @@ fun String?.isMasked(pattern: String?, pass: Char = '#', hide: Char = '*', fullM
   * @see [wikipedia](https://en.wikipedia.org/wiki/Levenshtein_distance)
  */
 private fun getLavenshteinDistance(source: String, target: String): Int {
-    var src = source.lowercase()
-    var trg = target.lowercase()
+    val src = source.lowercase()
+    val trg = target.lowercase()
     val costs = IntArray(trg.length + 1)
     for (i in 0..src.length) {
         var lastValue = i
