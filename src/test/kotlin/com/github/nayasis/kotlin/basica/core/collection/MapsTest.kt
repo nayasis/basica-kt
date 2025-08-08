@@ -52,9 +52,9 @@ class MapsTest: StringSpec({
         val json = """
             {"1":"one","2":"two"}
         """.trimIndent()
-        val map = Reflector.toObject<Map<Int,String>>(json).also { println(it) }
-        map[1] shouldBe "one"
-        map[2] shouldBe "two"
+        val map = Reflector.toObject<Map<String,String>>(json).also { println(it) }
+        map["1"] shouldBe "one"
+        map["2"] shouldBe "two"
     }
 
     "map to json" {

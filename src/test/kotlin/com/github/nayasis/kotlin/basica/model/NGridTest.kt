@@ -6,6 +6,8 @@ import com.github.nayasis.kotlin.basica.core.character.Characters
 import com.github.nayasis.kotlin.basica.core.collection.toNGrid
 import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
 import com.github.nayasis.kotlin.basica.core.localdate.toString
+import com.github.nayasis.kotlin.basica.model.dataframe.ComplexVo
+import com.github.nayasis.kotlin.basica.model.dataframe.Person
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -134,9 +136,9 @@ internal class NGridTest: StringSpec({
 
     "print overflow" {
         val grid = NGrid().apply {
-            addRow(Person("우리나라 좋은나라 대한민국",1234567890))
-            addRow(Person("우리나라 좋은나라 미국",1234567890))
-            addRow(Person("우리나라 좋은나라 오스트레일리아",1234567890))
+            addRow(Person("우리나라 좋은나라 대한민국", 1234567890))
+            addRow(Person("우리나라 좋은나라 미국", 1234567890))
+            addRow(Person("우리나라 좋은나라 오스트레일리아", 1234567890))
         }
         grid.toString(maxColumnWidth=20) shouldBe """
             +--------------------+----------+
@@ -155,9 +157,9 @@ internal class NGridTest: StringSpec({
             addRow("key","A")
             addRow("key","B")
             addRow("key","C")
-            addRow("value",ComplexVo("우리나라 좋은나라 대한민국",1234590))
-            addRow("value",ComplexVo("우리나라 좋은나라 미국",1234212312))
-            addRow("value",ComplexVo("우리나라 좋은나라 오스트레일리아",12347890))
+            addRow("value", ComplexVo("우리나라 좋은나라 대한민국", 1234590))
+            addRow("value", ComplexVo("우리나라 좋은나라 미국", 1234212312))
+            addRow("value", ComplexVo("우리나라 좋은나라 오스트레일리아", 12347890))
         }.also { println(it) }
 
         "$grid" shouldBe """
@@ -174,9 +176,9 @@ internal class NGridTest: StringSpec({
 
     "ignore carriage return" {
         val grid = NGrid().apply {
-            addRow(Person("우리나라 \n좋은나라 대한민국",1234567890))
-            addRow(Person("우리나라 \n좋은나라 미국",1234567890))
-            addRow(Person("우리나라 \n좋은나라 오스트레일리아",1234567890))
+            addRow(Person("우리나라 \n좋은나라 대한민국", 1234567890))
+            addRow(Person("우리나라 \n좋은나라 미국", 1234567890))
+            addRow(Person("우리나라 \n좋은나라 오스트레일리아", 1234567890))
         }
         grid.toString(maxColumnWidth=20, showIndexColumn = true) shouldBe """
             +-----+--------------------+----------+
@@ -192,9 +194,9 @@ internal class NGridTest: StringSpec({
     "control to print alias" {
 
         val data = listOf(
-            Person("A",1),
-            Person("B",2),
-            Person("C",3),
+            Person("A", 1),
+            Person("B", 2),
+            Person("C", 3),
         )
 
         NGrid(data).toString().also {

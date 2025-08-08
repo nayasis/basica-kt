@@ -109,7 +109,7 @@ internal class XmlReaderTest: StringSpec({
 
     "create document" {
         val body = "<node>merong</node>"
-        val doc = XmlReader.createNew("root")
+        val doc = XmlReader.createDocument("root")
         doc.children().size shouldBe 0
 
         doc.appendFromXml(body)

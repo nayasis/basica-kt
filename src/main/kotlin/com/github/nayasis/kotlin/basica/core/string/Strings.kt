@@ -8,22 +8,18 @@ import com.github.nayasis.kotlin.basica.core.character.isCJK
 import com.github.nayasis.kotlin.basica.core.extension.ifEmpty
 import com.github.nayasis.kotlin.basica.core.extension.isEmpty
 import com.github.nayasis.kotlin.basica.core.extension.then
-import com.github.nayasis.kotlin.basica.core.io.*
+import com.github.nayasis.kotlin.basica.core.io.Path
 import com.github.nayasis.kotlin.basica.core.io.Paths.Companion.FOLDER_SEPARATOR
 import com.github.nayasis.kotlin.basica.core.io.Paths.Companion.FOLDER_SEPARATOR_UNIX
+import com.github.nayasis.kotlin.basica.core.io.find
+import com.github.nayasis.kotlin.basica.core.io.isDirectory
 import com.github.nayasis.kotlin.basica.core.klass.Classes
 import com.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
 import com.github.nayasis.kotlin.basica.core.number.cast
 import com.github.nayasis.kotlin.basica.core.url.URLCodec
 import com.github.nayasis.kotlin.basica.model.Messages
 import com.github.nayasis.kotlin.basica.reflection.Reflector
-import java.io.BufferedReader
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.InputStreamReader
-import java.io.ObjectInputStream
-import java.io.ObjectOutputStream
+import java.io.*
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.math.MathContext
@@ -34,20 +30,21 @@ import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets.ISO_8859_1
 import java.nio.file.Path
 import java.util.*
-import java.util.regex.Matcher
 import java.util.regex.Pattern
+import java.util.zip.CRC32
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 import kotlin.math.min
 import kotlin.math.round
 import kotlin.reflect.KClass
 
-private val REGEX_CAMEL = "(_[a-zA-Z])".toPattern()
-private val REGEX_SNAKE = "([A-Z])".toPattern()
-private val REGEX_SPACE = "[ \t]+".toRegex()
-private val REGEX_SPACE_ENTER = "[ \t\n\r]+".toRegex()
-private val REGEX_LINE_REMAIN = " *[\n\r]".toRegex()
-private val REGEX_LINE = "[\n\r]+".toRegex()
+private val REGEX_CAMEL         = "[_\\- ][a-zA-Z]".toRegex()
+private val REGEX_SNAKE         = "([a-z0-9])([A-Z])".toRegex()
+private val REGEX_DELIM         = "[- ]".toRegex()
+private val REGEX_SPACE         = "[ \t]+".toRegex()
+private val REGEX_SPACE_ENTER   = "[ \t\n\r]+".toRegex()
+private val REGEX_LINE_REMAIN   = " *[\n\r]".toRegex()
+private val REGEX_LINE          = "[\n\r]+".toRegex()
 private val REGEX_EXTRACT_DIGIT = "[^0-9]".toRegex()
 private val REGEX_EXTRACT_UPPER = "[^A-Z]".toRegex()
 private val REGEX_EXTRACT_LOWER = "[^a-z]".toRegex()
@@ -121,7 +118,7 @@ fun String?.dpadStart(length: Int, padChar: Char = ' ' ): String {
     val repeat = length - this.displayLength
     return when {
         repeat > 0 -> {
-            var sb = StringBuilder()
+            val sb = StringBuilder()
             for( n in 1..repeat )
                 sb.append(padChar)
             sb.append(this?:"")
@@ -179,33 +176,24 @@ fun String?.displaySubstr(startIndex: Int, length: Int): String {
     return bf.toString()
 }
 
-fun String?.toCamel(): String {
-    if( this.isNullOrEmpty() ) return ""
-    val sb = StringBuffer()
-    val matcher = REGEX_CAMEL.matcher(this.lowercase())
-    while(matcher.find()) {
-        val r = matcher.group().substring(1)
-        matcher.appendReplacement(sb, if(matcher.start() == 0) r else r.uppercase())
-    }
-    matcher.appendTail(sb)
-    return sb.toString()
+fun String.toCamel(): String {
+    if (this.isEmpty()) return ""
+    return REGEX_CAMEL.replace(this) { matchResult ->
+        val r = matchResult.value.substring(1)
+        if (matchResult.range.first == 0) r else r.uppercase()
+    }.replaceFirstChar { it.lowercaseChar() }
 }
 
-fun String?.toSnake(): String {
-    if( this.isNullOrEmpty() ) return ""
-    val sb = StringBuffer()
-    val matcher = REGEX_SNAKE.matcher(this.lowercase())
-    while(matcher.find()) {
-        if(matcher.start() == 0) continue
-        val r = matcher.group()
-        matcher.appendReplacement(sb, "_${r.lowercase()}")
-    }
-    matcher.appendTail(sb)
-    return sb.toString()
+fun String.toSnake(): String {
+    if (this.isEmpty()) return ""
+    val replaced = REGEX_DELIM.replace(this, "_")
+    return REGEX_SNAKE.replace(replaced) {
+        "${it.groupValues[1]}_${it.groupValues[2]}"
+    }.lowercase()
 }
 
-fun String?.escape(): String {
-    if(this.isNullOrEmpty()) return ""
+fun String.escape(): String {
+    if(this.isEmpty()) return ""
     val sb = StringBuilder()
     for( ch in this ) {
         when (ch) {
@@ -226,26 +214,57 @@ fun String?.escape(): String {
     return sb.toString()
 }
 
-fun String?.unescape(): String {
-    if(this.isNullOrEmpty()) return ""
-    val sb = StringBuffer()
-    val matcher = "\\\\(b|t|n|f|r|\\\"|\\\'|\\\\)|([u|U][0-9a-fA-F]{4})".toPattern().matcher(this)
-    while(matcher.find()) {
-        val unescaped: String? = if (matcher.start(1) >= 0) {
-            unescapeChar(matcher.group(1))
-        } else if (matcher.start(2) >= 0) {
-            unescapeUnicodeChar(matcher.group(2))
-        } else {
-            null
+fun String.escapeXml(): String {
+    return buildString {
+        for (ch in this@escapeXml) {
+            when (ch) {
+                '&' -> append("&amp;")
+                '<' -> append("&lt;")
+                '>' -> append("&gt;")
+                '"' -> append("&quot;")
+                '\'' -> append("&apos;")
+                else -> append(ch)
+            }
         }
-        matcher.appendReplacement(sb, Matcher.quoteReplacement(unescaped))
     }
+}
+
+fun String.unescapeXml(): String {
+    if(this.isEmpty()) return ""
+    val sb = StringBuffer()
+    val matcher = "&(amp|lt|gt|quot|apos);".toPattern().matcher(this)
+    while(matcher.find()) {
+        when(matcher.group(1)) {
+            "amp"  -> matcher.appendReplacement(sb, "&")
+            "lt"   -> matcher.appendReplacement(sb, "<")
+            "gt"   -> matcher.appendReplacement(sb, ">")
+            "quot" -> matcher.appendReplacement(sb, "\"")
+            "apos" -> matcher.appendReplacement(sb, "'")
+        }
+    }
+    matcher.appendTail(sb)
     return sb.toString()
 }
 
-fun String?.toCapitalize(locale: Locale = Locale.getDefault()): String {
+
+fun String.unescape(): String {
+    if(this.isEmpty()) return ""
+    val regex = Regex("""\\([btnfr"'\\])|([uU][0-9a-fA-F]{4})""")
+    return regex.replace(this) { matchResult ->
+        val unescaped: String? = if (matchResult.groups[1] != null) {
+            unescapeChar(matchResult.groups[1]!!.value)
+        } else if (matchResult.groups[2] != null) {
+            unescapeUnicodeChar(matchResult.groups[2]!!.value)
+        } else {
+            null
+        }
+        unescaped ?: matchResult.value
+    }
+}
+
+fun String.toCapitalize(locale: Locale = Locale.getDefault()): String {
     return when {
-        isNullOrEmpty() -> ""
+        isEmpty() -> ""
         else -> replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
     }
 }
@@ -266,12 +285,12 @@ private fun unescapeChar(escaped: String): String {
 }
 
 @JvmOverloads
-fun String?.urlEncode(charset: Charset = Charsets.UTF_8, legacyMode: Boolean = true): String =
-    if( this.isNullOrEmpty() ) "" else URLCodec().encode(this,charset,legacyMode)
+fun String.urlEncode(charset: Charset = Charsets.UTF_8, legacyMode: Boolean = true): String =
+    if( this.isEmpty() ) "" else URLCodec().encode(this,charset,legacyMode)
 
 @JvmOverloads
-fun String?.urlDecode(charset: Charset = Charsets.UTF_8, legacyMode: Boolean = true): String =
-    if( this.isNullOrEmpty() ) "" else URLCodec().decode(this,charset,legacyMode)
+fun String.urlDecode(charset: Charset = Charsets.UTF_8, legacyMode: Boolean = true): String =
+    if( this.isEmpty() ) "" else URLCodec().decode(this,charset,legacyMode)
 
 @JvmOverloads
 fun String?.toMapFromUrlParam(charset: Charset = Charsets.UTF_8 ): Map<String,String?> {
@@ -279,10 +298,10 @@ fun String?.toMapFromUrlParam(charset: Charset = Charsets.UTF_8 ): Map<String,St
     return this.split("&").mapNotNull {
         val tokens = it.split("=")
         when {
-            tokens.isNullOrEmpty() -> null
+            tokens.isEmpty() -> null
             tokens.size == 1 -> {
                 when {
-                    tokens[0].isNullOrEmpty() -> null
+                    tokens[0].isEmpty() -> null
                     else -> tokens[0].urlDecode(charset) to null
                 }
             }
@@ -296,8 +315,8 @@ fun String?.toMapFromUrlParam(charset: Charset = Charsets.UTF_8 ): Map<String,St
  *
  * @return escaped pattern string
  */
-fun String?.escapeRegex(): String {
-    if( this == null ) return ""
+fun String.escapeRegex(): String {
+    if( this.isEmpty() ) return ""
     val buf = StringBuilder()
     val chars = "[](){}.*+?\$^|#\\".toCharArray()
     for( c in this ) {
@@ -309,19 +328,19 @@ fun String?.escapeRegex(): String {
 }
 
 @JvmOverloads
-fun String?.toSingleSpace(includeLineBreaker: Boolean = false): String =
-    if (this.isNullOrEmpty()) "" else this.replace((includeLineBreaker) then REGEX_SPACE_ENTER ?: REGEX_SPACE, " ").trim()
+fun String.toSingleSpace(includeLineBreaker: Boolean = false): String =
+    if (this.isEmpty()) "" else this.replace(includeLineBreaker then REGEX_SPACE_ENTER ?: REGEX_SPACE, " ").trim()
 
-fun String?.toSingleEnter(): String =
-    if( this.isNullOrEmpty() ) "" else this.replace(REGEX_LINE_REMAIN, "\n").replace(REGEX_LINE, "\n")
+fun String.toSingleEnter(): String =
+    if( this.isEmpty() ) "" else this.replace(REGEX_LINE_REMAIN, "\n").replace(REGEX_LINE, "\n")
 
-fun String?.extractDigit(): String  = if( this.isNullOrEmpty() ) "" else this.replace(REGEX_EXTRACT_DIGIT, "")
-fun String?.extractUppers(): String = if( this.isNullOrEmpty() ) "" else this.replace(REGEX_EXTRACT_UPPER, "")
-fun String?.extractLowers(): String = if( this.isNullOrEmpty() ) "" else this.replace(REGEX_EXTRACT_LOWER, "")
+fun String.extractDigit(): String  = if( this.isEmpty() ) "" else this.replace(REGEX_EXTRACT_DIGIT, "")
+fun String.extractUppers(): String = if( this.isEmpty() ) "" else this.replace(REGEX_EXTRACT_UPPER, "")
+fun String.extractLowers(): String = if( this.isEmpty() ) "" else this.replace(REGEX_EXTRACT_LOWER, "")
 
 @JvmOverloads
-fun String?.removeSpace(includeLineBreaker: Boolean = false): String =
-    if (this.isNullOrEmpty()) "" else this.replace((includeLineBreaker) then REGEX_SPACE_ENTER ?: REGEX_SPACE, "")
+fun String.removeSpace(includeLineBreaker: Boolean = false): String =
+    if (this.isEmpty()) "" else this.replace(includeLineBreaker then REGEX_SPACE_ENTER ?: REGEX_SPACE, "")
 
 fun String?.tokenize(delimiter: String, returnDelimiter: Boolean = false): List<String> {
     if( this.isNullOrEmpty() ) return emptyList()
@@ -336,8 +355,8 @@ fun String?.tokenize(delimiter: String, returnDelimiter: Boolean = false): List<
  * compress text
  * @return compressed text
  */
-fun String?.compress(): String {
-    if( this.isNullOrEmpty() ) return ""
+fun String.compress(): String {
+    if( this.isEmpty() ) return ""
     ByteArrayOutputStream().use { out ->
         GZIPOutputStream(out).use { gzip ->
             gzip.write(this.toByteArray())
@@ -351,8 +370,8 @@ fun String?.compress(): String {
  * decompress text
  * @return decompressed text
  */
-fun String?.decompress(): String {
-    if( this.isNullOrEmpty() ) return ""
+fun String.decompress(): String {
+    if( this.isEmpty() ) return ""
     ByteArrayInputStream(this.toByteArray(ISO_8859_1)).use { input ->
         GZIPInputStream(input).use { gzip ->
             BufferedReader(InputStreamReader(gzip)).use { bufferReader ->
@@ -408,8 +427,8 @@ fun String?.capture(regex: Regex): List<String> {
  *
  * @return secured string
  */
-fun String?.clearXss(): String {
-    if( this.isNullOrEmpty() ) return ""
+fun String.clearXss(): String {
+    if( this.isEmpty() ) return ""
     val sb = StringBuilder()
     for (ch in this) {
         when (ch) {
@@ -432,8 +451,8 @@ fun String?.clearXss(): String {
  *
  * @return unsecured string
  */
-fun String?.restoreXss(): String {
-    if( this.isNullOrEmpty() ) return ""
+fun String.restoreXss(): String {
+    if( this.isEmpty() ) return ""
     val sb = StringBuilder()
     val chars = this.toCharArray()
     var i = 0
@@ -479,7 +498,7 @@ fun String?.hasCjk(): Boolean {
 }
 
 @Suppress("UNCHECKED_CAST")
-fun <T:Number> String?.toNumber(type: KClass<T>): T {
+fun <T: Number> String?.toNumber(type: KClass<T>): T {
     if( this.isNullOrBlank() ) return 0.cast(type)
     return try {
         when(type) {
@@ -553,9 +572,9 @@ fun String?.toMap(): Map<String,*> {
  * @param modifyKorean if true modify first outer character of parameter binding markup by rule of korean.
  * @return formatted string
  */
-fun String?.bind(vararg parameter: Any?, modifyKorean: Boolean = true): String {
+fun String.bind(vararg parameter: Any?, modifyKorean: Boolean = true): String {
     return when {
-        this.isNullOrEmpty() -> ""
+        this.isEmpty() -> ""
         else -> FORMATTER.bind(this, *parameter, modifyKorean = modifyKorean)
     }
 }
@@ -588,12 +607,12 @@ inline fun <reified T> String.decodeBase64(): T {
     }
 }
 
-fun String?.ifBlank(fn:() -> String): String {
-    return if(this.isNullOrBlank()) fn() else this
+fun String.ifBlank(fn:() -> String): String {
+    return if(this.isBlank()) fn() else this
 }
 
-fun String?.ifNotBlank(fn: (String) -> Unit) {
-    if(!this.isNullOrBlank()) fn(this)
+fun String.ifNotBlank(fn: (String) -> Unit) {
+    if(this.isNotBlank()) fn(this)
 }
 
 /**
@@ -621,8 +640,8 @@ fun String?.ifNotBlank(fn: (String) -> Unit) {
  * @return masked string
  */
 @JvmOverloads
-fun String?.mask(pattern: String?, pass: Char = '#', hide: Char = '*' ): String {
-    if(this.isNullOrEmpty() || pattern.isNullOrEmpty()) return ""
+fun String.mask(pattern: String?, pass: Char = '#', hide: Char = '*' ): String {
+    if(this.isEmpty() || pattern.isNullOrEmpty()) return ""
     val sb = StringBuilder()
     var p = 0; var w = 0
     while ( w < this.length && p < pattern.length ) {
@@ -662,8 +681,8 @@ fun String?.mask(pattern: String?, pass: Char = '#', hide: Char = '*' ): String 
  * @return unmasked string
  */
 @JvmOverloads
-fun String?.unmask(pattern: String?, pass: Char = '#', hide: Char = '*'): String {
-    if(this.isNullOrEmpty() || pattern.isNullOrEmpty()) return ""
+fun String.unmask(pattern: String?, pass: Char = '#', hide: Char = '*'): String {
+    if(this.isEmpty() || pattern.isNullOrEmpty()) return ""
     val sb = StringBuilder()
     var p = 0; var w = 0
     while ( w < this.length && p < pattern.length ) {
@@ -739,11 +758,11 @@ fun String?.isMasked(pattern: String?, pass: Char = '#', hide: Char = '*', fullM
  * @param source
  * @param target
  * @return cost
-  * @see [wikipedia](https://en.wikipedia.org/wiki/Levenshtein_distance)
+ * @see [Levenshtein distance](https://en.wikipedia.org/wiki/Levenshtein_distance)
  */
 private fun getLavenshteinDistance(source: String, target: String): Int {
-    var src = source.lowercase()
-    var trg = target.lowercase()
+    val src = source.lowercase()
+    val trg = target.lowercase()
     val costs = IntArray(trg.length + 1)
     for (i in 0..src.length) {
         var lastValue = i
@@ -808,7 +827,7 @@ fun String.isBigDecimal(mathContext: MathContext? = null): Boolean {
 }
 
 fun String?.add(text: String): String {
-    return if(this == null) {
+    return if(this.isNullOrEmpty()) {
         text
     } else {
         "$this${text}"
@@ -835,4 +854,8 @@ fun String.wrap(open: String = "\"", close: String = open, escapeChar: Char? = n
 
 fun String.loadClass(classLoader: ClassLoader? = null): Class<*> {
     return (classLoader ?: Classes.classLoader).loadClass(this)
+}
+
+fun String.getCrc32(charset: Charset = Charsets.UTF_8): Long {
+    return CRC32().also { it.update(this.toByteArray(charset)) }.value
 }
