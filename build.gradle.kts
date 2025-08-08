@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "io.github.nayasis"
-version = "0.3.5-SNAPSHOT"
+version = "0.3.5"
 
 repositories {
     mavenCentral()
