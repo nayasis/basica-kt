@@ -3,11 +3,13 @@ package com.github.nayasis.kotlin.basica.model
 import com.fasterxml.jackson.core.type.TypeReference
 import com.github.nayasis.kotlin.basica.core.character.Characters
 import com.github.nayasis.kotlin.basica.core.validator.cast
+import com.github.nayasis.kotlin.basica.core.validator.castNullable
 import com.github.nayasis.kotlin.basica.reflection.Reflector
 import java.io.Serializable
 import java.util.*
 import kotlin.reflect.KClass
 
+@Deprecated("use DataFrame instead", ReplaceWith("DataFrame"))
 @Suppress("UNCHECKED_CAST")
 class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
 
@@ -197,7 +199,7 @@ class NGrid: Serializable, Cloneable, Iterable<Map<Any,Any?>> {
         val list = ArrayList<T?>()
         for( (_,row) in _body) {
             val v = row[key]
-            list.add(v.cast(typeClass,ignoreError))
+            list.add(if(ignoreError) v?.castNullable(typeClass) else v?.cast(typeClass))
         }
         return list
     }

@@ -13,7 +13,7 @@ fun Map<*,*>.unflattenKeys(): Map<String,Any?> = Reflector.unflattenKeys(this)
 
 fun Map<*,*>.toJson(pretty: Boolean = false, ignoreNull: Boolean = true, view: Class<*>? = null): String = Reflector.toJson(this,pretty,ignoreNull,view)
 
-inline fun <reified T> Map<*,*>.toObject(ignoreNull: Boolean = true): T = Reflector.toObject(this,ignoreNull)
+inline fun <reified T> Map<*,*>.toObject(ignoreNull: Boolean = true): T = Reflector.toObject(this, ignoreNull)
 
 fun Map<*,*>.merge(other: Map<*,*>?, skipEmpty: Boolean = true): MutableMap<*,*> = Merger().merge(other,this, skipEmpty)
 

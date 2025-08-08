@@ -51,9 +51,23 @@ class Characters { companion object {
 
     /** font width of Full-width character  */
     var fullwidth = 1.0
+        set(value) {
+            when {
+                value <= 0.0 -> throw IllegalArgumentException("Full-width font width must be greater than 0.0")
+                value < halfwidth -> throw IllegalArgumentException("Full-width font width must be greater than or equal to Half-width font width")
+            }
+            field = value
+        }
 
     /** font width of Half-width character  */
     var halfwidth = 1.0
+        set(value) {
+            when {
+                value <= 0.0 -> throw IllegalArgumentException("Half-width font width must be greater than 0.0")
+                value > fullwidth -> throw IllegalArgumentException("Half-width font width must be less than or equal to Full-width font width")
+            }
+            field = value
+        }
 
     fun isFontWidthModified(): Boolean = fullwidth != 1.0 || halfwidth != 1.0
 
@@ -70,8 +84,7 @@ class Characters { companion object {
  *
  * @return character array (null if it can not be resolved.)
  */
-fun Char?.disassembleHangul(): CharArray? {
-    if( this == null ) return null
+fun Char.disassembleHangul(): CharArray? {
     var c = this.code
     if (c < 0xAC00 || c > 0xD79F) return null
     c -= 0xAC00
@@ -96,7 +109,7 @@ fun Char?.disassembleHangul(): CharArray? {
  *
  * @return true if character has Korean Jonsung.
  */
-fun Char?.hasHangulJongsung(): Boolean {
+fun Char.hasHangulJongsung(): Boolean {
     return disassembleHangul()?.get(2) != NULL_CHAR
 }
 
@@ -107,8 +120,7 @@ fun Char?.hasHangulJongsung(): Boolean {
  * @see [http://unicode.org/reports/tr11](http://unicode.org/reports/tr11)
  * @see [http://unicode.org/charts/PDF/UFF00.pdf](http://unicode.org/charts/PDF/UFF00.pdf)
  */
-fun Char?.isHalfWidth(): Boolean {
-    if( this == null ) return false
+fun Char.isHalfWidth(): Boolean {
     val c = this.code
     if (c < 0x0020) return true // special character
     if (c in 0x0020..0x007F) return true // ASCII (Latin characters, symbols, punctuation,numbers)
@@ -117,6 +129,17 @@ fun Char?.isHalfWidth(): Boolean {
     if (c in 0xFFA0..0xFFDC) return true // Halfwidth Hangul variants
     // FFE8 ~ FFEE : Halfwidth symbol variants
     return c in 0xFFE8..0xFFEE
+}
+
+/**
+ * check if character is full-width
+ *
+ * @return true if character is full-width
+ * @see [http://unicode.org/reports/tr11](http://unicode.org/reports/tr11)
+ * @see [http://unicode.org/charts/PDF/UFF00.pdf](http://unicode.org/charts/PDF/UFF00.pdf)
+ */
+fun Char.isFullWidth(): Boolean {
+    return !isHalfWidth()
 }
 
 /**
@@ -156,7 +179,7 @@ fun Char.toHalfWidth(): Char {
  *
  * @return font width to print
  */
-val Char?.fontWidth: Double
+val Char.fontWidth: Double
     get() {
         return if (isHalfWidth()) Characters.halfwidth else if (isCJK()) Characters.fullwidth else 1.0
     }
@@ -166,8 +189,8 @@ val Char?.fontWidth: Double
  *
  * @return true if character is korean
  */
-fun Char?.isKorean(): Boolean {
-    return if (this == null) false else if (KOREAN.contains(UnicodeBlock.of(this))) true else this.code in 0xFFA0..0xFFDC
+fun Char.isKorean(): Boolean {
+    return if (KOREAN.contains(UnicodeBlock.of(this))) true else this.code in 0xFFA0..0xFFDC
 }
 
 /**
@@ -175,8 +198,8 @@ fun Char?.isKorean(): Boolean {
  *
  * @return true if character is japanese
  */
-fun Char?.isJapanese(): Boolean {
-    return if (this == null) false else if (JAPANESE.contains(UnicodeBlock.of(this))) true else this.code in 0xFF65..0xFF9F
+fun Char.isJapanese(): Boolean {
+    return if (JAPANESE.contains(UnicodeBlock.of(this))) true else this.code in 0xFF65..0xFF9F
 }
 
 /**
@@ -184,8 +207,8 @@ fun Char?.isJapanese(): Boolean {
  *
  * @return true if character is chinese
  */
-fun Char?.isChinese(): Boolean {
-    return if (this == null) false else if (CHINESE.contains(UnicodeBlock.of(this))) true else this.code in 0xFF65..0xFF9F
+fun Char.isChinese(): Boolean {
+    return if (CHINESE.contains(UnicodeBlock.of(this))) true else this.code in 0xFF65..0xFF9F
 }
 
 /**
@@ -193,8 +216,8 @@ fun Char?.isChinese(): Boolean {
  *
  * @return true if character is chinese or japanese or korean
  */
-fun Char?.isCJK(): Boolean {
-    return this != null && CJK.contains(UnicodeBlock.of(this))
+fun Char.isCJK(): Boolean {
+    return CJK.contains(UnicodeBlock.of(this))
 }
 
 fun Char.repeat(n:Int): String {

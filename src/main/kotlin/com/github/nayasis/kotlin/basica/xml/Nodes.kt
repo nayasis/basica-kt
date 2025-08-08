@@ -19,8 +19,11 @@ import org.w3c.dom.traversal.DocumentTraversal
 import org.w3c.dom.traversal.NodeFilter
 import org.w3c.dom.traversal.TreeWalker
 import java.io.StringWriter
+import java.nio.charset.Charset
+import java.nio.charset.StandardCharsets
 import javax.xml.xpath.XPathConstants
 import javax.xml.xpath.XPathFactory
+import kotlin.coroutines.CoroutineContext
 
 private val parserXpath = XPathFactory.newInstance().newXPath()
 
@@ -51,8 +54,8 @@ fun Node?.isNewline(): Boolean =
 fun Node.rename(tagName: String): Node =
     ownerDocument.renameNode(this, this.namespaceURI, tagName )
 
-fun Node.appendFromXml(xml: String, ignoreDtd: Boolean = true): Node {
-    val doc = XmlReader.read(xml,ignoreDtd)
+fun Node.appendFromXml(xml: String, charset: Charset = StandardCharsets.UTF_8, ignoreDtd: Boolean = true): Node {
+    val doc = XmlReader.read(xml, charset, ignoreDtd)
     val children = ownerDocument.importNode( doc, true)
     return this.appendChild(children)
 }
@@ -60,11 +63,18 @@ fun Node.appendFromXml(xml: String, ignoreDtd: Boolean = true): Node {
 fun Node.appendTextNode(text: String?): Node =
     this.appendChild(ownerDocument.createTextNode(text?:""))
 
-fun Node.appendElement(tagName: String): Node =
-    this.appendChild(ownerDocument.createElement(tagName))
+fun Node.appendElement(tagName: String): Element {
+    return (ownerDocument ?: this as Document).createElement(tagName).also {
+        this.appendChild(it)
+    }
+}
 
 fun Node.appendComment(comment: String?): Node =
     this.appendChild(ownerDocument.createComment(comment?:""))
+
+fun Node.appendTo(parent: Node): Node {
+    return parent.appendChild(this)
+}
 
 fun Node.remove(): Node {
     this.parentNode?.removeChild(this)
@@ -89,7 +99,7 @@ fun Node.setAttr(key: String, value: String?): Boolean {
 }
 
 fun Node.hasAttr(key: String, ignoreCase: Boolean = false): Boolean =
-    attributes(key,ignoreCase) != null
+    attribute(key,ignoreCase) != null
 
 fun Node.attr(key: String, ignoreCase: Boolean = false): String? {
     val attrs = this.attrs()
@@ -101,15 +111,6 @@ fun Node.attr(key: String, ignoreCase: Boolean = false): String? {
 }
 
 fun Node.attribute(key: String, ignoreCase: Boolean = false): Attr? {
-    val attrs = this.attributes()
-    return if( ignoreCase ) {
-        attrs.filterKeys { it.equals(key,ignoreCase = true) }.map { it.value }.firstOrNull()
-    } else {
-        attrs[key]
-    }
-}
-
-fun Node.attributes(key: String, ignoreCase: Boolean = false): Attr? {
     val attrs = this.attributes()
     return if( ignoreCase ) {
         attrs.filterKeys { it.equals(key,ignoreCase = true) }.map { it.value }.firstOrNull()
@@ -198,7 +199,7 @@ fun Node.childrenBy(attr: String, value: String): List<Node> =
     this.findNodes(".//*[@$attr='$value']")
 
 fun Node.children(): List<Node> =
-    toList(this.childNodes)
+    this.childNodes.toList()
 
 fun Node.hasChildren(): Boolean =
     this.hasChildNodes()
@@ -208,14 +209,6 @@ fun Node.elements(): List<Element> =
 
 fun Node.elementsByTagName(tagName: String): List<Element> =
     this.childrenByTagName(tagName).filterIsInstance<Element>()
-
-private fun toList(nodeList: NodeList): List<Node> {
-    val nodes = ArrayList<Node>()
-    for( i in 0 until nodeList.length) {
-        nodes.add(nodeList.item(i))
-    }
-    return nodes
-}
 
 fun Node.toSimpleString(): String {
     val attr = attrs().map { "${it.key}=\"${it.value}\"" }.joinToString(" ")
@@ -255,7 +248,7 @@ fun Node.toSimpleString(): String {
  * @return matched nodes
  */
 fun Node.findNodes(xpath: String): List<Node> =
-    toList(parserXpath.evaluate(xpath, this, XPathConstants.NODESET) as NodeList)
+    (parserXpath.evaluate(xpath, this, XPathConstants.NODESET) as NodeList).toList()
 
 /**
  * find node using Xpath expression.
@@ -404,3 +397,28 @@ val Node.document: Document
 
 fun Node.getTreeWalker(whatToShow: Int = NodeFilter.SHOW_ALL, filter: NodeFilter? = null, entityReferenceExpansion: Boolean = false ): TreeWalker =
     (document as DocumentTraversal).createTreeWalker(this,whatToShow,filter,entityReferenceExpansion)
+
+fun NodeList.iterator(): Iterator<Node> {
+    val e = this
+    return object : Iterator<Node> {
+        private var index = 0
+        override fun next(): Node {
+            if( ! hasNext() ) throw NoSuchElementException()
+            return e.item(index++)
+        }
+
+        override fun hasNext(): Boolean {
+            return index < e.length
+        }
+    }
+}
+
+fun NodeList.firstOrNull(): Node? = if( this.length > 0 ) this.item(0) else null
+
+fun NodeList.toList(): List<Node> {
+    val nodes = ArrayList<Node>()
+    for( i in 0 until this.length) {
+        nodes.add(this.item(i))
+    }
+    return nodes
+}

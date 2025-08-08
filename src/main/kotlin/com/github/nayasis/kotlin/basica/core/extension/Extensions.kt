@@ -2,8 +2,6 @@ package com.github.nayasis.kotlin.basica.core.extension
 
 import com.github.nayasis.kotlin.basica.core.validator.isEmpty
 import com.github.nayasis.kotlin.basica.core.validator.isNotEmpty
-import java.util.*
-import kotlin.reflect.KProperty
 
 fun Any?.isEmpty(): Boolean {
     return isEmpty(this)
@@ -31,6 +29,22 @@ inline fun <T,R> T?.ifNotEmpty(fn: (T) -> R): R? {
 
 inline fun <T,R> T?.ifNotNull(fn: (T) -> R): R? {
     return if(this != null) fn(this) else null
+}
+
+inline fun <T> T?.runIfEmpty(fn: () -> Unit) {
+    if(isEmpty(this) ) fn()
+}
+
+inline fun <T> T?.runIfNull(fn: () -> Unit) {
+    if(this == null) fn()
+}
+
+inline fun <T> T?.runIfNotEmpty(fn: (T) -> Unit) {
+    if(isNotEmpty(this) ) fn(this!!)
+}
+
+inline fun <T> T?.runIfNotNull(fn: (T) -> Unit) {
+    if(this != null) fn(this)
 }
 
 inline fun Boolean.ifTrue(fn: () -> Unit): Boolean {
