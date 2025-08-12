@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "io.github.nayasis"
-version = "0.3.5-SNAPSHOT"
+version = "0.3.6-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -25,7 +25,7 @@ dependencies {
     implementation("org.mvel:mvel2:2.5.2.Final")
     implementation("com.googlecode.juniversalchardet:juniversalchardet:1.0.3")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.18.3")
-    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.14.2")
+    implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2")
     implementation("org.slf4j:slf4j-api:2.0.7")
 
     implementation("org.jetbrains.kotlin:kotlin-reflect")
@@ -81,6 +81,7 @@ mavenPublishing {
         }
     }
 }
+
 val compileKotlin: KotlinCompile by tasks
 compileKotlin.compilerOptions {
     freeCompilerArgs.set(listOf("-XXLanguage:+BreakContinueInInlineLambdas"))
