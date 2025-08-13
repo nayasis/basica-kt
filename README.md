@@ -10,7 +10,7 @@ Basic Kotlin utility library providing common functionality for Kotlin applicati
 
 ```kotlin
 dependencies {
-    implementation("io.github.nayasis:basica-kt:0.3.4")
+    implementation("io.github.nayasis:basica-kt:0.3.6")
 }
 ```
 
@@ -20,6 +20,6 @@ dependencies {
 <dependency>
     <groupId>io.github.nayasis</groupId>
     <artifactId>basica-kt</artifactId>
-    <version>0.3.4</version>
+    <version>0.3.6</version>
 </dependency>
 ```
