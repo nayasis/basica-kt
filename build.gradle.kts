@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "io.github.nayasis"
-version = "0.3.6-SNAPSHOT"
+version = "0.3.6"
 
 repositories {
     mavenCentral()
@@ -55,7 +55,12 @@ tasks.withType<JavaCompile> {
 }
 
 mavenPublishing {
-    signAllPublications()
+    // Skip signing for local Maven repository deployment
+    if (!gradle.startParameter.taskNames.any {
+            it.contains("publishToMavenLocal") || it.contains("publishMavenPublicationToMavenLocal")
+        }) {
+        signAllPublications()
+    }
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
     pom {
         name.set(rootProject.name)
