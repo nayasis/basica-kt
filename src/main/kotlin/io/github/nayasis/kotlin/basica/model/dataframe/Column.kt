@@ -45,6 +45,11 @@ open class Column: Cloneable {
         indices.add(index)
     }
 
+    fun add(value: Any?) {
+        val index = lastIndex?.inc() ?: 0
+        set(index, value)
+    }
+
     fun clear() {
         values.clear()
         indices.clear()
