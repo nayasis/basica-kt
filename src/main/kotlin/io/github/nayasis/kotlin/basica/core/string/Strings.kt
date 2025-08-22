@@ -607,12 +607,12 @@ inline fun <reified T> String.decodeBase64(): T {
     }
 }
 
-fun String.ifBlank(fn:() -> String): String {
-    return if(this.isBlank()) fn() else this
+fun String?.ifBlank(fn:() -> String): String {
+    return if(this == null || this.isBlank()) fn() else this
 }
 
-fun String.ifNotBlank(fn: (String) -> Unit) {
-    if(this.isNotBlank()) fn(this)
+fun String?.runIfNotBlank(fn: (String) -> Unit) {
+    if(this != null && this.isNotBlank()) fn(this)
 }
 
 /**
