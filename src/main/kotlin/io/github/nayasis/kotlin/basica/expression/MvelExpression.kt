@@ -8,18 +8,18 @@ import java.io.Serializable
 class MvelExpression{
 
     private var original: String
-    var compiled: Serializable
+    private var compiled: Serializable
 
     /**
      * obtains an instance of `Expression`
      *
      * @param expression MVEL expression language
+     * @param strict     if true, do not modify the expression to handle hyphenated property access
      * @see [MVEL language guide](http://mvel.documentnode.com/.basic-syntax)
      */
-    constructor(expression: String) {
+    constructor(expression: String, strict: Boolean = false) {
         original = expression.trim()
-        val processedExpression = preprocessExpression(original)
-        compiled = MvelHandler.compile(processedExpression)
+        compiled = MvelHandler.compile( if(strict) original else preprocess(original))
     }
 
     /**
@@ -28,7 +28,7 @@ class MvelExpression{
      * e.g., "second.minus-key" -> "second['minus-key']"
      * Handles nested properties like "second.minus-key.third-key-value"
      */
-    private fun preprocessExpression(expression: String): String {
+    private fun preprocess(expression: String): String {
         if (expression.isEmpty()) return expression
         
         var rs = expression

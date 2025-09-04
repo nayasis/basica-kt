@@ -861,6 +861,12 @@ fun String.getCrc32(charset: Charset = Charsets.UTF_8): Long {
     return CRC32().also { it.update(this.toByteArray(charset)) }.value
 }
 
-fun String.toMvelExpression(): MvelExpression {
-    return MvelExpression(this)
+/**
+ * create MVEL expression
+ *
+ * @param strict     if true, do not modify the expression to handle hyphenated property access
+ * @return MvelExpression
+ */
+fun String.toMvelExpression(strict: Boolean = false): MvelExpression {
+    return MvelExpression(this, strict)
 }
