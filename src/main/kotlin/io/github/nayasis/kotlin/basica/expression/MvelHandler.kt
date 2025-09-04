@@ -40,7 +40,28 @@ class MvelHandler { companion object {
      * @throws CompileException if compile error occurs.
      */
     @Throws(CompileException::class)
-    fun compile(expression: String?): Serializable = MVEL.compileExpression(expression, ctx)
+    fun compile(expression: String?): Serializable {
+        val processedExpression = preprocessExpression(expression)
+        return MVEL.compileExpression(processedExpression, ctx)
+    }
+
+    /**
+     * Preprocess expression to handle hyphenated property access
+     * Converts dot notation with hyphens to bracket notation
+     * e.g., "second.minus-key" -> "second['minus-key']"
+     */
+    private fun preprocessExpression(expression: String?): String? {
+        if (expression.isNullOrBlank()) return expression
+        
+        // Regex to match property access with hyphens
+        // Matches patterns like: object.property-with-hyphens
+        val hyphenPropertyRegex = """(\w+)\.([a-zA-Z_][a-zA-Z0-9_-]*-[a-zA-Z0-9_-]*)""".toRegex()
+        
+        return hyphenPropertyRegex.replace(expression) { matchResult ->
+            val (objectName, propertyName) = matchResult.destructured
+            "$objectName['$propertyName']"
+        }
+    }
 
     /**
      * run compiled expression

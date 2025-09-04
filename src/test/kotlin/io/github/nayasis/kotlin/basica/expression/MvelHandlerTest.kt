@@ -59,7 +59,10 @@ internal class MvelHandlerTest: StringSpec({
                 "child" : [
                     { "name": "jake", "age": 10, "job": "student", "child": [] },
                     { "name": "jane", "age":  8, "job": "student", "child": [] }
-                ]
+                ],
+                "second" : {
+                  "minus-key" : "minus"
+                }
             }
         """.trimIndent().toMap().toMutableMap()
 
@@ -70,6 +73,8 @@ internal class MvelHandlerTest: StringSpec({
 
         MvelExpression("name = 'nayasis2'").run(map)
         MvelExpression("name").get<String>(map) shouldBe "nayasis2"
+
+        MvelExpression("second.minus-key").get<String>(map) shouldBe "minus"
 
     }
 
