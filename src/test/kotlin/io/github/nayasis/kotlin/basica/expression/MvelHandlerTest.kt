@@ -57,9 +57,16 @@ internal class MvelHandlerTest: StringSpec({
                 "age"   : 40,
                 "job"   : "engineer",
                 "child" : [
-                    { "name": "jake", "age": 10, "job": "student", "child": [] },
-                    { "name": "jane", "age":  8, "job": "student", "child": [] }
-                ]
+                    { "name": "jake", "age": 10, "job": "student", "child-key": {"child-next-value":1} },
+                    { "name": "jane", "age":  8, "job": "student", "child-key": {"child-next-value":2} }
+                ],
+                "second" : {
+                  "minus-key" : {
+                    "third": {
+                      "fourth-key-value": "minus"
+                    }
+                  }
+                }
             }
         """.trimIndent().toMap().toMutableMap()
 
@@ -70,6 +77,15 @@ internal class MvelHandlerTest: StringSpec({
 
         MvelExpression("name = 'nayasis2'").run(map)
         MvelExpression("name").get<String>(map) shouldBe "nayasis2"
+
+        MvelExpression("second['minus-key'].third['fourth-key-value']").get<String>(map) shouldBe "minus"
+        MvelExpression("second.minus-key.third.fourth-key-value").get<String>(map) shouldBe "minus"
+
+
+        MvelExpression("child[0]['child-key'].child-next-value").get<Int>(map) shouldBe 1
+        MvelExpression("child[1]['child-key'].child-next-value").get<Int>(map) shouldBe 2
+        MvelExpression("child[0].child-key.child-next-value").get<Int>(map) shouldBe 1
+        MvelExpression("child[1].child-key.child-next-value").get<Int>(map) shouldBe 2
 
     }
 

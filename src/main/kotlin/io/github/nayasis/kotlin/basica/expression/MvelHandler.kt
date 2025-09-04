@@ -40,7 +40,9 @@ class MvelHandler { companion object {
      * @throws CompileException if compile error occurs.
      */
     @Throws(CompileException::class)
-    fun compile(expression: String?): Serializable = MVEL.compileExpression(expression, ctx)
+    fun compile(expression: String?): Serializable {
+        return MVEL.compileExpression(expression, ctx)
+    }
 
     /**
      * run compiled expression
