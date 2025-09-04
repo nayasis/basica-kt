@@ -1,34 +1,24 @@
 package io.github.nayasis.kotlin.basica.expression
 
-import org.mvel2.compiler.CompiledExpression
 import java.io.Serializable
 
 /**
  * MVEL expression wrapper
  */
-class MvelExpression {
+class MvelExpression{
 
-    private var raw: String? = null
-    private var compiled: Serializable? = null
-
-    /**
-     * obtains an instance of `Expression`
-     *
-     * @param expression    MVEL expression language
-     * @see [MVEL language guide](http://mvel.documentnode.com/.basic-syntax)
-     */
-    constructor(expression: String?): this(expression,false)
+    private var original: String
+    private var compiled: Serializable
 
     /**
      * obtains an instance of `Expression`
      *
-     * @param expression    MVEL expression language
-     * @param preserve      preserve original expression
+     * @param expression MVEL expression language
      * @see [MVEL language guide](http://mvel.documentnode.com/.basic-syntax)
      */
-    constructor(expression: String?, preserve: Boolean) {
-        compiled = MvelHandler.compile(expression?.trim())
-        if( preserve ) raw = expression
+    constructor(expression: String) {
+        original = expression.trim()
+        compiled = MvelHandler.compile(original)
     }
 
     /**
@@ -46,17 +36,18 @@ class MvelExpression {
     fun test(param: Any? = null): Boolean = run(param) ?: false
 
     override fun toString(): String {
-        return when {
-            raw != null -> raw!!
-            compiled == null -> ""
-            else -> {
-                try {
-                    (compiled as CompiledExpression).firstNode.expr.toString()
-                } catch (e: Exception) {
-                    compiled.toString()
-                }
-            }
-        }
+        return original
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+        other as MvelExpression
+        return original == other.original
+    }
+
+    override fun hashCode(): Int {
+        return original.hashCode()
     }
 
 }

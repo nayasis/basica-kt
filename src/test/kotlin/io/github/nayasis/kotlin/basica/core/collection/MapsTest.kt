@@ -82,9 +82,27 @@ class MapsTest: StringSpec({
 
         val map = Reflector.toMap(JSON_EXAMPLE)
 
-        map.getByExpr<String>("name.item[0].key") shouldBe "A"
-        map.getByExpr<String>("name.item[0].value") shouldBe 1
-        map.getByExpr<Any?>("name.item[0].q") shouldBe null
+        map.getByMvel<String>("name.item[0].key") shouldBe "A"
+        map.getByMvel<String>("name.item[0].value") shouldBe 1
+        map.getByMvel<Any?>("name.item[0].q") shouldBe null
+
+    }
+
+    "get by path 2" {
+        val map = Reflector.toMap("""
+            {
+              "name" : {
+                "item" : { 
+                    "key"   : "A",
+                    "value" : 1
+                }
+              }
+            }
+        """.trimIndent())
+
+        map.getByMvel<Any?>("name.item.key") shouldBe "A"
+        map.getByMvel<Any?>("name.item.value") shouldBe 1
+        map.getByMvel<Any?>("name.item.q") shouldBe null
 
     }
 
@@ -120,21 +138,21 @@ class MapsTest: StringSpec({
         )
 
         map.toString(true) shouldBe """
-            +-----+-------------+----------------+
-            |    4|Int          |          772425|
-            |age  |Int          |              45|
-            |name |String       |jake            |
-            |birth|LocalDateTime|2021-10-16T23:10|
-            +-----+-------------+----------------+
+            +-----+-------------+-------------------+
+            |    4|Int          |             772425|
+            |age  |Int          |                 45|
+            |name |String       |jake               |
+            |birth|LocalDateTime|2021-10-16T23:10:00|
+            +-----+-------------+-------------------+
         """.trimIndent()
 
         map.toString(false) shouldBe """
-            +-----+----------------+
-            |    4|          772425|
-            |age  |              45|
-            |name |jake            |
-            |birth|2021-10-16T23:10|
-            +-----+----------------+
+            +-----+-------------------+
+            |    4|             772425|
+            |age  |                 45|
+            |name |jake               |
+            |birth|2021-10-16T23:10:00|
+            +-----+-------------------+
         """.trimIndent()
 
     }

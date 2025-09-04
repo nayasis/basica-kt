@@ -17,6 +17,7 @@ import io.github.nayasis.kotlin.basica.core.klass.Classes
 import io.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
 import io.github.nayasis.kotlin.basica.core.number.cast
 import io.github.nayasis.kotlin.basica.core.url.URLCodec
+import io.github.nayasis.kotlin.basica.expression.MvelExpression
 import io.github.nayasis.kotlin.basica.model.Messages
 import io.github.nayasis.kotlin.basica.reflection.Reflector
 import java.io.*
@@ -858,4 +859,8 @@ fun String.loadClass(classLoader: ClassLoader? = null): Class<*> {
 
 fun String.getCrc32(charset: Charset = Charsets.UTF_8): Long {
     return CRC32().also { it.update(this.toByteArray(charset)) }.value
+}
+
+fun String.toMvelExpression(): MvelExpression {
+    return MvelExpression(this)
 }

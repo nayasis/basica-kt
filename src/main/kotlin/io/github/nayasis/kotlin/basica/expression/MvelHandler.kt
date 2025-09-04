@@ -14,7 +14,7 @@ class MvelHandler { companion object {
         listOf(
             "character",
             "collection",
-            "extention",
+            "extension",
             "klass",
             "localdate",
             "math",
