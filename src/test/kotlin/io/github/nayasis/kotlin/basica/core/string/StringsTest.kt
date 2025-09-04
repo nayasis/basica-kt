@@ -10,7 +10,6 @@ import io.kotest.matchers.comparables.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Test
 import java.io.Serializable
 import java.net.URLEncoder
 import java.time.LocalTime
@@ -55,7 +54,7 @@ internal class StringsTest: StringSpec({
         captured.size shouldBe 4
         captured shouldBe listOf("Merong", "babo", "Nayasis", "babo")
         val refids = "< Ref id=\"refOrigin2\" />"
-            .capture("(?i)< *?ref +?id *?= *?['\"](.*?)['\"] *?\\/>".toRegex())
+            .capture("(?i)< *?ref +?id *?= *?['\"](.*?)['\"] *?/>".toRegex())
         refids.toString() shouldBe "[refOrigin2]"
     }
 
@@ -65,7 +64,7 @@ internal class StringsTest: StringSpec({
         captured.size shouldBe 4
         captured shouldBe listOf("Merong", "babo", "Nayasis", "babo")
         val refids = "< Ref id=\"refOrigin2\" />"
-            .capture("(?i)< *?ref +?id *?= *?['\"](.*?)['\"] *?\\/>".toPattern())
+            .capture("(?i)< *?ref +?id *?= *?['\"](.*?)['\"] *?/>".toPattern())
         refids.toString() shouldBe "[refOrigin2]"
     }
 
@@ -100,9 +99,9 @@ internal class StringsTest: StringSpec({
         val param = mapOf( 1 to "원스토어", "ab& _e" to 3 )
 
         param.toUrlParam() shouldBe "1=%EC%9B%90%EC%8A%A4%ED%86%A0%EC%96%B4&ab%26%20_e=3"
-        "1=%EC%9B%90%EC%8A%A4%ED%86%A0%EC%96%B4&ab%26%20_e=3".toMapFromUrlParam().toString() shouldBe "{1=원스토어, ab& _e=3}"
+        "1=%EC%9B%90%EC%8A%A4%ED%86%A0%EC%96%B4&ab%26%20_e=3".fromUrlParam().toString() shouldBe "{1=원스토어, ab& _e=3}"
 
-        "a&&&ab%26%20_e=3".toMapFromUrlParam().toString() shouldBe "{a=null, ab& _e=3}"
+        "a&&&ab%26%20_e=3".fromUrlParam().toString() shouldBe "{a=null, ab& _e=3}"
     }
 
     "mask" {

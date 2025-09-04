@@ -8,7 +8,7 @@ import java.io.Serializable
 class MvelExpression{
 
     private var original: String
-    private var compiled: Serializable
+    var compiled: Serializable
 
     /**
      * obtains an instance of `Expression`
@@ -26,14 +26,21 @@ class MvelExpression{
      * @param param  parameter
      * @return execution result
     */
-    fun <T:Any> run(param: Any? = null): T? = MvelHandler.run(compiled, param)
+    fun <T> get(param: Any? = null): T? = MvelHandler.run(compiled, param)
+
+    /**
+     * run expression
+     * @param param  parameter
+     * @return execution result
+     */
+    fun run(param: Any? = null) = MvelHandler.run<Any>(compiled, param)
 
     /**
      * test expression
      * @param param  parameter
      * @return execution result
      */
-    fun test(param: Any? = null): Boolean = run(param) ?: false
+    fun test(param: Any? = null): Boolean = get(param) ?: false
 
     override fun toString(): String {
         return original

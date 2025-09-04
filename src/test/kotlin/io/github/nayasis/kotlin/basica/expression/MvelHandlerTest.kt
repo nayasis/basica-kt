@@ -1,5 +1,6 @@
 package io.github.nayasis.kotlin.basica.expression
 
+import io.github.nayasis.kotlin.basica.core.string.toMap
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import java.time.LocalDateTime
@@ -48,9 +49,33 @@ internal class MvelHandlerTest: StringSpec({
         run<Boolean>("1 + (int)'2' == '3'") shouldBe true
     }
 
+    "get & set from map" {
+
+        val map = """
+            {
+                "name"  : "nayasis",
+                "age"   : 40,
+                "job"   : "engineer",
+                "child" : [
+                    { "name": "jake", "age": 10, "job": "student", "child": [] },
+                    { "name": "jane", "age":  8, "job": "student", "child": [] }
+                ]
+            }
+        """.trimIndent().toMap().toMutableMap()
+
+
+        MvelExpression("name").get<String>(map) shouldBe "nayasis"
+        MvelExpression("child[0].name").get<String>(map) shouldBe "jake"
+        MvelExpression("child[1].name").get<String>(map) shouldBe "jane"
+
+        MvelExpression("name = 'nayasis2'").run(map)
+        MvelExpression("name").get<String>(map) shouldBe "nayasis2"
+
+    }
+
 })
 
-private fun <T> run(expression: String, param: Any? = null): T {
+private fun <T> run(expression: String, param: Any? = null): T? {
     val exp = MvelHandler.compile(expression)
     return MvelHandler.run(exp, param)
 }

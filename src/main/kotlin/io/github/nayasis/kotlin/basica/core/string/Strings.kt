@@ -294,7 +294,7 @@ fun String.urlDecode(charset: Charset = Charsets.UTF_8, legacyMode: Boolean = tr
     if( this.isEmpty() ) "" else URLCodec().decode(this,charset,legacyMode)
 
 @JvmOverloads
-fun String?.toMapFromUrlParam(charset: Charset = Charsets.UTF_8 ): Map<String,String?> {
+fun String?.fromUrlParam(charset: Charset = Charsets.UTF_8 ): Map<String,String?> {
     if(this.isNullOrEmpty()) return emptyMap()
     return this.split("&").mapNotNull {
         val tokens = it.split("=")

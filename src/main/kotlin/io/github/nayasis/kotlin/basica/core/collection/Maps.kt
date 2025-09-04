@@ -18,10 +18,9 @@ inline fun <reified T> Map<*,*>.toObject(ignoreNull: Boolean = true): T = Reflec
 
 fun Map<*,*>.merge(other: Map<*,*>?, skipEmpty: Boolean = true): MutableMap<*,*> = Merger().merge(other,this, skipEmpty)
 
-@Suppress("UNCHECKED_CAST")
 fun <V> Map<*,*>.get(expression: MvelExpression): V? {
     return try {
-        expression.run<Any>(this) as V?
+        expression.get(this)
     } catch (e: Exception) {
         null
     }
@@ -34,6 +33,10 @@ fun <V> Map<*,*>.getByMvel(expression: String?, default: V? = null): V? {
         null -> null
         else -> get(expression.toMvelExpression())
     } ?: default
+}
+
+fun Map<*,*>.setByMvel(expression: String, value: Any?) {
+    MvelExpression(expression).run(this)
 }
 
 fun Map<*,*>.toString(showType: Boolean, endRow: Int = 500): String {
