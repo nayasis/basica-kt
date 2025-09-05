@@ -81,7 +81,6 @@ internal class MvelHandlerTest: StringSpec({
         MvelExpression("second['minus-key'].third['fourth-key-value']").get<String>(map) shouldBe "minus"
         MvelExpression("second.minus-key.third.fourth-key-value").get<String>(map) shouldBe "minus"
 
-
         MvelExpression("child[0]['child-key'].child-next-value").get<Int>(map) shouldBe 1
         MvelExpression("child[1]['child-key'].child-next-value").get<Int>(map) shouldBe 2
         MvelExpression("child[0].child-key.child-next-value").get<Int>(map) shouldBe 1
