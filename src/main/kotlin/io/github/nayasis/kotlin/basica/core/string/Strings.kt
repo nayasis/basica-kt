@@ -1,4 +1,5 @@
 @file:JvmName("Strings")
+@file:Suppress("unused", "UnclearPrecedenceOfBinaryExpression")
 
 package io.github.nayasis.kotlin.basica.core.string
 
