@@ -6,7 +6,7 @@ import org.mvel2.MVEL
 import org.mvel2.ParserContext
 import java.io.Serializable
 
-@Suppress("MemberVisibilityCanBePrivate")
+@Suppress("MemberVisibilityCanBePrivate", "UNCHECKED_CAST")
 class MvelHandler { companion object {
 
     val ctx = ParserContext().apply{
@@ -14,7 +14,7 @@ class MvelHandler { companion object {
         listOf(
             "character",
             "collection",
-            "extention",
+            "extension",
             "klass",
             "localdate",
             "math",
@@ -40,7 +40,9 @@ class MvelHandler { companion object {
      * @throws CompileException if compile error occurs.
      */
     @Throws(CompileException::class)
-    fun compile(expression: String?): Serializable = MVEL.compileExpression(expression, ctx)
+    fun compile(expression: String?): Serializable {
+        return MVEL.compileExpression(expression, ctx)
+    }
 
     /**
      * run compiled expression
@@ -51,7 +53,12 @@ class MvelHandler { companion object {
      * @return execution result
     </T> */
     @Suppress("UNCHECKED_CAST")
-    fun <T: Any> run(expression: Serializable?, param: Any?): T = MVEL.executeExpression(expression, param) as T
+    fun <T: Any> run(expression: Serializable?, param: Any?): T? {
+        return when {
+            param is Map<*,*> -> MVEL.executeExpression(expression, param)
+            else -> MVEL.executeExpression(expression, param)
+        } as T
+    }
 
     /**
      * run compiled expression
@@ -60,6 +67,6 @@ class MvelHandler { companion object {
      * @param <T>           return type
      * @return execution result
     */
-    fun <T: Any> run(expression: Serializable?): T = run(expression, null)
+    fun <T: Any> run(expression: Serializable?): T? = run(expression, null)
 
 }}

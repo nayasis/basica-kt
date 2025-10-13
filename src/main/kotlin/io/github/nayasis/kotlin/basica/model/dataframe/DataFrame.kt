@@ -79,6 +79,11 @@ class DataFrame(
         body[key]!![row] = value
     }
 
+    fun addData(key: String, value: Any?) {
+        addKey(key)
+        body[key]?.add(value)
+    }
+
     fun removeData(row: Int, col: Int) {
         val key = body.getKeyBy(col) ?: throw NoSuchElementException("No column found for index[$col]")
         body[key]?.remove(row)

@@ -1,4 +1,5 @@
 @file:JvmName("Strings")
+@file:Suppress("unused", "UnclearPrecedenceOfBinaryExpression")
 
 package io.github.nayasis.kotlin.basica.core.string
 
@@ -17,6 +18,7 @@ import io.github.nayasis.kotlin.basica.core.klass.Classes
 import io.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
 import io.github.nayasis.kotlin.basica.core.number.cast
 import io.github.nayasis.kotlin.basica.core.url.URLCodec
+import io.github.nayasis.kotlin.basica.expression.MvelExpression
 import io.github.nayasis.kotlin.basica.model.Messages
 import io.github.nayasis.kotlin.basica.reflection.Reflector
 import java.io.*
@@ -293,7 +295,7 @@ fun String.urlDecode(charset: Charset = Charsets.UTF_8, legacyMode: Boolean = tr
     if( this.isEmpty() ) "" else URLCodec().decode(this,charset,legacyMode)
 
 @JvmOverloads
-fun String?.toMapFromUrlParam(charset: Charset = Charsets.UTF_8 ): Map<String,String?> {
+fun String?.fromUrlParam(charset: Charset = Charsets.UTF_8 ): Map<String,String?> {
     if(this.isNullOrEmpty()) return emptyMap()
     return this.split("&").mapNotNull {
         val tokens = it.split("=")
@@ -607,12 +609,12 @@ inline fun <reified T> String.decodeBase64(): T {
     }
 }
 
-fun String.ifBlank(fn:() -> String): String {
-    return if(this.isBlank()) fn() else this
+fun String?.ifBlank(fn:() -> String): String {
+    return if(this == null || this.isBlank()) fn() else this
 }
 
-fun String.ifNotBlank(fn: (String) -> Unit) {
-    if(this.isNotBlank()) fn(this)
+fun String?.runIfNotBlank(fn: (String) -> Unit) {
+    if(this != null && this.isNotBlank()) fn(this)
 }
 
 /**
@@ -858,4 +860,14 @@ fun String.loadClass(classLoader: ClassLoader? = null): Class<*> {
 
 fun String.getCrc32(charset: Charset = Charsets.UTF_8): Long {
     return CRC32().also { it.update(this.toByteArray(charset)) }.value
+}
+
+/**
+ * create MVEL expression
+ *
+ * @param strict     if true, do not modify the expression to handle hyphenated property access
+ * @return MvelExpression
+ */
+fun String.toMvelExpression(strict: Boolean = false): MvelExpression {
+    return MvelExpression(this, strict)
 }

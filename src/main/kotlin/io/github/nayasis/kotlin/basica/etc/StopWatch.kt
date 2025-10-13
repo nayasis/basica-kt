@@ -2,7 +2,7 @@ package io.github.nayasis.kotlin.basica.etc
 
 import io.github.nayasis.kotlin.basica.core.collection.sumByDuration
 import io.github.nayasis.kotlin.basica.core.number.round
-import io.github.nayasis.kotlin.basica.model.NGrid
+import io.github.nayasis.kotlin.basica.model.dataframe.DataFrame
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.Serializable
 import kotlin.time.Duration
@@ -71,22 +71,24 @@ class StopWatch: Serializable {
         }
         logs.lastOrNull()?.percent = remain.round(1)
 
-        val grid = NGrid().apply{
+        val grid = DataFrame().apply{
             listOf(
-                Log::task.name to "Task",
+                Log::task.name    to "Task",
                 Log::elapsed.name to getSimpleUnit(unit),
                 Log::percent.name to "%"
-            ).forEach { header.setAlias(it.first, it.second) }
+            ).forEach {
+                this.setLabel(it.first, it.second)
+            }
         }
 
         logs.forEach {
-            grid.addRow(Log::task.name, it.task)
-            grid.addRow(Log::elapsed.name, it.elapsed.toLong(unit))
-            grid.addRow(Log::percent.name, it.percent)
+            grid.addData(Log::task.name, it.task)
+            grid.addData(Log::elapsed.name, it.elapsed.toLong(unit))
+            grid.addData(Log::percent.name, it.percent)
         }
 
-        grid.addRow(Log::task.name, "Total")
-        grid.addRow(Log::elapsed.name, total.toLong(unit))
+        grid.addData(Log::task.name, "Total")
+        grid.addData(Log::elapsed.name, total.toLong(unit))
 
         return grid.toString(true)
 
