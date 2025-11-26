@@ -10,11 +10,11 @@ plugins {
 
 group = "io.github.nayasis"
 version = when {
-    project.hasProperty("RELEASE_VERSION") && project.property("RELEASE_VERSION") != "unspecified" -> project.property("RELEASE_VERSION") as String
+    project.hasProperty("mavenReleaseVersion") && project.property("mavenReleaseVersion") != "unspecified" -> project.property("mavenReleaseVersion") as String
     else -> "0.1.0-SNAPSHOT"
 }
 
-println(">> Releasing version: ${project.property("RELEASE_VERSION")} -> ${project.version}")
+println(">> Releasing version: ${project.property("mavenReleaseVersion")} -> ${project.version}")
 
 repositories {
     mavenCentral()
@@ -60,7 +60,9 @@ tasks.withType<JavaCompile> {
 }
 
 mavenPublishing {
-    if(project.hasProperty("SIGNING_KEY")) {
+    if (!gradle.startParameter.taskNames.any {
+        it.contains("publishToMavenLocal") || it.contains("publishMavenPublicationToMavenLocal")
+    }) {
         signAllPublications()
     }
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
