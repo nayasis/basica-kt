@@ -292,3 +292,11 @@ fun emptyJson(typeref: TypeReference<*>): String {
 private fun emptyJson(klass: KClass<*>): String =
     if( klass.isSubclassOf(Collection::class) || klass.isSubclassOf(Array::class) ) "[]" else "{}"
 
+
+fun Any.toJson(pretty: Boolean = false, ignoreNull: Boolean = true, view: Class<*>? = null): String {
+    return Reflector.toJson(this, pretty, ignoreNull, view)
+}
+
+inline fun <reified T> String.toObject(ignoreNull: Boolean = true): T {
+    return Reflector.toObject(this, ignoreNull)
+}
