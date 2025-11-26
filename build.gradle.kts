@@ -14,7 +14,7 @@ version = when {
     else -> "0.1.0-SNAPSHOT"
 }
 
-println(">> Releasing version: ${project.property("mavenReleaseVersion")} -> ${project.version}")
+println("\t- release version: ${project.version}")
 
 repositories {
     mavenCentral()
