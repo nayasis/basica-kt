@@ -225,6 +225,87 @@ internal class ReflectorTest: StringSpec({
 
     }
 
+    "extension function - Any.toJson()" {
+        // Basic object conversion
+        val person = Person("nayasis", 45, "sungnam", null)
+        person.toJson() shouldBe """{"name":"nayasis","age":45,"address":"sungnam"}"""
+
+        // Test pretty option
+        val prettyJson = person.toJson(pretty = true)
+        prettyJson.contains("\n") shouldBe true
+        prettyJson.contains("\"name\" : \"nayasis\"") shouldBe true
+
+        // Test ignoreNull = false
+        val jsonWithNull = person.toJson(ignoreNull = false)
+        jsonWithNull shouldBe """{"name":"nayasis","age":45,"address":"sungnam","etc":null}"""
+
+        // Map object conversion
+        val map = mapOf("a" to 1, "b" to null, "c" to "test")
+        map.toJson() shouldBe """{"a":1,"c":"test"}"""
+        map.toJson(ignoreNull = false) shouldBe """{"a":1,"b":null,"c":"test"}"""
+
+        // List object conversion
+        val list = listOf(1, 2, 3)
+        list.toJson() shouldBe "[1,2,3]"
+    }
+
+    "extension function - String.toObject()" {
+        // Convert JSON string to Map
+        val jsonStr = """{"name":"nayasis","age":45,"address":"sungnam"}"""
+        val map = jsonStr.toObject<Map<String, Any?>>()
+        map["name"] shouldBe "nayasis"
+        map["age"] shouldBe 45
+        map["address"] shouldBe "sungnam"
+
+        // Convert JSON string to data class
+        val person = jsonStr.toObject<Person>()
+        person.name shouldBe "nayasis"
+        person.age shouldBe 45
+        person.address shouldBe "sungnam"
+
+        // Convert JSON array to List
+        val listJson = """[1,2,3,4,5]"""
+        val list = listJson.toObject<List<Int>>()
+        list shouldBe listOf(1, 2, 3, 4, 5)
+
+        // Test with null values
+        val jsonWithNull = """{"name":"jake","age":null,"address":"seoul","etc":"test"}"""
+        val personWithNull = jsonWithNull.toObject<Person>()
+        personWithNull.name shouldBe "jake"
+        personWithNull.age shouldBe null
+        personWithNull.address shouldBe "seoul"
+        personWithNull.etc shouldBe "test"
+
+        // Test ignoreNull = false
+        val personIgnoreNull = jsonWithNull.toObject<Person>(ignoreNull = false)
+        personIgnoreNull.name shouldBe "jake"
+        personIgnoreNull.age shouldBe null
+        personIgnoreNull.address shouldBe "seoul"
+    }
+
+    "extension functions - combined usage" {
+        // Combined usage of toJson() and toObject()
+        val original = Person("test", 30, "seoul", "extra")
+        val json = original.toJson()
+        val restored: Person = json.toObject()
+
+        restored.name shouldBe original.name
+        restored.age shouldBe original.age
+        restored.address shouldBe original.address
+
+        // Test List conversion
+        val personList = listOf(
+            Person("alice", 25, "busan", null),
+            Person("bob", 35, "daegu", null)
+        )
+        val listJson = personList.toJson()
+        val restoredList = listJson.toObject<List<Person>>()
+
+        restoredList.size shouldBe 2
+        restoredList[0].name shouldBe "alice"
+        restoredList[1].name shouldBe "bob"
+    }
+
 })
 
 data class Dummy(
