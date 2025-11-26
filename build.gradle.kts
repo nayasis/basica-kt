@@ -9,7 +9,10 @@ plugins {
 }
 
 group = "io.github.nayasis"
-version = "0.3.7-SNAPSHOT"
+version = when {
+    project.hasProperty("RELEASE_VERSION") && project.property("RELEASE_VERSION") != "unspecified" -> project.property("RELEASE_VERSION") as String
+    else -> "0.1.0-SNAPSHOT"
+}
 
 repositories {
     mavenCentral()
@@ -55,39 +58,36 @@ tasks.withType<JavaCompile> {
 }
 
 mavenPublishing {
-    // Skip signing for local Maven repository deployment
-    if (!gradle.startParameter.taskNames.any {
-            it.contains("publishToMavenLocal") || it.contains("publishMavenPublicationToMavenLocal")
-        }) {
+    if(project.hasProperty("SIGNING_KEY")) {
         signAllPublications()
     }
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
     pom {
-        name.set(rootProject.name)
-        description.set("Basic Kotlin utility library providing common functionality for Kotlin applications.")
-        url.set("https://github.com/nayasis/basica-kt")
+        name        = "basica-kr"
+        description = "Basic Kotlin utility library providing common functionality for Kotlin applications."
+        url         = "https://github.com/nayasis/basica-kt"
         licenses {
             license {
-                name.set("Apache License, Version 2.0")
-                url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                name = "Apache License, Version 2.0"
+                url  = "http://www.apache.org/licenses/LICENSE-2.0.txt"
             }
         }
         developers {
             developer {
-                id.set("nayasis")
-                name.set("nayasis")
-                email.set("nayasis@gmail.com")
+                id    = "nayasis"
+                name  = "nayasis"
+                email = "nayasis@gmail.com"
             }
         }
         scm {
-            connection.set("scm:git:github.com/nayasis/basica-kt.git")
-            developerConnection.set("scm:git:ssh://github.com/nayasis/basica-kt.git")
-            url.set("https://github.com/nayasis/basica-kt/tree/master")
+            url                 = "https://github.com/nayasis/basica-kt"
+            connection          = "scm:git:github.com/nayasis/basica-kt.git"
+            developerConnection = "scm:git:ssh://github.com/nayasis/basica-kt.git"
         }
     }
 }
 
 val compileKotlin: KotlinCompile by tasks
 compileKotlin.compilerOptions {
-    freeCompilerArgs.set(listOf("-XXLanguage:+BreakContinueInInlineLambdas"))
+    freeCompilerArgs = listOf("-XXLanguage:+BreakContinueInInlineLambdas")
 }
