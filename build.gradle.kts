@@ -10,7 +10,10 @@ plugins {
 
 group = "io.github.nayasis"
 version = when {
-    project.hasProperty("mavenReleaseVersion") && project.property("mavenReleaseVersion") != "unspecified" -> project.property("mavenReleaseVersion") as String
+    project.hasProperty("mavenReleaseVersion") && project.property("mavenReleaseVersion") != "unspecified" -> {
+        println("\t- mavenReleaseVersion: ${project.property("mavenReleaseVersion")}")
+        project.property("mavenReleaseVersion") as String
+    }
     else -> "0.1.0-SNAPSHOT"
 }
 
