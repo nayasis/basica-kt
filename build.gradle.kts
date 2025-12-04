@@ -10,7 +10,7 @@ plugins {
 
 group = "io.github.nayasis"
 version = when {
-    project.hasProperty("mavenReleaseVersion") && project.property("mavenReleaseVersion") != "unspecified" && project.property("mavenReleaseVersion") != "" -> {
+    project.hasProperty("mavenReleaseVersion") && project.property("mavenReleaseVersion").let { it != "" && it != "unspecified" } -> {
         project.property("mavenReleaseVersion") as String
     }
     else -> "0.1.0-SNAPSHOT"
@@ -62,14 +62,12 @@ tasks.withType<JavaCompile> {
 }
 
 mavenPublishing {
-    if (!gradle.startParameter.taskNames.any {
-        it.contains("publishToMavenLocal") || it.contains("publishMavenPublicationToMavenLocal")
-    }) {
+    if(listOf("publishToMavenLocal","publishMavenPublicationToMavenLocal").none{gradle.startParameter.taskNames.contains(it)}) {
         signAllPublications()
     }
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
     pom {
-        name        = "basica-kr"
+        name        = project.name
         description = "Basic Kotlin utility library providing common functionality for Kotlin applications."
         url         = "https://github.com/nayasis/basica-kt"
         licenses {
