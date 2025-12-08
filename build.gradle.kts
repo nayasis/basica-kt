@@ -30,7 +30,7 @@ java {
 
 dependencies {
     implementation("org.mvel:mvel2:2.5.2.Final")
-    implementation("com.googlecode.juniversalchardet:juniversalchardet:1.0.3")
+    implementation("com.sigpwned:chardet4j:77.1.0")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.18.3")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2")
     implementation("org.slf4j:slf4j-api:2.0.7")
@@ -44,7 +44,8 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.2")
     testImplementation("io.kotest:kotest-runner-junit5:5.6.2")
     testImplementation("io.kotest:kotest-assertions-core:5.6.2")
-    testImplementation("ch.qos.logback:logback-classic:1.5.19")
+    @Suppress("VulnerableLibrariesLocal")
+    testImplementation("ch.qos.logback:logback-classic:1.2.13")
 }
 
 kotlin {

@@ -29,7 +29,7 @@ internal class NThreadLocalTest {
         assertEquals(5, result["A-5"] as Int)
         assertNull(NThreadLocal["A"])
 
-        log.debug(result.toString())
+        log.debug{result}
 
         NThreadLocal.clear()
 
@@ -54,12 +54,13 @@ internal class NThreadLocalTest {
         assertNotNull(NThreadLocal["A"])
 
         NThreadLocal.clear()
-        log.debug(result.toString())
+        log.debug{result}
         log.debug { NThreadLocal["A"] }
         assertNull(NThreadLocal["A"])
 
     }
 
+    @Suppress("SameParameterValue")
     private fun makeTestThread(key: String, count: Int, result: MutableMap<String, Int?>): Thread {
         return Thread {
             NThreadLocal[key] = 0

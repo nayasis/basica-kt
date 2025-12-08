@@ -1,5 +1,7 @@
 package io.github.nayasis.kotlin.basica.core.io
 
+import com.sigpwned.chardet4j.Chardet
+import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
@@ -118,4 +120,19 @@ fun InputStream.toString(charset: Charset = UTF_8, bufferSize: Int = DEFAULT_BUF
         bytes  = reader.read(buffer)
     }
     return out.toString()
+}
+
+/**
+ * Returns a new [BufferedReader] for this input stream.
+ *
+ * @param charset default charset to use if detection fails (UTF-8 by default)
+ * @param autodetect when true, chardet4j detects BOM/charset; when false, uses {@code charset} as-is
+ * @return buffered reader for this input stream
+ */
+fun InputStream.reader(charset: Charset = Charsets.UTF_8, autodetect: Boolean = true): BufferedReader {
+    return if(autodetect) {
+        Chardet.decode(this, null, charset).let { BufferedReader(it) }
+    } else {
+        this.bufferedReader(charset)
+    }
 }

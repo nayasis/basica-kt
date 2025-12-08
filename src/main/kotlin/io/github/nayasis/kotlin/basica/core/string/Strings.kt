@@ -53,7 +53,7 @@ private val REGEX_EXTRACT_LOWER = "[^a-z]".toRegex()
 
 private val FORMATTER   = Formatter()
 
-fun String.message(locale: Locale? = null): String = Messages[locale, this]
+fun String.message(locale: Locale = Locale.getDefault()): String = Messages[this, locale]
 
 fun String.toPath(): Path = Path(this)
 

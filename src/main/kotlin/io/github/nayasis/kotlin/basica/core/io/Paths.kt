@@ -2,19 +2,37 @@
 
 package io.github.nayasis.kotlin.basica.core.io
 
+import com.sigpwned.chardet4j.Chardet
+import com.sigpwned.chardet4j.io.BomAwareInputStream
+import com.sigpwned.chardet4j.util.ByteStreams
 import io.github.nayasis.kotlin.basica.core.io.Paths.Companion.FOLDER_SEPARATOR_UNIX
 import io.github.nayasis.kotlin.basica.core.io.Paths.Companion.FOLDER_SEPARATOR_WINDOWS
 import io.github.nayasis.kotlin.basica.core.string.invariantSeparators
 import io.github.nayasis.kotlin.basica.core.string.toFile
 import io.github.nayasis.kotlin.basica.core.string.toPath
-import org.mozilla.universalchardet.UniversalDetector
-import java.io.*
+import io.github.oshai.kotlinlogging.KotlinLogging
+import java.io.BufferedReader
+import java.io.BufferedWriter
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.IOException
+import java.io.InputStream
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
+import java.io.OutputStream
+import java.io.RandomAccessFile
 import java.net.URI
 import java.net.URL
 import java.nio.charset.Charset
 import java.nio.file.*
 import java.nio.file.StandardOpenOption.APPEND
-import java.nio.file.attribute.*
+import java.nio.file.attribute.BasicFileAttributeView
+import java.nio.file.attribute.BasicFileAttributes
+import java.nio.file.attribute.FileAttribute
+import java.nio.file.attribute.FileTime
+import java.nio.file.attribute.PosixFilePermission
+import java.nio.file.attribute.UserPrincipal
 import java.nio.file.spi.FileSystemProvider
 import java.util.stream.Stream
 import java.util.zip.GZIPInputStream
@@ -23,6 +41,8 @@ import kotlin.io.path.Path
 import kotlin.io.path.inputStream
 import kotlin.reflect.KClass
 import kotlin.streams.toList
+
+private val logger = KotlinLogging.logger {}
 
 class Paths { companion object {
 
@@ -670,12 +690,18 @@ val KClass<*>.rootPath: Path
     get() = this.java.protectionDomain.codeSource.location.file.toFile().toPath()
 
 /**
- * Returns a new [BufferedReader] for reading the content of this file.
+ * Returns a new [BufferedReader] for this file.
  *
- * @param charset character set to use for reading text, UTF-8 by default.
+ * @param charset default charset to use if detection fails (UTF-8 by default)
+ * @param autodetect when true, chardet4j detects BOM/charset; when false, uses {@code charset} as-is
+ * @return buffered reader for this file
  */
-fun Path.reader(charset: Charset = Charsets.UTF_8): BufferedReader {
-    return Files.newBufferedReader(this, charset )
+fun Path.reader(charset: Charset = Charsets.UTF_8, autodetect: Boolean = true): BufferedReader {
+    return if (autodetect) {
+        Chardet.decode(this.inputStream(), null, charset).let { BufferedReader(it) }
+    } else {
+        Files.newBufferedReader(this, charset)
+    }
 }
 
 /**
@@ -697,7 +723,7 @@ fun Path.writer(charset: Charset = Charsets.UTF_8, vararg options: OpenOption, b
  * @param bufferSize necessary size of the buffer.
  */
 fun Path.appender(charset: Charset = Charsets.UTF_8, bufferSize: Int = DEFAULT_BUFFER_SIZE): BufferedWriter {
-    return this.writer(charset,APPEND,bufferSize = bufferSize)
+    return this.writer(charset, APPEND, bufferSize = bufferSize)
 }
 
 fun Path.inputStream(vararg options: OpenOption): InputStream {
@@ -712,27 +738,21 @@ fun Path.detectCharset(default: Charset = Charsets.UTF_8): Charset {
     return this.inputStream().use { detectCharset(it,default) }
 }
 
-fun detectCharset(inputstream: InputStream, default: Charset = Charsets.UTF_8): Charset {
-
-    val buffer = ByteArray(4096)
-    val detector = UniversalDetector(null)
-
-    inputstream.mark(1 shl 24)
-    var bytes: Int
-    while (inputstream.read(buffer).also { bytes = it } > 0 && ! detector.isDone) {
-        detector.handleData(buffer, 0, bytes)
-    }
-    detector.dataEnd()
-
-    @Suppress("UNCHECKED_CAST")
-    return detector.detectedCharset.let {
-        try {
-            Charset.forName(it)
-        } catch (e: Exception) {
-            default
+fun detectCharset(inputStream: InputStream, default: Charset = Charsets.UTF_8): Charset {
+    return try {
+        // Detect BOM and return it's charset.
+        val bomed = BomAwareInputStream.detect(inputStream).also {
+            val bom = it.bom()
+            if(bom.isPresent) return bom.get().charset
         }
-    }
+        // If there is no BOM, read first bytes to detect the charset.
+        val buf = ByteStreams.readNBytes(bomed, Chardet.DECODE_DETECT_BUFSIZE)
 
+        Chardet.detectCharset(buf, null).orElse(default)
+    } catch (e: Exception) {
+        logger.trace(e) { "fail to detect charset" }
+        default
+    }
 }
 
 fun Path.readLines(charset: Charset = Charsets.UTF_8, reader: (line: String) -> Unit): Boolean {
