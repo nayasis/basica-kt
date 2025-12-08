@@ -4,11 +4,14 @@ import io.github.nayasis.kotlin.basica.model.dataframe.DataFrame
 import io.github.nayasis.kotlin.basica.reflection.Reflector
 import java.io.InputStream
 import java.io.InputStreamReader
+import java.nio.charset.Charset
 
-class JsonImporter : DataFrameImporter() {
+class JsonImporter(
+    private val charset: Charset = Charsets.UTF_8,
+) : DataFrameImporter() {
     override fun import(inputStream: InputStream): DataFrame {
         val dataframe = DataFrame()
-        InputStreamReader(inputStream).use { reader ->
+        InputStreamReader(inputStream, charset).use { reader ->
             var rowIndex = 0
             var insideArray = false
             var braceCount = 0

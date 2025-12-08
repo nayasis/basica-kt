@@ -4,6 +4,7 @@ import io.github.nayasis.kotlin.basica.core.io.Paths
 import io.github.nayasis.kotlin.basica.core.io.div
 import io.github.nayasis.kotlin.basica.core.string.bind
 import io.github.nayasis.kotlin.basica.core.string.message
+import io.github.nayasis.kotlin.basica.model.Messages.Companion.loadMessages
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import java.util.*
@@ -18,7 +19,7 @@ internal class MessagesTest: StringSpec({
 
         val path = Paths.applicationRoot / "build/resources/test/message/message.en.prop"
 
-        Messages.loadFromFile(path)
+        path.loadMessages()
 
         Messages["err.session.expired"] shouldBe "Session is expired."
         Messages["notExistCode"] shouldBe "notExistCode"
@@ -27,11 +28,11 @@ internal class MessagesTest: StringSpec({
 
     "load from resource" {
 
-        Messages.loadFromResource("/message/**.prop")
+        "/message/**.prop".loadMessages()
 
-        Messages[Locale.ENGLISH, "err.session.expired"] shouldBe "Session is expired."
-        Messages[Locale.UK, "err.session.expired"] shouldBe "Session is expired."
-        Messages[Locale.KOREAN, "err.session.expired"] shouldBe "세션이 종료되었습니다."
+        Messages["err.session.expired", Locale.ENGLISH] shouldBe "Session is expired."
+        Messages["err.session.expired", Locale.UK]      shouldBe "Session is expired."
+        Messages["err.session.expired", Locale.KOREAN]  shouldBe "세션이 종료되었습니다."
 
     }
 
@@ -46,7 +47,7 @@ internal class MessagesTest: StringSpec({
 
     "code having space" {
 
-        Messages.loadFromResource("message/*")
+        "message/*".loadMessages()
 
         "message with space".message() shouldBe "띄어쓰기가 포함된 메세지"
 

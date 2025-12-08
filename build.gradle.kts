@@ -10,7 +10,7 @@ plugins {
 
 group = "io.github.nayasis"
 version = when {
-    project.hasProperty("mavenReleaseVersion") && project.property("mavenReleaseVersion") != "unspecified" && project.property("mavenReleaseVersion") != "" -> {
+    project.hasProperty("mavenReleaseVersion") && project.property("mavenReleaseVersion").let { it != "" && it != "unspecified" } -> {
         project.property("mavenReleaseVersion") as String
     }
     else -> "0.1.0-SNAPSHOT"
@@ -30,7 +30,7 @@ java {
 
 dependencies {
     implementation("org.mvel:mvel2:2.5.2.Final")
-    implementation("com.googlecode.juniversalchardet:juniversalchardet:1.0.3")
+    implementation("com.sigpwned:chardet4j:77.1.0")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.18.3")
     implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.15.2")
     implementation("org.slf4j:slf4j-api:2.0.7")
@@ -44,7 +44,8 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.2")
     testImplementation("io.kotest:kotest-runner-junit5:5.6.2")
     testImplementation("io.kotest:kotest-assertions-core:5.6.2")
-    testImplementation("ch.qos.logback:logback-classic:1.5.19")
+    @Suppress("VulnerableLibrariesLocal")
+    testImplementation("ch.qos.logback:logback-classic:1.2.13")
 }
 
 kotlin {
@@ -62,14 +63,12 @@ tasks.withType<JavaCompile> {
 }
 
 mavenPublishing {
-    if (!gradle.startParameter.taskNames.any {
-        it.contains("publishToMavenLocal") || it.contains("publishMavenPublicationToMavenLocal")
-    }) {
+    if(listOf("publishToMavenLocal","publishMavenPublicationToMavenLocal").none{gradle.startParameter.taskNames.contains(it)}) {
         signAllPublications()
     }
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
     pom {
-        name        = "basica-kr"
+        name        = project.name
         description = "Basic Kotlin utility library providing common functionality for Kotlin applications."
         url         = "https://github.com/nayasis/basica-kt"
         licenses {

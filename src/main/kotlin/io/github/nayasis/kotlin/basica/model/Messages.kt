@@ -3,24 +3,30 @@
 package io.github.nayasis.kotlin.basica.model
 
 import io.github.nayasis.kotlin.basica.core.extension.ifEmpty
-import io.github.nayasis.kotlin.basica.core.klass.Classes
+import io.github.nayasis.kotlin.basica.core.extension.ifNull
+import io.github.nayasis.kotlin.basica.core.extension.isNotEmpty
+import io.github.nayasis.kotlin.basica.core.io.exists
+import io.github.nayasis.kotlin.basica.core.io.isDirectory
+import io.github.nayasis.kotlin.basica.core.io.isFile
 import io.github.nayasis.kotlin.basica.core.io.toUrl
+import io.github.nayasis.kotlin.basica.core.klass.Classes
 import io.github.nayasis.kotlin.basica.core.string.extractLowers
 import io.github.nayasis.kotlin.basica.core.string.extractUppers
-import io.github.nayasis.kotlin.basica.core.string.toUrl
+import io.github.nayasis.kotlin.basica.core.string.toFile
+import io.github.nayasis.kotlin.basica.core.string.toPath
 import io.github.nayasis.kotlin.basica.core.url.toFile
-import io.github.nayasis.kotlin.basica.core.validator.nvl
 import java.io.File
 import java.net.URL
 import java.nio.file.Path
 import java.util.*
+import kotlin.io.path.listDirectoryEntries
 
-private val NULL_LOCALE = Locale("", "")
+private val EMPTY_LOCALE = Locale("", "")
 
 /**
  * Message utility based on message code for I18N
  */
-class Messages { companion object {
+open class Messages { companion object {
 
     private val pool = Hashtable<String,Hashtable<Locale, String>>()
 
@@ -30,17 +36,8 @@ class Messages { companion object {
      * @param locale    locale
      * @param code      message code
      */
-    operator fun get(locale: Locale?, code: String?): String {
+    operator fun get(code: String?, locale: Locale = Locale.getDefault()): String {
         return getMessage(code, locale) ?: ""
-    }
-
-    /**
-     * get default locale's message corresponding to code.
-     *
-     * @param code      message code
-     */
-    operator fun get(code: String?): String {
-        return get(Locale.getDefault(), code)
     }
 
     /**
@@ -51,11 +48,11 @@ class Messages { companion object {
      * @param message   message
      */
     operator fun set(locale: Locale?, code: String?, message: Any?) {
-        val cd = nvl(code).trim()
+        val cd = code?.trim() ?: ""
         if( ! pool.containsKey(cd) )
             pool[cd] = Hashtable<Locale, String>()
         val messages = pool[cd]!!
-        messages[locale.ifEmpty{Locale.getDefault()}] = "$message".trim()
+        messages[locale.ifNull{Locale.getDefault()}] = "$message"
     }
 
     /**
@@ -69,101 +66,36 @@ class Messages { companion object {
     }
 
     /**
-     * get message from repository
+     * get messages from repository
      *
      * @param code      message code
      * @param locale    locale
      * @return message corresponding to code
      */
-    @Suppress("NAME_SHADOWING")
-    private fun getMessage(code: String?, locale: Locale?): String? {
-        var locale    = locale.ifEmpty { Locale.getDefault() }
-        val cd        = nvl(code).trim().also { if(it.isEmpty()|| pool.isEmpty) return it }
-        val messages  = pool[code].also { if(it.isNullOrEmpty()) return cd }!!
-        var localeKey = locale
-        if ( !messages.containsKey(localeKey) ) {
-            localeKey = Locale(locale.language)
-            if ( !messages.containsKey(localeKey) )
-                localeKey = if(!messages.containsKey(NULL_LOCALE))
-                    messages.keys.iterator().next() else NULL_LOCALE
-        }
-        return messages[localeKey]
+    private fun getMessage(code: String?, locale: Locale): String? {
+        val cd        = code?.trim()?.takeIf { it.isNotEmpty() } ?: return null
+        val messages  = pool[cd] ?: return cd
+        return messages[locale] ?: messages[Locale(locale.language)] ?: messages[EMPTY_LOCALE] ?: messages.values.first()
     }
 
     /**
-     * load message file to memory
-     *
-     * @param resourcePath message file or resource path
-     */
-    fun loadFromResource(resourcePath: String?) {
-        if( resourcePath.isNullOrEmpty() ) return
-        Classes.findResources(resourcePath).forEach{ loadFromURL(it) }
-    }
-
-    /**
-     * load message file to memory
-     *
-     * @param file message file or resource path
-     */
-    fun loadFromFile(file: String?) {
-        if( file.isNullOrEmpty() ) return
-        loadFromURL(file.toUrl())
-    }
-
-    /**
-     * load message file to memory
-     *
-     * @param file message file or resource path
-     */
-    fun loadFromFile(file: Path?) {
-        if( file == null ) return
-        loadFromURL(file.toUrl())
-    }
-
-    /**
-     * load message file to memory
-     *
-     * @param file message file or resource path
-     */
-    fun loadFromFile(file: File?) {
-        if( file == null ) return
-        loadFromURL(file.toUrl())
-    }
-
-    /**
-     * load message file to memory
-     *
-     * @param url URL path of message resource
-     */
-    fun loadFromURL(url: URL) {
-        val locale = getLocaleFrom(url)
-        val properties = NProperties(url)
-        for (key in properties.keys.map {"$it"} ) {
-            if (!pool.containsKey(key))
-                pool[key] = Hashtable()
-            val messages = pool[key]!!
-            messages[locale] = properties.getProperty(key)
-        }
-    }
-
-    /**
-     * clear  message pool
+     * clear message pool
      */
     fun clear() = pool.clear()
 
     private fun getLocaleFrom(url: URL): Locale {
         val words = url.toFile().nameWithoutExtension.split(".")
-            .also { if(it.size <=1) return NULL_LOCALE  }
+            .also { if(it.size <=1) return EMPTY_LOCALE  }
         val last     = words.last()
         val country  = last.extractUppers()
-        var language = last.extractLowers().ifEmpty { Locale.getDefault().language }
+        val language = last.extractLowers().ifEmpty { Locale.getDefault().language }
         return Locale(language, country)
     }
 
     /**
      * get all messages
      *
-     * @param locale    locale to extract message.
+     * @param locale    locale to extract messages
      * @return messages in pool
      */
     fun getAll(locale: Locale = Locale.getDefault()): Map<String, String?> {
@@ -172,6 +104,39 @@ class Messages { companion object {
                 this[code] = getMessage(code,locale)
             }
         }
+    }
+
+    fun URL.loadMessages() {
+        val locale = getLocaleFrom(this)
+        val properties = NProperties(this)
+        for (key in properties.keys.map {"$it"} ) {
+            if (!pool.containsKey(key))
+                pool[key] = Hashtable()
+            val messages = pool[key]!!
+            messages[locale] = properties.getProperty(key)
+        }
+    }
+
+    fun File.loadMessages() {
+        if(this.isFile) {
+            this.toUrl().loadMessages()
+        } else if(this.isDirectory) {
+            this.listFiles()?.filter { it.isFile }?.forEach { it.toUrl().loadMessages() }
+        }
+    }
+
+    fun Path.loadMessages() {
+        if(this.isFile()) {
+            this.toUrl().loadMessages()
+        } else if(this.isDirectory()) {
+            this.listDirectoryEntries().filter { it.isFile() }.forEach { it.toUrl().loadMessages() }
+        }
+    }
+
+    fun String.loadMessages() {
+        Classes.findResources(this).takeIf { it.isNotEmpty() }?.forEach{ it.loadMessages() } ?:
+        this.toPath().takeIf { it.exists() }?.loadMessages() ?:
+        this.toFile().takeIf { it.exists() }?.loadMessages()
     }
 
 }}
