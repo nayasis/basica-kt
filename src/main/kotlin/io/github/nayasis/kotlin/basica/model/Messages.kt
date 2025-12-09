@@ -135,8 +135,8 @@ open class Messages { companion object {
 
     fun String.loadMessages() {
         Classes.findResources(this).toList().takeIf { it.isNotEmpty() }?.forEach { it.loadMessages() } ?:
-        this.toPath().takeIf { it.exists() }?.loadMessages() ?:
-        this.toFile().takeIf { it.exists() }?.loadMessages()
+        runCatching { this.toPath() }.getOrNull()?.takeIf { it.exists() }?.loadMessages() ?:
+        runCatching { this.toFile() }.getOrNull()?.takeIf { it.exists() }?.loadMessages()
     }
 
 }}
