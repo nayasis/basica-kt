@@ -1,6 +1,6 @@
 package io.github.nayasis.kotlin.basica.core.collection
 
-import io.github.nayasis.kotlin.basica.model.NGrid
+import io.github.nayasis.kotlin.basica.model.dataframe.DataFrame
 import java.math.BigDecimal
 import java.math.BigInteger
 import kotlin.time.Duration
@@ -44,6 +44,6 @@ inline fun <T> Iterable<T>.sumByBigInteger(selector: (T) -> BigInteger): BigInte
     return sum
 }
 
-inline fun <reified T> Collection<T>.toNGrid(): NGrid {
-    return NGrid(this,T::class)
+inline fun <reified T> Collection<T>.toDataframe(): DataFrame {
+    return DataFrame(this,T::class)
 }

@@ -20,7 +20,6 @@ import java.io.File
 import java.net.URL
 import java.nio.file.Path
 import java.util.*
-import kotlin.io.path.listDirectoryEntries
 
 private val EMPTY_LOCALE = Locale("", "")
 

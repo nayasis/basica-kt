@@ -3,10 +3,22 @@ package io.github.nayasis.kotlin.basica.model.dataframe
 import io.github.nayasis.kotlin.basica.reflection.Reflector
 import java.io.Serializable
 import kotlin.reflect.KClass
+import kotlin.reflect.full.memberProperties
 
-class DataFrame(
-    private val body: Columns = Columns()
-): Serializable, Cloneable, Iterable<Map<String, Any?>> {
+class DataFrame: Serializable, Cloneable, Iterable<Map<String, Any?>> {
+
+    constructor()
+
+    constructor(body: Columns) {
+        this.body = body
+    }
+
+    constructor(collection: Collection<*>, header: KClass<*>? = null) {
+        header?.memberProperties?.forEach { addKey(it.name) }
+        addRows(collection)
+    }
+
+    private var body: Columns = Columns()
 
     val lastIndex: Int?
         get() = body.values.mapNotNull { it.lastIndex }.maxOrNull()

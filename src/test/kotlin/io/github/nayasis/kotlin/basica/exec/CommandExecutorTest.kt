@@ -1,10 +1,10 @@
 package io.github.nayasis.kotlin.basica.exec
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.core.test.config.TestCaseConfig
 import io.kotest.matchers.shouldBe
-import io.github.oshai.kotlinlogging.KotlinLogging
 import org.junit.jupiter.api.Disabled
 import java.lang.Thread.sleep
 import kotlin.concurrent.thread
@@ -14,7 +14,6 @@ private val logger = KotlinLogging.logger {}
 @Disabled("exclude by platform dependency")
 internal class CommandExecutorTest: StringSpec({
 
-//    "notepad".config(enabled = false) {
     "notepad" {
         Command("cmd /c start notepad").run()
     }
@@ -125,6 +124,7 @@ internal class CommandExecutorTest: StringSpec({
 
 }) {
     init {
+        @Suppress("DEPRECATION")
         defaultTestConfig = TestCaseConfig(enabled = false)
     }
 }
