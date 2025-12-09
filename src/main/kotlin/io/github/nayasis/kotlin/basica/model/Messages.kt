@@ -6,6 +6,7 @@ import io.github.nayasis.kotlin.basica.core.extension.ifEmpty
 import io.github.nayasis.kotlin.basica.core.extension.ifNull
 import io.github.nayasis.kotlin.basica.core.extension.isNotEmpty
 import io.github.nayasis.kotlin.basica.core.io.exists
+import io.github.nayasis.kotlin.basica.core.io.findFiles
 import io.github.nayasis.kotlin.basica.core.io.isDirectory
 import io.github.nayasis.kotlin.basica.core.io.isFile
 import io.github.nayasis.kotlin.basica.core.io.toUrl
@@ -121,7 +122,7 @@ open class Messages { companion object {
         if(this.isFile) {
             this.toUrl().loadMessages()
         } else if(this.isDirectory) {
-            this.listFiles()?.filter { it.isFile }?.forEach { it.toUrl().loadMessages() }
+            this.toPath().findFiles().forEach { it.toUrl().loadMessages() }
         }
     }
 
@@ -129,12 +130,12 @@ open class Messages { companion object {
         if(this.isFile()) {
             this.toUrl().loadMessages()
         } else if(this.isDirectory()) {
-            this.listDirectoryEntries().filter { it.isFile() }.forEach { it.toUrl().loadMessages() }
+            this.findFiles().forEach { it.toUrl().loadMessages() }
         }
     }
 
     fun String.loadMessages() {
-        Classes.findResources(this).takeIf { it.isNotEmpty() }?.forEach{ it.loadMessages() } ?:
+        Classes.findResources(this).toList().takeIf { it.isNotEmpty() }?.forEach { it.loadMessages() } ?:
         this.toPath().takeIf { it.exists() }?.loadMessages() ?:
         this.toFile().takeIf { it.exists() }?.loadMessages()
     }
