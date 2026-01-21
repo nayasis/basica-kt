@@ -17,11 +17,34 @@ private val logger = KotlinLogging.logger {}
 /**
  * ODS importer
  */
-class OdsImporter(
-    private val sheetIndex: Int = 0,
-    private val firstRowAsHeader: Boolean = true,
-    private val charset: Charset = Charsets.UTF_8,
+class OdsImporter private constructor(
+    private val firstRowAsHeader: Boolean,
+    private val charset: Charset,
+    private val sheetIndex: Int?,
+    private val sheetName: String?,
 ) : DataFrameImporter() {
+
+    constructor(
+        sheetIndex: Int = 0,
+        firstRowAsHeader: Boolean = true,
+        charset: Charset = Charsets.UTF_8,
+    ) : this(
+        firstRowAsHeader = firstRowAsHeader,
+        charset = charset,
+        sheetIndex = sheetIndex,
+        sheetName = null,
+    )
+
+    constructor(
+        sheetName: String,
+        firstRowAsHeader: Boolean = true,
+        charset: Charset = Charsets.UTF_8,
+    ) : this(
+        firstRowAsHeader = firstRowAsHeader,
+        charset = charset,
+        sheetIndex = null,
+        sheetName = sheetName,
+    )
 
     override fun import(inputStream: InputStream): DataFrame {
         var contentDoc: Element? = null
@@ -39,8 +62,11 @@ class OdsImporter(
 
     private fun toDataframe(doc: Element): DataFrame {
         val dataframe = DataFrame()
-
-        val table = doc.getElementsByTagName("table:table").toList().getOrNull(sheetIndex) ?: return dataframe
+        val tables = doc.getElementsByTagName("table:table").toList()
+        val table = when {
+            sheetName != null -> tables.firstOrNull { it.attr("table:name") == sheetName }
+            else -> tables.getOrNull(sheetIndex ?: 0)
+        } ?: return dataframe
         val rows  = table.children().filter { it.nodeName == "table:table-row" }
 
         var headerDone = false

@@ -113,6 +113,37 @@ internal class XlsxExporterTest : StringSpec({
         src.getData(19, 1) shouldBe trg.getData(19, 1)
     }
 
+    "import sheet by index and name for XLSX and ODS" {
+        val xlsxPath = testDir.resolve("sheets.xlsx")
+        val odsPath  = testDir.resolve("sheets.ods")
+
+        linkedMapOf(
+            "nameA" to createSheetData("A", 1),
+            "nameB" to createSheetData("B", 2),
+        ).toXlsx(xlsxPath)
+
+        linkedMapOf(
+            "nameA" to createSheetData("A", 1),
+            "nameB" to createSheetData("B", 2),
+        ).toOds(odsPath)
+
+        val xlsxByIndex = XlsxImporter(sheetIndex = 0).import(xlsxPath)
+        xlsxByIndex.getData(0, "key") shouldBe "A"
+        xlsxByIndex.getData(0, "val") shouldBe 1
+
+        val xlsxByName = XlsxImporter(sheetName = "nameB").import(xlsxPath)
+        xlsxByName.getData(0, "key") shouldBe "B"
+        xlsxByName.getData(0, "val") shouldBe 2
+
+        val odsByIndex = OdsImporter(sheetIndex = 0).import(odsPath)
+        odsByIndex.getData(0, "key") shouldBe "A"
+        odsByIndex.getData(0, "val") shouldBe 1
+
+        val odsByName = OdsImporter(sheetName = "nameB").import(odsPath)
+        odsByName.getData(0, "key") shouldBe "B"
+        odsByName.getData(0, "val") shouldBe 2
+    }
+
     "no header import" {
         val filePath = testDir.resolve("text.xlsx")
         @Suppress("UnusedVariable")
@@ -139,6 +170,12 @@ private fun createTestDataframe(): DataFrame {
         setRow(19, mapOf("key" to "ZonedDateTime", "val" to "2025-07-10T15:45:30+09:00".toZonedDateTime()))
         setLabel("key", "이것은 KEY 입니다.")
         setLabel("val", "これは VALUE です")
+    }
+}
+
+private fun createSheetData(key: String, value: Int): DataFrame {
+    return DataFrame().apply {
+        setRow(0, mapOf("key" to key, "val" to value))
     }
 }
 
