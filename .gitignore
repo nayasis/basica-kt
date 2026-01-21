@@ -37,3 +37,4 @@ out/
 .vscode/
 /basica-kt.code-workspace
 /gradle.properties
+/.history/

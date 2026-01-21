@@ -18,17 +18,42 @@ import kotlin.math.roundToLong
 /**
  * XLSX importer
  */
-class XlsxImporter(
-    private val sheetIndex: Int = 0,
-    private val firstRowAsHeader: Boolean = true,
-    private val charset: Charset = Charsets.UTF_8,
+class XlsxImporter private constructor(
+    private val firstRowAsHeader: Boolean,
+    private val charset: Charset,
+    private val sheetIndex: Int?,
+    private val sheetName: String?,
 ) : DataFrameImporter() {
+
+    constructor(
+        sheetIndex: Int = 0,
+        firstRowAsHeader: Boolean = true,
+        charset: Charset = Charsets.UTF_8,
+    ) : this(
+        firstRowAsHeader = firstRowAsHeader,
+        charset = charset,
+        sheetIndex = sheetIndex,
+        sheetName = null,
+    )
+
+    constructor(
+        sheetName: String,
+        firstRowAsHeader: Boolean = true,
+        charset: Charset = Charsets.UTF_8,
+    ) : this(
+        firstRowAsHeader = firstRowAsHeader,
+        charset = charset,
+        sheetIndex = null,
+        sheetName = sheetName,
+    )
 
     private val REGEX_EXPONENTIAL = "[eE][+-]?\\d+".toRegex()
 
     override fun import(inputStream: InputStream): DataFrame {
         var sharedStrings: MutableList<String>? = null
-        var firstSheet: Element? = null
+        val sheetDocs = mutableMapOf<String, Element>()
+        var workbookDoc: Element? = null
+        var workbookRelsDoc: Element? = null
         var dateStyleIndexes: DateStyleIndexes? = null
 
         ZipInputStream(inputStream).use { zis ->
@@ -41,16 +66,28 @@ class XlsxImporter(
                     "xl/sharedStrings.xml" -> {
                         sharedStrings = getSharedStrings(zis.toDocument(charset))
                     }
-                    "xl/worksheets/sheet${sheetIndex + 1}.xml" -> {
-                        firstSheet = zis.toDocument(charset)
+                    "xl/workbook.xml" -> {
+                        workbookDoc = zis.toDocument(charset)
+                    }
+                    "xl/_rels/workbook.xml.rels" -> {
+                        workbookRelsDoc = zis.toDocument(charset)
                     }
                     else -> {}
+                }
+                entry?.name?.takeIf { it.startsWith("xl/worksheets/") && it.endsWith(".xml") }?.let { path ->
+                    sheetDocs[path] = zis.toDocument(charset)
                 }
                 zis.closeEntry()
             }
         }
 
-        return firstSheet?.let { toDataframe(it, sharedStrings ?: emptyList(), dateStyleIndexes ?: DateStyleIndexes()) } ?: DataFrame()
+        val targetSheetPath = sheetName?.let { resolveSheetPathByName(workbookDoc, workbookRelsDoc, it) }
+        val sheetDoc = when {
+            targetSheetPath != null -> sheetDocs[targetSheetPath]
+            else -> sheetDocs["xl/worksheets/sheet${(sheetIndex ?: 0) + 1}.xml"]
+        }
+
+        return sheetDoc?.let { toDataframe(it, sharedStrings ?: emptyList(), dateStyleIndexes ?: DateStyleIndexes()) } ?: DataFrame()
     }
 
     private fun toDataframe(
@@ -195,6 +232,37 @@ class XlsxImporter(
             }
         }
         return sharedStrings
+    }
+
+    private fun resolveSheetPathByName(
+        workbookDoc: Element?,
+        workbookRelsDoc: Element?,
+        sheetName: String
+    ): String? {
+        if (workbookDoc == null) return null
+        val sheet = workbookDoc.getElementsByTagName("sheet").iterator()
+            .asSequence()
+            .mapNotNull { it as? Element }
+            .firstOrNull { it.attr("name") == sheetName } ?: return null
+
+        val relId = sheet.attr("r:id")
+        val target = relId?.let { id ->
+            workbookRelsDoc?.getElementsByTagName("Relationship")?.iterator()
+                ?.asSequence()
+                ?.mapNotNull { it as? Element }
+                ?.firstOrNull { it.attr("Id") == id }
+                ?.attr("Target")
+        }
+
+        return when {
+            !target.isNullOrBlank() -> normalizeSheetTargetPath(target)
+            else -> sheet.attr("sheetId")?.toIntOrNull()?.let { "xl/worksheets/sheet$it.xml" }
+        }
+    }
+
+    private fun normalizeSheetTargetPath(target: String): String {
+        val cleaned = target.trimStart('/')
+        return if (cleaned.startsWith("xl/")) cleaned else "xl/$cleaned"
     }
 
 } 

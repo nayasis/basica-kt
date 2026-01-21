@@ -146,6 +146,21 @@ fun DataFrame.fromXlsx(
 }
 
 /**
+ * Loads DataFrame from Excel file (XLSX).
+ * @param filePath Excel file path
+ * @param sheetName sheet name
+ * @param firstRowAsHeader whether to include header
+ * @return DataFrame object
+ */
+fun DataFrame.fromXlsx(
+    filePath: Path,
+    sheetName: String,
+    firstRowAsHeader: Boolean = true
+): DataFrame {
+    return XlsxImporter(sheetName, firstRowAsHeader).import(filePath)
+}
+
+/**
  * Saves DataFrame to Excel file (XLSX).
  *
  * @param filePath file path to save
@@ -156,6 +171,19 @@ fun DataFrame.toXlsx(
     sheetName: String = "Sheet1"
 ) {
     XlsxExporter(this, sheetName).export(filePath)
+}
+
+/**
+ * Saves multiple DataFrames to Excel file (XLSX).
+ *
+ * @param filePath file path to save
+ * @param showLabel whether to show labels instead of keys
+ */
+fun Map<String, DataFrame>.toXlsx(
+    filePath: Path,
+    showLabel: Boolean = true
+) {
+    XlsxMultiExporter(this, showLabel).export(filePath)
 }
 
 
@@ -179,6 +207,22 @@ fun DataFrame.fromOds(
 }
 
 /**
+ * Loads DataFrame from ODS file.
+ *
+ * @param filePath ODS file path
+ * @param sheetName sheet name
+ * @param firstRowAsHeader whether to include header
+ * @return DataFrame object
+ */
+fun DataFrame.fromOds(
+    filePath: Path,
+    sheetName: String,
+    firstRowAsHeader: Boolean = true
+): DataFrame {
+    return OdsImporter(sheetName, firstRowAsHeader).import(filePath)
+}
+
+/**
  * Loads DataFrame from ODS InputStream.
  *
  * @param inputStream ODS input stream
@@ -192,6 +236,22 @@ fun DataFrame.fromOds(
     firstRowAsHeader: Boolean = true
 ): DataFrame {
     return OdsImporter(sheetIndex, firstRowAsHeader).import(inputStream)
+}
+
+/**
+ * Loads DataFrame from ODS InputStream.
+ *
+ * @param inputStream ODS input stream
+ * @param sheetName sheet name
+ * @param firstRowAsHeader whether to include header
+ * @return DataFrame object
+ */
+fun DataFrame.fromOds(
+    inputStream: InputStream,
+    sheetName: String,
+    firstRowAsHeader: Boolean = true
+): DataFrame {
+    return OdsImporter(sheetName, firstRowAsHeader).import(inputStream)
 }
 
 /**
@@ -218,6 +278,19 @@ fun DataFrame.toOds(
     sheetName: String = "Sheet1"
 ) {
     OdsExporter(this, sheetName).export(outputStream)
+}
+
+/**
+ * Saves multiple DataFrames to ODS file.
+ *
+ * @param filePath file path to save
+ * @param showLabel whether to show labels instead of keys
+ */
+fun Map<String, DataFrame>.toOds(
+    filePath: Path,
+    showLabel: Boolean = true
+) {
+    OdsMultiExporter(this, showLabel).export(filePath)
 }
 
 // ==================== HTML Extension Functions ====================
