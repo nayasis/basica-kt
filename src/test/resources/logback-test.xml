@@ -7,8 +7,6 @@
       <pattern>${pattern.console}</pattern>
     </encoder>
   </appender>
-  <logger name="io.undertow.request" level="off"/>
-  <logger name="com.ulisesbocchio.jasyptspringboot" level="error"/>
   <root level="debug" includeLocation="true">
     <appender-ref ref="console" />
   </root>
