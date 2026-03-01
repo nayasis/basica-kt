@@ -1,6 +1,5 @@
 package io.github.nayasis.kotlin.basica.model.dataframe.helper.importer
 
-import io.github.nayasis.kotlin.basica.core.extension.then
 import io.github.nayasis.kotlin.basica.core.string.unescapeXml
 import io.github.nayasis.kotlin.basica.model.dataframe.DataFrame
 import io.github.nayasis.kotlin.basica.model.dataframe.helper.toDocument
@@ -9,6 +8,7 @@ import io.github.nayasis.kotlin.basica.xml.childrenByTagName
 import io.github.nayasis.kotlin.basica.xml.firstOrNull
 import io.github.nayasis.kotlin.basica.xml.iterator
 import org.w3c.dom.Element
+import org.w3c.dom.Node
 import java.io.InputStream
 import java.nio.charset.Charset
 import java.time.LocalDate
@@ -23,28 +23,33 @@ class XlsxImporter private constructor(
     private val charset: Charset,
     private val sheetIndex: Int?,
     private val sheetName: String?,
+    private val lastColumnIndex: Int,
 ) : DataFrameImporter() {
 
     constructor(
         sheetIndex: Int = 0,
         firstRowAsHeader: Boolean = true,
+        lastColumnIndex: Int = -1,
         charset: Charset = Charsets.UTF_8,
     ) : this(
         firstRowAsHeader = firstRowAsHeader,
         charset = charset,
         sheetIndex = sheetIndex,
         sheetName = null,
+        lastColumnIndex = lastColumnIndex,
     )
 
     constructor(
         sheetName: String,
         firstRowAsHeader: Boolean = true,
+        lastColumnIndex: Int = -1,
         charset: Charset = Charsets.UTF_8,
     ) : this(
         firstRowAsHeader = firstRowAsHeader,
         charset = charset,
         sheetIndex = null,
         sheetName = sheetName,
+        lastColumnIndex = lastColumnIndex,
     )
 
     private val REGEX_EXPONENTIAL = "[eE][+-]?\\d+".toRegex()
@@ -97,52 +102,108 @@ class XlsxImporter private constructor(
     ): DataFrame {
         val dataframe = DataFrame()
         val rows = sheet.childrenByTagName("row")
-        rows.forEachIndexed { index, row ->
-            val cells  = row.childrenByTagName("c")
-            val rowIdx = row.attr("r")?.toIntOrNull() ?: (index + 1)
-            val values = cells.map { cell ->
-                val type  = cell.attr("t")
-                val sIdx  = cell.attr("s")?.toIntOrNull()
+        val rowCache = mutableMapOf<Int, MutableMap<Int, Any?>>()
+        var appliedLastColumnIndex = -1
+
+        fun parseRowValues(row: Node): MutableMap<Int, Any?> {
+            val result = mutableMapOf<Int, Any?>()
+            var nextSequentialCol = 0
+            row.childrenByTagName("c").forEach { cell ->
+                val colIdx = cell.attr("r")?.let { parseColumnIndex(it) }?.takeIf { it >= 0 } ?: nextSequentialCol
+                nextSequentialCol = colIdx + 1
+                val type = cell.attr("t")
+                val sIdx = cell.attr("s")?.toIntOrNull()
                 val vElem = cell.childrenByTagName("v").firstOrNull()
-                val value = vElem?.textContent ?: ""
-                when {
-                    sIdx in dateStyleIndexes.dateIndexes -> {
-                        excelSerialToDate(value) ?: value
-                    }
-                    sIdx in dateStyleIndexes.dateTimeIndexes -> {
-                        excelSerialToDateTime(value) ?: value
-                    }
-                    type == null -> parseNumber(value) ?: value
-                    type == "s" -> sharedStrings.getOrNull(value.toIntOrNull() ?: -1) ?: ""
-                    type == "b" -> value == "1"
-                    else -> value
+                val raw = vElem?.textContent ?: ""
+                val value = when {
+                    vElem == null -> null
+                    sIdx in dateStyleIndexes.dateIndexes -> excelSerialToDate(raw) ?: raw
+                    sIdx in dateStyleIndexes.dateTimeIndexes -> excelSerialToDateTime(raw) ?: raw
+                    type == null -> parseNumber(raw) ?: raw
+                    type == "s" -> sharedStrings.getOrNull(raw.toIntOrNull() ?: -1) ?: ""
+                    type == "b" -> raw == "1"
+                    else -> raw
                 }
+                result[colIdx] = value
             }
-            // set header
-            if(index == 0) {
-                if(firstRowAsHeader) {
-                    values.forEachIndexed { colIdx, value ->
-                        dataframe.addKey("$value")
+            return result
+        }
+
+        fun uniqueKey(base: String): String {
+            if (!dataframe.keys.contains(base)) return base
+            var i = 1
+            while (dataframe.keys.contains("${base}_$i")) i++
+            return "${base}_$i"
+        }
+
+        if (rows.isNotEmpty()) {
+            val firstRowValues = parseRowValues(rows.first())
+            val firstRowMaxColumnIndex = firstRowValues.keys.maxOrNull() ?: -1
+            appliedLastColumnIndex = when {
+                lastColumnIndex < 0 -> firstRowMaxColumnIndex
+                firstRowAsHeader -> minOf(firstRowMaxColumnIndex, lastColumnIndex)
+                else -> lastColumnIndex
+            }
+            if (appliedLastColumnIndex >= 0) {
+                for (col in 0..appliedLastColumnIndex) {
+                    val key = if (firstRowAsHeader) {
+                        uniqueKey((firstRowValues[col]?.toString() ?: "$col"))
+                    } else {
+                        "$col"
                     }
-                } else {
-                    values.forEachIndexed { colIdx, value ->
-                        dataframe.addKey("$colIdx")
-                        dataframe.setData(rowIdx, colIdx, value)
-                    }
-                }
-            // set body
-            } else {
-                values.forEachIndexed { colIdx, value ->
-                    dataframe.setData(firstRowAsHeader then rowIdx.minus(2) ?: rowIdx.minus(1), colIdx, value)
+                    dataframe.addKey(key)
                 }
             }
         }
+
+        val firstPhysicalRowIndex = rows.firstOrNull()?.attr("r")?.toIntOrNull() ?: 1
+
+        rows.forEachIndexed { index, row ->
+            val rowIdx = row.attr("r")?.toIntOrNull() ?: (index + 1)
+            if (index == 0 && firstRowAsHeader) return@forEachIndexed
+
+            val dataRow = when {
+                firstRowAsHeader -> rowIdx - firstPhysicalRowIndex - 1
+                else             -> rowIdx - firstPhysicalRowIndex
+            }.takeIf { it >= 0 } ?: return@forEachIndexed
+
+            val rowValues = parseRowValues(row)
+            rowCache[dataRow] = rowValues
+
+            if (lastColumnIndex < 0) {
+                val maxIndexInRow = rowValues.keys.maxOrNull() ?: -1
+                while (maxIndexInRow > appliedLastColumnIndex) {
+                    appliedLastColumnIndex += 1
+                    dataframe.addKey(uniqueKey("$appliedLastColumnIndex"))
+                    for (r in 0..dataRow) {
+                        dataframe.setData(r, appliedLastColumnIndex, rowCache[r]?.get(appliedLastColumnIndex))
+                    }
+                }
+            }
+
+            rowValues.forEach { (colIdx, value) ->
+                if (colIdx <= appliedLastColumnIndex) {
+                    dataframe.setData(dataRow, colIdx, value)
+                }
+            }
+        }
+
         return dataframe
     }
 
     private fun parseRowIndex(address: String): Int {
         val rowPart = address.takeLastWhile { it.isDigit() }
         return rowPart.toIntOrNull() ?: 0
+    }
+
+    private fun parseColumnIndex(address: String): Int {
+        val colPart = address.takeWhile { it.isLetter() }.uppercase()
+        if (colPart.isEmpty()) return -1
+        var index = 0
+        for (ch in colPart) {
+            index = index * 26 + (ch - 'A' + 1)
+        }
+        return index - 1
     }
 
     private fun excelSerialToDate(serial: String): Any? {

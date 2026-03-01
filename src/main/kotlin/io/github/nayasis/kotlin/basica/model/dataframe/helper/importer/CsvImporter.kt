@@ -9,6 +9,7 @@ import java.nio.charset.Charset
 class CsvImporter(
     private val delimiter: Char = ',',
     private val firstRowAsHeader: Boolean = true,
+    private val lastColumnIndex: Int = -1,
     private val charset: Charset = Charsets.UTF_8,
 ): DataFrameImporter() {
 
@@ -16,28 +17,77 @@ class CsvImporter(
         val dataframe = DataFrame()
         BufferedReader(InputStreamReader(inputStream, charset)).use { reader ->
             // read first until not empty line
-            lateinit var firstRow: List<Any>
+            lateinit var firstRow: List<String>
             while (true) {
                 val line = reader.readLine().also { if(it == null) return dataframe }
                 firstRow = parseCsvLine(line).also { if(it.isEmpty()) continue }
                 break
             }
+            val rowCache = mutableMapOf<Int, MutableMap<Int, Any?>>()
+            var appliedLastColumnIndex = when {
+                lastColumnIndex < 0 -> firstRow.lastIndex
+                firstRowAsHeader -> minOf(firstRow.lastIndex, lastColumnIndex)
+                else -> lastColumnIndex
+            }
+
+            if (appliedLastColumnIndex >= 0) {
+                for (col in 0..appliedLastColumnIndex) {
+                    val key = if (firstRowAsHeader) {
+                        firstRow.getOrNull(col)?.takeIf { it.isNotBlank() } ?: "$col"
+                    } else {
+                        "$col"
+                    }
+                    dataframe.addKey(key)
+                }
+            }
             // set header
             var rowIdx = 0
-            if (firstRowAsHeader) {
-                firstRow.forEach { dataframe.addKey("$it") }
-            } else {
-                firstRow.forEachIndexed { colIdx, value ->
-                    dataframe.addKey("$colIdx")
-                    dataframe.setData(0, colIdx, value)
+            if (!firstRowAsHeader) {
+                val firstValues = firstRow.map { normalizeCell(it) }
+                val firstMap = mutableMapOf<Int, Any?>()
+                firstValues.forEachIndexed { colIdx, value ->
+                    firstMap[colIdx] = value
+                }
+                rowCache[rowIdx] = firstMap
+                if (lastColumnIndex < 0) {
+                    val maxIndexInRow = firstMap.keys.maxOrNull() ?: -1
+                    while (maxIndexInRow > appliedLastColumnIndex) {
+                        appliedLastColumnIndex += 1
+                        dataframe.addKey("$appliedLastColumnIndex")
+                        for (r in 0..rowIdx) {
+                            dataframe.setData(r, appliedLastColumnIndex, rowCache[r]?.get(appliedLastColumnIndex))
+                        }
+                    }
+                }
+                firstMap.forEach { (colIdx, value) ->
+                    if (colIdx <= appliedLastColumnIndex) {
+                        dataframe.setData(rowIdx, colIdx, value)
+                    }
                 }
                 rowIdx++
             }
             // set data
             reader.lineSequence().forEach { line ->
                 val row = parseCsvLine(line)
+                val rowMap = mutableMapOf<Int, Any?>()
                 row.forEachIndexed { colIdx, value ->
-                    dataframe.setData(rowIdx, colIdx, value)
+                    rowMap[colIdx] = normalizeCell(value)
+                }
+                rowCache[rowIdx] = rowMap
+                if (lastColumnIndex < 0) {
+                    val maxIndexInRow = rowMap.keys.maxOrNull() ?: -1
+                    while (maxIndexInRow > appliedLastColumnIndex) {
+                        appliedLastColumnIndex += 1
+                        dataframe.addKey("$appliedLastColumnIndex")
+                        for (r in 0..rowIdx) {
+                            dataframe.setData(r, appliedLastColumnIndex, rowCache[r]?.get(appliedLastColumnIndex))
+                        }
+                    }
+                }
+                rowMap.forEach { (colIdx, value) ->
+                    if (colIdx <= appliedLastColumnIndex) {
+                        dataframe.setData(rowIdx, colIdx, value)
+                    }
                 }
                 rowIdx++
             }
@@ -45,9 +95,13 @@ class CsvImporter(
         return dataframe
     }
 
-    private fun parseCsvLine(line: String): List<Any> {
+    private fun normalizeCell(value: String): Any? {
+        return value.trimStart('\uFEFF').ifEmpty { null }
+    }
+
+    private fun parseCsvLine(line: String): List<String> {
         if (line.isBlank() || line.all { it == delimiter }) return emptyList()
-        val result = mutableListOf<Any>()
+        val result = mutableListOf<String>()
         var inQuotes = false
         val sb = StringBuilder()
         var i = 0

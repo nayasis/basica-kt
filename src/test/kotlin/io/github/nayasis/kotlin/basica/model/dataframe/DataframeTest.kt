@@ -4,6 +4,8 @@ import io.github.nayasis.kotlin.basica.core.character.Characters
 import io.github.nayasis.kotlin.basica.core.localdate.toLocalDateTime
 import io.github.nayasis.kotlin.basica.core.localdate.toString
 import io.github.nayasis.kotlin.basica.core.number.round
+import io.github.nayasis.kotlin.basica.core.string.toResource
+import io.github.nayasis.kotlin.basica.core.url.toFile
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
@@ -441,6 +443,68 @@ internal class DataframeTest: StringSpec({
             }
             idx++
         }
+    }
+
+    "sparse column layout for xlsx" {
+
+        val dataframe = DataFrame().fromXlsx(
+            "file/0.ra.xlsx".toResource()?.toFile()?.toPath()!!,
+            firstRowAsHeader = false,
+        )
+
+        logger.debug { "\n$dataframe" }
+
+        dataframe.keys.size shouldBe 46
+        for (row in 0..6) {
+            dataframe.getData(row, 2) shouldBe null
+            dataframe.getData(row, 3) shouldBe null
+        }
+
+        dataframe.getData(0, 0) shouldBe "tab"
+        dataframe.getData(0, 1) shouldBe "Run"
+        dataframe.getData(111, 44) shouldBe "zx81"
+        dataframe.getData(111, 45) shouldBe ".\\overlays\\zx81.cfg"
+
+    }
+
+    "sparse column layout for csv" {
+
+        val dataframe = DataFrame().fromCsv(
+            "file/0.ra.csv".toResource()?.toFile()?.toPath()!!,
+            firstRowAsHeader = false,
+        )
+
+        dataframe.keys.size shouldBe 46
+        for (row in 0..6) {
+            dataframe.getData(row, 2) shouldBe null
+            dataframe.getData(row, 3) shouldBe null
+        }
+
+        dataframe.getData(0, 0) shouldBe "tab"
+        dataframe.getData(0, 1) shouldBe "Run"
+        dataframe.getData(111, 44) shouldBe "zx81"
+        dataframe.getData(111, 45) shouldBe ".\\overlays\\zx81.cfg"
+
+    }
+
+    "sparse column layout for ods" {
+
+        val dataframe = DataFrame().fromOds(
+            "file/0.ra.ods".toResource()?.toFile()?.toPath()!!,
+            firstRowAsHeader = false,
+        )
+
+        dataframe.keys.size shouldBe 46
+        for (row in 0..6) {
+            dataframe.getData(row, 2) shouldBe null
+            dataframe.getData(row, 3) shouldBe null
+        }
+
+        dataframe.getData(0, 0) shouldBe "tab"
+        dataframe.getData(0, 1) shouldBe "Run"
+        dataframe.getData(111, 44) shouldBe "zx81"
+        dataframe.getData(111, 45) shouldBe ".\\overlays\\zx81.cfg"
+
     }
 
 })

@@ -15,4 +15,4 @@ abstract class DataFrameImporter {
     }
 
     abstract fun import(inputStream: InputStream): DataFrame
-} 
+}
