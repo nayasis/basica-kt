@@ -1,0 +1,112 @@
+﻿tab,Run,,,Run,,,Run,,,Run,,,Run,,,Run,,,Run,,,Run,,,Run,,,Run,,,Run,,,Run,,,Run,,,Run,,,Run,,
+item,video_driver,,,video_shader,,,fullscreen_resolution,,,aspect_ratio_index,,,screen_orientation,,,video_threaded,,,rewind_enable,,,rewind_granularity,,,rewind_buffer_size,,,run_ahead_enabled,,,run_ahead_frames,,,run_ahead_secondary_instance,,,input_auto_mouse_grab,,,input_auto_game_focus,,,input_overlay,,
+caption,Video driver,,,Video shader,,,Fullscreen resolution,,,Aspect Ratio,,,Screen Orientation,,,Threaded Video,,,Rewind Support,,,Rewind Frames,,,Rewind Buffer Size (MB),,,Run-Ahead to Reduce Latency,,,Number of Frames to Run Ahead,,,RunAhead use second instance,,,Mouse Grab,,,Game Focus mode,,,Overlay,,
+show,true,,,true,,,true,,,true,,,true,,,true,,,true,,,true,,,true,,,true,,,true,,,true,,,true,,,true,,,true,,
+key,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+desc,video driver,,,video shader,,,fullscreen resolution,,,Aspect Ratio,,,Forces a certain orientation of the screen from the operating system,,,Improves performance at the cost of latency and more video stuttering. Use only if you cannot obtain full speed otherwise.,,,Made a mistake? Rewind and try again. Beware that this causes a performance hit when playing.,,,Number of rames to rewind per setp. Higher values increase the rewind speed,,,The amount of memory(in MB) to reserve for  the rewind buffer. Increasing this will increase the amount of rewind history,,,Run core logic one or more frames ahead then load the state back to reduce perceived input lag.,,,The number of frames to run ahead. Causes gameplay issues such as jitter if you exceed the number of lag frames internal to the game.,,,Use a second instance of the RetroArch core to run ahead. Prevents audio problems due to loading state.,,,,,,Prevent multiple keyboard input on Dosbox,,,Bezel overlay,,
+default value,,,,,,,,,,22,,,,,,,,,,,,1,,,20971520,,,,,,,,,,,,,,,,,,,,
+type,combo,label,value,combo,label,value,combo,label,value,combo,label,value,combo,label,value,combo,label,value,combo,label,value,combo,label,value,combo,label,value,combo,label,value,combo,label,value,combo,label,value,combo,label,value,combo,label,value,combo,label,value
+value,,Vulkan,vulkan,,NONE,none,,Desktop,none,,4:3,0,,Normal,0,,off,false,,off,false,,1,1,,1,1048576,,off,false,,1,1,,off,false,,off,false,,off,0,,None,none
+,,Open GL 2.0,gl,,ntsc-320px-svideo-gauss-scanline,\ntsc\ntsc-320px-svideo-gauss-scanline,,640x480,640x480,,16:9,1,,90 deg,1,,on,true,,on,true,,2,2,,10,10485760,,on,true,,2,2,,on,true,,on,true,,on,1,,Default,default
+,,Open GL 3.0,glcore,,ntsc-320px-svideo,\ntsc\ntsc-320px-svideo,,720x480,720x480,,16:10,2,,180 deg,2,,,,,,,,3,3,,20,20971520,,,,,3,3,,,,,,,,,,,3ds (v1),.\overlays\3ds_v1.cfg
+,,Open GL 1.0,gl1,,ntsc-320px-gauss-scanline,\ntsc\ntsc-320px-gauss-scanline,,720x576,720x576,,16:15,3,,270 deg,3,,,,,,,,4,4,,30,31457280,,,,,4,4,,,,,,,,,,,3ds (v2),.\overlays\3ds_v2.cfg
+,,DirectX 9,d3d9_hlsl,,ntsc-320px,\ntsc\ntsc-320px,,800x600,800x600,,21:9,4,,,,,,,,,,,5,5,,40,41943040,,,,,5,5,,,,,,,,,,,3do,.\overlays\3do.cfg
+,,DirectX 10,d3d10,,ntsc-256px-svideo-gauss-scanline,\ntsc\ntsc-256px-svideo-gauss-scanline,,1024x768,1024x768,,1:1,5,,,,,,,,,,,6,6,,50,52428800,,,,,6,6,,,,,,,,,,,amiga 500,.\overlays\amiga-500.cfg
+,,DirectX 11,d3d11,,ntsc-256px-svideo,\ntsc\ntsc-256px-svideo,,1152x864,1152x864,,2:1,6,,,,,,,,,,,7,7,,60,62914560,,,,,7,7,,,,,,,,,,,amiga 600,.\overlays\amiga-600.cfg
+,,DirectX 12,d3d12,,ntsc-256px-gauss-scanline,\ntsc\ntsc-256px-gauss-scanline,,1280x720,1280x720,,3:2,7,,,,,,,,,,,8,8,,70,73400320,,,,,8,8,,,,,,,,,,,amiga cd,.\overlays\amiga-cd32.cfg
+,,SDL2,sdl2,,ntsc-256px,\ntsc\ntsc-256px,,1280x768,1280x768,,3:4,8,,,,,,,,,,,9,9,,80,83886080,,,,,9,9,,,,,,,,,,,apple iie,.\overlays\apple_iie.cfg
+,,GDI,gdi,,ntsc-svideo,\ntsc\ntsc-svideo,,1280x800,1280x800,,4:1,9,,,,,,,,,,,10,10,,90,94371840,,,,,10,10,,,,,,,,,,,apple iigs,.\overlays\apple_iigs.cfg
+,,,,,ntsc-mame,\ntsc\mame-ntsc,,1280x960,1280x960,,9:16,10,,,,,,,,,,,11,11,,100,104857600,,,,,11,11,,,,,,,,,,,arcade horizontal,.\overlays\arcade_horizontal.cfg
+,,,,,ntsc-xot,\ntsc\ntsc-xot,,1280x1024,1280x1024,,5:4,11,,,,,,,,,,,12,12,,110,115343360,,,,,12,12,,,,,,,,,,,arcade vertical,.\overlays\arcade_vertical.cfg
+,,,,,ntsc-adaptive,\ntsc\ntsc-adaptive,,1360x768,1360x768,,6:5,12,,,,,,,,,,,13,13,,120,125829120,,,,,,,,,,,,,,,,,atari st,.\overlays\atari_st.cfg
+,,,,,ntsc,\ntsc\ntsc,,1366x768,1366x768,,7:9,13,,,,,,,,,,,14,14,,130,136314880,,,,,,,,,,,,,,,,,atari xe,.\overlays\atari_xe.cfg
+,,,,,mame-hlsl,\crt\mame_hlsl,,1400x900,1400x900,,8:3,14,,,,,,,,,,,15,15,,140,146800640,,,,,,,,,,,,,,,,,atari xegs,.\overlays\atari_xegs.cfg
+,,,,,cathode-retro_no-signal,\crt\cathode-retro_no-signal,,1600x900,1600x900,,8:7,15,,,,,,,,,,,16,16,,150,157286400,,,,,,,,,,,,,,,,,atari2600,.\overlays\atari2600.cfg
+,,,,,crt-hyllian,\crt\crt-hyllian,,1600x1024,1600x1024,,19:12,16,,,,,,,,,,,17,17,,160,167772160,,,,,,,,,,,,,,,,,atari5200,.\overlays\atari5200.cfg
+,,,,,crt-hyllian-curvature-ntsc,\crt\crt-hyllian-curvature-ntsc,,1680x1050,1680x1050,,19:14,17,,,,,,,,,,,18,18,,170,178257920,,,,,,,,,,,,,,,,,atari7800,.\overlays\atari7800.cfg
+,,,,,crt-hyllian-rgb-trinitron,\crt\crt-hyllian-rgb-trinitron,,1920x1080,1920x1080,,30:17,18,,,,,,,,,,,19,19,,180,188743680,,,,,,,,,,,,,,,,,atari800,.\overlays\atari800.cfg
+,,,,,crt-gdv-mini,\crt\crt-gdv-mini,,480x640,480x640,,32:9,19,,,,,,,,,,,20,20,,190,199229440,,,,,,,,,,,,,,,,,atomiswave,.\overlays\atomiswave.cfg
+,,,,,crt-glow-gauss-ntsc,\crt\crt-glow-gauss-ntsc,,480x720,480x720,,Config,20,,,,,,,,,,,21,21,,200,209715200,,,,,,,,,,,,,,,,,bbc master,.\overlays\bbc_master.cfg
+,,,,,crt-guest-dr-venom,\crt\crt-guest-dr-venom,,576x720,576x720,,1:1 PAR (8:5 DAR),21,,,,,,,,,,,22,22,,210,220200960,,,,,,,,,,,,,,,,,bbc micro,.\overlays\bbc_micro.cfg
+,,,,,crt-royale-ntsc-composite,\crt\crt-royale-ntsc-composite,,600x800,600x800,,Core Provided,22,,,,,,,,,,,23,23,,220,230686720,,,,,,,,,,,,,,,,,c64,.\overlays\c64.cfg
+,,,,,crt-royale-ntsc-svideo,\crt\crt-royale-ntsc-svideo,,768x1024,768x1024,,Custom,23,,,,,,,,,,,24,24,,230,241172480,,,,,,,,,,,,,,,,,cdi,.\overlays\cdi.cfg
+,,,,,crtglow-gauss,\crt\crtglow_gauss,,864x1152,864x1152,,Full,24,,,,,,,,,,,25,25,,240,251658240,,,,,,,,,,,,,,,,,channel f,.\overlays\channel_f.cfg
+,,,,,crtglow-gauss-ntsc,\crt\crtglow_gauss_ntsc,,720x1280,720x1280,,,,,,,,,,,,,,26,26,,250,262144000,,,,,,,,,,,,,,,,,coleco vision,.\overlays\coleco_vision.cfg
+,,,,,crtglow-lanczos,\crt\crtglow_lanczos,,768x1280,768x1280,,,,,,,,,,,,,,27,27,,300,314572800,,,,,,,,,,,,,,,,,cpc464,.\overlays\cpc464.cfg
+,,,,,vector-glow-v2,\crt\vector-glow-v2,,800x1280,800x1280,,,,,,,,,,,,,,28,28,,350,367001600,,,,,,,,,,,,,,,,,cps1 horizontal,.\overlays\cps1_horizontal.cfg
+,,,,,vector-glow-alt-render-v2,\crt\vector-glow-alt-render-v2,,960x1280,960x1280,,,,,,,,,,,,,,29,29,,400,419430400,,,,,,,,,,,,,,,,,cps1 vertical,.\overlays\cps1_vertical.cfg
+,,,,,tvout-tweaks,\crt\tvout-tweaks,,1024x1280,1024x1280,,,,,,,,,,,,,,30,30,,450,471859200,,,,,,,,,,,,,,,,,cps2 hotizontal,.\overlays\cps2_hotizontal.cfg
+,,,,,lcd-grid-v2,\handheld\lcd-grid-v2,,768x1360,768x1360,,,,,,,,,,,,,,31,31,,500,524288000,,,,,,,,,,,,,,,,,cps2 vertical,.\overlays\cps2_vertical.cfg
+,,,,,lcd-grid-v2-gbc,\handheld\lcd-grid-v2-gbc-color,,768x1366,768x1366,,,,,,,,,,,,,,32,32,,550,576716800,,,,,,,,,,,,,,,,,cps3 hotizontal,.\overlays\cps3_hotizontal.cfg
+,,,,,lcd-grid-v2-gba,\handheld\lcd-grid-v2-gba-color,,900x1400,900x1400,,,,,,,,,,,,,,33,33,,600,629145600,,,,,,,,,,,,,,,,,creati vision,.\overlays\creati_vision.cfg
+,,,,,lcd-grid-v2-nds,\handheld\lcd-grid-v2-nds-color,,900x1600,900x1600,,,,,,,,,,,,,,34,34,,650,681574400,,,,,,,,,,,,,,,,,dc,.\overlays\dc.cfg
+,,,,,scalefx,\scalefx\scalefx,,1024x1600,1024x1600,,,,,,,,,,,,,,35,35,,700,734003200,,,,,,,,,,,,,,,,,dos,.\overlays\dos.cfg
+,,,,,scalefx+rAA,\scalefx\scalefx+rAA,,1050x1680,1050x1680,,,,,,,,,,,,,,36,36,,750,786432000,,,,,,,,,,,,,,,,,dos 16:10,.\overlays\dos_16_10.cfg
+,,,,,scalefx-9x,\scalefx\scalefx-9x,,1080x1920,1080x1920,,,,,,,,,,,,,,37,37,,800,838860800,,,,,,,,,,,,,,,,,famicom,.\overlays\famicom.cfg
+,,,,,scalefx-hybrid,\scalefx\scalefx-hybrid,,,,,,,,,,,,,,,,,38,38,,850,891289600,,,,,,,,,,,,,,,,,fm7,.\overlays\fm7.cfg
+,,,,,fxaa,\anti-aliasing\fxaa,,,,,,,,,,,,,,,,,39,39,,900,943718400,,,,,,,,,,,,,,,,,fm towns,.\overlays\fm-towns.cfg
+,,,,,smaa,\anti-aliasing\smaa,,,,,,,,,,,,,,,,,40,40,,950,996147200,,,,,,,,,,,,,,,,,gb,.\overlays\gb.cfg
+,,,,,smaa-linear,\anti-aliasing\smaa+linear,,,,,,,,,,,,,,,,,41,41,,1000,1048576000,,,,,,,,,,,,,,,,,gbc,.\overlays\gbc.cfg
+,,,,,smaa-sharpen,\anti-aliasing\smaa+sharpen,,,,,,,,,,,,,,,,,42,42,,1024,1073741824,,,,,,,,,,,,,,,,,gba,.\overlays\gba.cfg
+,,,,,gaussian-blur-2pass,\blurs\gaussian_blur_2_pass,,,,,,,,,,,,,,,,,43,43,,,,,,,,,,,,,,,,,,,,gc,.\overlays\gc.cfg
+,,,,,gaussian-blur-2pass-sharp,\blurs\gaussian_blur_2_pass-sharp,,,,,,,,,,,,,,,,,44,44,,,,,,,,,,,,,,,,,,,,genesis,.\overlays\genesis.cfg
+,,,,,sonkun slot-mask u-normal-rf,\sonkun\slot-mask\flat-screen\1080p\01-1080p-crt-guest-advanced-hd-slot-mask-u-normal-rf,,,,,,,,,,,,,,,,,45,45,,,,,,,,,,,,,,,,,,,,gg,.\overlays\gg.cfg
+,,,,,sonkun slot-mask u-normal-composite,\sonkun\slot-mask\flat-screen\1080p\02-1080p-crt-guest-advanced-hd-slot-mask-u-normal-composite,,,,,,,,,,,,,,,,,46,46,,,,,,,,,,,,,,,,,,,,gx4000,.\overlays\gx4000.cfg
+,,,,,sonkun slot-mask u-normal-composite-rainbow-artifacts,\sonkun\slot-mask\flat-screen\1080p\03-1080p-crt-guest-advanced-hd-slot-mask-u-normal-composite-rainbow-artifacts,,,,,,,,,,,,,,,,,47,47,,,,,,,,,,,,,,,,,,,,intellivision,.\overlays\intellivision.cfg
+,,,,,sonkun slot-mask u-normal-s-video,\sonkun\slot-mask\flat-screen\1080p\04-1080p-crt-guest-advanced-hd-slot-mask-u-normal-s-video,,,,,,,,,,,,,,,,,48,48,,,,,,,,,,,,,,,,,,,,jaguar,.\overlays\jaguar.cfg
+,,,,,sonkun slot-mask u-normal-rgb,\sonkun\slot-mask\flat-screen\1080p\05-1080p-crt-guest-advanced-hd-slot-mask-u-normal-rgb,,,,,,,,,,,,,,,,,49,49,,,,,,,,,,,,,,,,,,,,jakks,.\overlays\jakks.cfg
+,,,,,koko-aio / GameboyMono,\koko-aio\Presets_Handhelds-ng\GameboyMono,,,,,,,,,,,,,,,,,50,50,,,,,,,,,,,,,,,,,,,,laser310,.\overlays\laser310.cfg
+,,,,,koko-aio / GameboyPocket,\koko-aio\Presets_Handhelds-ng\GameboyPocket,,,,,,,,,,,,,,,,,51,51,,,,,,,,,,,,,,,,,,,,lynx,.\overlays\lynx.cfg
+,,,,,koko-aio / GameGear-Overlay,\koko-aio\Presets_Handhelds-ng\GameGear-Overlay,,,,,,,,,,,,,,,,,52,52,,,,,,,,,,,,,,,,,,,,mame horizontal,.\overlays\mame_horizontal.cfg
+,,,,,koko-aio / GameboyColor,\koko-aio\Presets_Handhelds-ng\GameboyColor,,,,,,,,,,,,,,,,,53,53,,,,,,,,,,,,,,,,,,,,mame vertical,.\overlays\mame_vertical.cfg
+,,,,,koko-aio / Dots 1-1 brighter,\koko-aio\Presets_Handhelds-ng\Dots_1-1_brighter,,,,,,,,,,,,,,,,,54,54,,,,,,,,,,,,,,,,,,,,megadrive,.\overlays\megadrive.cfg
+,,,,,koko-aio / Dots 4-3 brighter,\koko-aio\Presets_Handhelds-ng\Dots_4-3_brighter,,,,,,,,,,,,,,,,,55,55,,,,,,,,,,,,,,,,,,,,msx,.\overlays\msx.cfg
+,,,,,koko-aio / Generic Handheld RGB,\koko-aio\Presets_Handhelds-ng\Generic-Handheld-RGB,,,,,,,,,,,,,,,,,56,56,,,,,,,,,,,,,,,,,,,,msx2,.\overlays\msx2.cfg
+,,,,,koko-aio / PSP,\koko-aio\Presets_Handhelds-ng\PSP,,,,,,,,,,,,,,,,,57,57,,,,,,,,,,,,,,,,,,,,n64,.\overlays\n64.cfg
+,,,,,koko-aio / TV NTSC 1 flat,\koko-aio\Presets-4.1\tv-NTSC-1-flat,,,,,,,,,,,,,,,,,58,58,,,,,,,,,,,,,,,,,,,,naomi,.\overlays\naomi.cfg
+,,,,,koko-aio / TV NTSC 1 flat 16:9,\koko-aio\Presets-4.1\tv-NTSC-1-flat-16_9,,,,,,,,,,,,,,,,,59,59,,,,,,,,,,,,,,,,,,,,nds,.\overlays\nds.cfg
+,,,,,koko-aio / TV NTSC 1 flat 16:10,\koko-aio\Presets-4.1\tv-NTSC-1-flat-16_10,,,,,,,,,,,,,,,,,60,60,,,,,,,,,,,,,,,,,,,,neogeo,.\overlays\neogeo.cfg
+,,,,,koko-aio / TV NTSC 2 flat,\koko-aio\Presets-4.1\tv-NTSC-2-flat,,,,,,,,,,,,,,,,,61,61,,,,,,,,,,,,,,,,,,,,neogeo cd,.\overlays\neogeo_cd.cfg
+,,,,,,,,,,,,,,,,,,,,,,,62,62,,,,,,,,,,,,,,,,,,,,ngp,.\overlays\ngp.cfg
+,,,,,,,,,,,,,,,,,,,,,,,63,63,,,,,,,,,,,,,,,,,,,,nes,.\overlays\nes.cfg
+,,,,,,,,,,,,,,,,,,,,,,,64,64,,,,,,,,,,,,,,,,,,,,odyssey2,.\overlays\odyssey2.cfg
+,,,,,,,,,,,,,,,,,,,,,,,65,65,,,,,,,,,,,,,,,,,,,,pc8801,.\overlays\pc8801.cfg
+,,,,,,,,,,,,,,,,,,,,,,,66,66,,,,,,,,,,,,,,,,,,,,pc9801,.\overlays\pc9801.cfg
+,,,,,,,,,,,,,,,,,,,,,,,67,67,,,,,,,,,,,,,,,,,,,,pce,.\overlays\pce.cfg
+,,,,,,,,,,,,,,,,,,,,,,,68,68,,,,,,,,,,,,,,,,,,,,pcecd,.\overlays\pcecd.cfg
+,,,,,,,,,,,,,,,,,,,,,,,69,69,,,,,,,,,,,,,,,,,,,,pcfx,.\overlays\pcfx.cfg
+,,,,,,,,,,,,,,,,,,,,,,,70,70,,,,,,,,,,,,,,,,,,,,psp,.\overlays\psp.cfg
+,,,,,,,,,,,,,,,,,,,,,,,71,71,,,,,,,,,,,,,,,,,,,,psx,.\overlays\psx.cfg
+,,,,,,,,,,,,,,,,,,,,,,,72,72,,,,,,,,,,,,,,,,,,,,psx2,.\overlays\psx2.cfg
+,,,,,,,,,,,,,,,,,,,,,,,73,73,,,,,,,,,,,,,,,,,,,,pv1000,.\overlays\pv1000.cfg
+,,,,,,,,,,,,,,,,,,,,,,,74,74,,,,,,,,,,,,,,,,,,,,saturn,.\overlays\saturn.cfg
+,,,,,,,,,,,,,,,,,,,,,,,75,75,,,,,,,,,,,,,,,,,,,,scumm,.\overlays\scumm.cfg
+,,,,,,,,,,,,,,,,,,,,,,,76,76,,,,,,,,,,,,,,,,,,,,sega32x,.\overlays\sega32x.cfg
+,,,,,,,,,,,,,,,,,,,,,,,77,77,,,,,,,,,,,,,,,,,,,,segacd,.\overlays\segacd.cfg
+,,,,,,,,,,,,,,,,,,,,,,,78,78,,,,,,,,,,,,,,,,,,,,segacd32x,.\overlays\segacd32x.cfg
+,,,,,,,,,,,,,,,,,,,,,,,79,79,,,,,,,,,,,,,,,,,,,,sfc,.\overlays\sfc.cfg
+,,,,,,,,,,,,,,,,,,,,,,,80,80,,,,,,,,,,,,,,,,,,,,sfc sgb,.\overlays\sfc_sgb.cfg
+,,,,,,,,,,,,,,,,,,,,,,,81,81,,,,,,,,,,,,,,,,,,,,sg1000,.\overlays\sg1000.cfg
+,,,,,,,,,,,,,,,,,,,,,,,82,82,,,,,,,,,,,,,,,,,,,,sg3000,.\overlays\sg3000.cfg
+,,,,,,,,,,,,,,,,,,,,,,,83,83,,,,,,,,,,,,,,,,,,,,sgf,.\overlays\sgf.cfg
+,,,,,,,,,,,,,,,,,,,,,,,84,84,,,,,,,,,,,,,,,,,,,,sharp X1,.\overlays\sharp_X1.cfg
+,,,,,,,,,,,,,,,,,,,,,,,85,85,,,,,,,,,,,,,,,,,,,,sms,.\overlays\sms.cfg
+,,,,,,,,,,,,,,,,,,,,,,,86,86,,,,,,,,,,,,,,,,,,,,snes,.\overlays\snes.cfg
+,,,,,,,,,,,,,,,,,,,,,,,87,87,,,,,,,,,,,,,,,,,,,,snes sgb,.\overlays\snes_sgb.cfg
+,,,,,,,,,,,,,,,,,,,,,,,88,88,,,,,,,,,,,,,,,,,,,,socrates,.\overlays\socrates.cfg
+,,,,,,,,,,,,,,,,,,,,,,,89,89,,,,,,,,,,,,,,,,,,,,spectrum2,.\overlays\spectrum2.cfg
+,,,,,,,,,,,,,,,,,,,,,,,90,90,,,,,,,,,,,,,,,,,,,,spectrum3,.\overlays\spectrum3.cfg
+,,,,,,,,,,,,,,,,,,,,,,,91,91,,,,,,,,,,,,,,,,,,,,tandy,.\overlays\tandy.cfg
+,,,,,,,,,,,,,,,,,,,,,,,92,92,,,,,,,,,,,,,,,,,,,,tgf cd,.\overlays\tgf_cd.cfg
+,,,,,,,,,,,,,,,,,,,,,,,93,93,,,,,,,,,,,,,,,,,,,,tgf16,.\overlays\tgf16.cfg
+,,,,,,,,,,,,,,,,,,,,,,,94,94,,,,,,,,,,,,,,,,,,,,thomson mo5,.\overlays\thomson_mo5.cfg
+,,,,,,,,,,,,,,,,,,,,,,,95,95,,,,,,,,,,,,,,,,,,,,thomson to8,.\overlays\thomson_to8.cfg
+,,,,,,,,,,,,,,,,,,,,,,,96,96,,,,,,,,,,,,,,,,,,,,ti99,.\overlays\ti99.cfg
+,,,,,,,,,,,,,,,,,,,,,,,97,97,,,,,,,,,,,,,,,,,,,,tutor,.\overlays\tutor.cfg
+,,,,,,,,,,,,,,,,,,,,,,,98,98,,,,,,,,,,,,,,,,,,,,virtual boy,.\overlays\virtual_boy.cfg
+,,,,,,,,,,,,,,,,,,,,,,,99,99,,,,,,,,,,,,,,,,,,,,wii,.\overlays\wii.cfg
+,,,,,,,,,,,,,,,,,,,,,,,100,100,,,,,,,,,,,,,,,,,,,,ws,.\overlays\ws.cfg
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,wsc,.\overlays\wsc.cfg
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,x68000,.\overlays\x68000.cfg
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,zx spectrum,.\overlays\zx_spectrum.cfg
+,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,zx81,.\overlays\zx81.cfg

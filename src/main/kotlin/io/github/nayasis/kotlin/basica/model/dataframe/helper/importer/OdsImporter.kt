@@ -22,28 +22,33 @@ class OdsImporter private constructor(
     private val charset: Charset,
     private val sheetIndex: Int?,
     private val sheetName: String?,
+    private val lastColumnIndex: Int,
 ) : DataFrameImporter() {
 
     constructor(
         sheetIndex: Int = 0,
         firstRowAsHeader: Boolean = true,
+        lastColumnIndex: Int = -1,
         charset: Charset = Charsets.UTF_8,
     ) : this(
         firstRowAsHeader = firstRowAsHeader,
         charset = charset,
         sheetIndex = sheetIndex,
         sheetName = null,
+        lastColumnIndex = lastColumnIndex,
     )
 
     constructor(
         sheetName: String,
         firstRowAsHeader: Boolean = true,
+        lastColumnIndex: Int = -1,
         charset: Charset = Charsets.UTF_8,
     ) : this(
         firstRowAsHeader = firstRowAsHeader,
         charset = charset,
         sheetIndex = null,
         sheetName = sheetName,
+        lastColumnIndex = lastColumnIndex,
     )
 
     override fun import(inputStream: InputStream): DataFrame {
@@ -68,40 +73,75 @@ class OdsImporter private constructor(
             else -> tables.getOrNull(sheetIndex ?: 0)
         } ?: return dataframe
         val rows  = table.children().filter { it.nodeName == "table:table-row" }
+        if (rows.isEmpty()) return dataframe
 
-        var headerDone = false
-
-        var rowIdx = 0
-        for (row in rows) {
-            row.attr("table:number-rows-repeated")?.toIntOrNull()?.run {
-                rowIdx += this
-                continue
-            }
-            val cells = row.children().filter { it.nodeName == "table:table-cell" }.map { cell ->
+        fun parseRowValues(row: Node): MutableMap<Int, Any?> {
+            val values = mutableMapOf<Int, Any?>()
+            var colIdx = 0
+            row.children().filter { it.nodeName == "table:table-cell" }.forEach { cell ->
+                val repeat = cell.attr("table:number-columns-repeated")?.toIntOrNull() ?: 1
                 val valueType = cell.attr("office:value-type")
                 val label = cell.children().firstOrNull { it.nodeName == "text:p" }?.textContent ?: ""
-                val value = when (valueType) {
-                    "float"   -> parseNumber(cell.attr("office:value"))
-                    "date"    -> parseOdsDate(cell.attr("office:date-value"))
-                    "boolean" -> cell.attr("office:boolean-value") == "true"
-                    else      -> label
+                val value = parseOdsCellValue(cell, valueType, label)
+                if (value != null || !valueType.isNullOrBlank() || label.isNotBlank()) {
+                    for (i in 0 until repeat) {
+                        values[colIdx + i] = value
+                    }
                 }
-                OdsCell(label, value)
+                colIdx += repeat
             }
-            if( ! headerDone ) {
-                if(firstRowAsHeader) {
-                    cells.forEach { dataframe.addKey(it.label) }
+            return values
+        }
+
+        val rowCache = mutableMapOf<Int, MutableMap<Int, Any?>>()
+        val firstRowValues = parseRowValues(rows.first())
+        var appliedLastColumnIndex = when {
+            lastColumnIndex < 0 -> (firstRowValues.keys.maxOrNull() ?: -1)
+            firstRowAsHeader -> minOf(firstRowValues.keys.maxOrNull() ?: -1, lastColumnIndex)
+            else -> lastColumnIndex
+        }
+
+        if (appliedLastColumnIndex >= 0) {
+            for (col in 0..appliedLastColumnIndex) {
+                val key = if (firstRowAsHeader) {
+                    (firstRowValues[col]?.toString() ?: "$col")
                 } else {
-                    cells.forEachIndexed { colIdx, cell ->
-                        dataframe.addKey("col$colIdx")
-                        dataframe.setData(rowIdx, colIdx, cell.value)
+                    "$col"
                 }
-                    rowIdx++
+                if (!dataframe.keys.contains(key)) {
+                    dataframe.addKey(key)
+                } else {
+                    dataframe.addKey("${key}_$col")
                 }
-                headerDone = true
-            } else {
-                cells.forEachIndexed { colIdx, cell ->
-                    dataframe.setData(rowIdx, colIdx, cell.value)
+            }
+        }
+
+        var rowIdx = 0
+        rows.forEachIndexed { index, row ->
+            val repeatRows = row.attr("table:number-rows-repeated")?.toIntOrNull() ?: 1
+            if (index == 0 && firstRowAsHeader) {
+                return@forEachIndexed
+            }
+
+            val rowValues = parseRowValues(row)
+            val repeatCount = if (rowValues.isEmpty() && repeatRows > 1000) 1 else repeatRows
+
+            repeat(repeatCount) {
+                rowCache[rowIdx] = rowValues
+                if (lastColumnIndex < 0) {
+                    val maxIndexInRow = rowValues.keys.maxOrNull() ?: -1
+                    while (maxIndexInRow > appliedLastColumnIndex) {
+                        appliedLastColumnIndex += 1
+                        dataframe.addKey("$appliedLastColumnIndex")
+                        for (r in 0..rowIdx) {
+                            dataframe.setData(r, appliedLastColumnIndex, rowCache[r]?.get(appliedLastColumnIndex))
+                        }
+                    }
+                }
+                rowValues.forEach { (colIdx, value) ->
+                    if (colIdx <= appliedLastColumnIndex) {
+                        dataframe.setData(rowIdx, colIdx, value)
+                    }
                 }
                 rowIdx++
             }
@@ -109,14 +149,12 @@ class OdsImporter private constructor(
         return dataframe
     }
 
-    private data class OdsCell(val label: String, val value: Any?)
-
     private fun parseOdsCellValue(cell: Node, valueType: String?, label: String): Any? {
         return when (valueType) {
             "float" -> parseNumber(cell.attr("office:value"))
             "date"  -> parseOdsDate(cell.attr("office:date-value"))
             "boolean" -> cell.attr("office:boolean-value") == "true"
-            else -> label
+            else -> label.ifEmpty { null }
         }
     }
 

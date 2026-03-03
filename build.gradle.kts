@@ -44,8 +44,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.9.2")
     testImplementation("io.kotest:kotest-runner-junit5:5.6.2")
     testImplementation("io.kotest:kotest-assertions-core:5.6.2")
-    @Suppress("VulnerableLibrariesLocal")
-    testImplementation("ch.qos.logback:logback-classic:1.2.13")
+    testImplementation("ch.qos.logback:logback-classic:1.3.15")
 }
 
 kotlin {
@@ -56,6 +55,10 @@ kotlin {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    testLogging {
+        showStandardStreams = true
+        events("standardOut", "standardError", "failed")
+    }
 }
 
 tasks.withType<JavaCompile> {

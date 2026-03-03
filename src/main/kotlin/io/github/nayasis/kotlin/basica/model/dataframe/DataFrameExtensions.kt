@@ -20,9 +20,10 @@ fun DataFrame.fromCsv(
     filePath: Path,
     charset: Charset = Charsets.UTF_8,
     delimiter: Char = ',',
-    firstRowAsHeader: Boolean = true
+    firstRowAsHeader: Boolean = true,
+    lastColumnIndex: Int = -1,
 ): DataFrame {
-    return CsvImporter(delimiter, firstRowAsHeader, charset).import(filePath)
+    return CsvImporter(delimiter, firstRowAsHeader, lastColumnIndex, charset).import(filePath)
 }
 
 /**
@@ -37,9 +38,10 @@ fun DataFrame.fromCsv(
     inputStream: InputStream,
     charset: Charset = Charsets.UTF_8,
     delimiter: Char = ',',
-    firstRowAsHeader: Boolean = true
+    firstRowAsHeader: Boolean = true,
+    lastColumnIndex: Int = -1,
 ): DataFrame {
-    return CsvImporter(delimiter, firstRowAsHeader, charset).import(inputStream)
+    return CsvImporter(delimiter, firstRowAsHeader, lastColumnIndex, charset).import(inputStream)
 }
 
 /**
@@ -135,14 +137,16 @@ fun DataFrame.toJson(
  * @param filePath Excel file path
  * @param sheetIndex sheet index
  * @param firstRowAsHeader whether to include header
+ * @param lastColumnIndex last column index to read (default: -1 to auto-detect)
  * @return DataFrame object
  */
 fun DataFrame.fromXlsx(
     filePath: Path,
     sheetIndex: Int = 0,
-    firstRowAsHeader: Boolean = true
+    firstRowAsHeader: Boolean = true,
+    lastColumnIndex: Int = -1,
 ): DataFrame {
-    return XlsxImporter(sheetIndex, firstRowAsHeader).import(filePath)
+    return XlsxImporter(sheetIndex, firstRowAsHeader, lastColumnIndex).import(filePath)
 }
 
 /**
@@ -150,14 +154,16 @@ fun DataFrame.fromXlsx(
  * @param filePath Excel file path
  * @param sheetName sheet name
  * @param firstRowAsHeader whether to include header
+ * @param lastColumnIndex last column index to read (default: -1 to auto-detect)
  * @return DataFrame object
  */
 fun DataFrame.fromXlsx(
     filePath: Path,
     sheetName: String,
-    firstRowAsHeader: Boolean = true
+    firstRowAsHeader: Boolean = true,
+    lastColumnIndex: Int = -1,
 ): DataFrame {
-    return XlsxImporter(sheetName, firstRowAsHeader).import(filePath)
+    return XlsxImporter(sheetName, firstRowAsHeader, lastColumnIndex).import(filePath)
 }
 
 /**
@@ -201,9 +207,10 @@ fun Map<String, DataFrame>.toXlsx(
 fun DataFrame.fromOds(
     filePath: Path,
     sheetIndex: Int = 0,
-    firstRowAsHeader: Boolean = true
+    firstRowAsHeader: Boolean = true,
+    lastColumnIndex: Int = -1,
 ): DataFrame {
-    return OdsImporter(sheetIndex, firstRowAsHeader).import(filePath)
+    return OdsImporter(sheetIndex, firstRowAsHeader, lastColumnIndex).import(filePath)
 }
 
 /**
@@ -217,9 +224,10 @@ fun DataFrame.fromOds(
 fun DataFrame.fromOds(
     filePath: Path,
     sheetName: String,
-    firstRowAsHeader: Boolean = true
+    firstRowAsHeader: Boolean = true,
+    lastColumnIndex: Int = -1,
 ): DataFrame {
-    return OdsImporter(sheetName, firstRowAsHeader).import(filePath)
+    return OdsImporter(sheetName, firstRowAsHeader, lastColumnIndex).import(filePath)
 }
 
 /**
@@ -233,9 +241,10 @@ fun DataFrame.fromOds(
 fun DataFrame.fromOds(
     inputStream: InputStream,
     sheetIndex: Int = 0,
-    firstRowAsHeader: Boolean = true
+    firstRowAsHeader: Boolean = true,
+    lastColumnIndex: Int = -1,
 ): DataFrame {
-    return OdsImporter(sheetIndex, firstRowAsHeader).import(inputStream)
+    return OdsImporter(sheetIndex, firstRowAsHeader, lastColumnIndex).import(inputStream)
 }
 
 /**
@@ -249,9 +258,10 @@ fun DataFrame.fromOds(
 fun DataFrame.fromOds(
     inputStream: InputStream,
     sheetName: String,
-    firstRowAsHeader: Boolean = true
+    firstRowAsHeader: Boolean = true,
+    lastColumnIndex: Int = -1,
 ): DataFrame {
-    return OdsImporter(sheetName, firstRowAsHeader).import(inputStream)
+    return OdsImporter(sheetName, firstRowAsHeader, lastColumnIndex).import(inputStream)
 }
 
 /**
