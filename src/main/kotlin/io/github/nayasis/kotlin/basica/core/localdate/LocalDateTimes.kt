@@ -131,6 +131,10 @@ fun String.toLocalTime(): LocalTime = toLocalTime(native=false)
 
 fun String.toLocalTime(format: DateTimeFormatter): LocalTime = LocalTime.parse(this, format)
 
+fun FileTime.toLocalDateTime(): LocalDateTime {
+    return LocalDateTime.ofInstant(this.toInstant(), ZoneId.systemDefault())
+}
+
 fun String.toZonedDateTime(format: DateTimeFormatter = DateTimeFormatter.ISO_ZONED_DATE_TIME, zoneId: ZoneId = ZoneId.systemDefault()): ZonedDateTime {
     return runCatching {
         ZonedDateTime.parse(this, format)
