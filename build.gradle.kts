@@ -1,5 +1,6 @@
 import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.io.ByteArrayOutputStream
 
 plugins {
     kotlin("jvm") version "2.2.0"
@@ -9,12 +10,35 @@ plugins {
 }
 
 group = "io.github.nayasis"
-version = when {
-    project.hasProperty("mavenReleaseVersion") && project.property("mavenReleaseVersion").let { it != "" && it != "unspecified" } -> {
-        project.property("mavenReleaseVersion") as String
+
+fun Project.findReleaseVersionProperty(): String? =
+    findProperty("mavenReleaseVersion")?.toString()?.takeUnless { it.isBlank() || it == "unspecified" }
+
+fun Project.findReleaseVersionFromBranch(): String? {
+    val branchName = providers.environmentVariable("GITHUB_REF_NAME").orNull?.trim().takeUnless { it.isNullOrBlank() } ?: run {
+        val output = ByteArrayOutputStream()
+        try {
+            exec {
+                commandLine("git", "rev-parse", "--abbrev-ref", "HEAD")
+                standardOutput = output
+                isIgnoreExitValue = true
+            }
+        } catch (_: Exception) {
+            return null
+        }
+        output.toString().trim().takeUnless { it.isBlank() || it == "HEAD" }
     }
-    else -> "0.1.0-SNAPSHOT"
+
+    return branchName
+        ?.removePrefix("refs/heads/")
+        ?.takeIf { it.startsWith("release/") }
+        ?.removePrefix("release/")
+        ?.takeIf { it.isNotBlank() }
 }
+
+version = findReleaseVersionProperty()
+    ?: findReleaseVersionFromBranch()
+    ?: "0.1.0-SNAPSHOT"
 
 println("\t- release version: ${project.version}")
 
