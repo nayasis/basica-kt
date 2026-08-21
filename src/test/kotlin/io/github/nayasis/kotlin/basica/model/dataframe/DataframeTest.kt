@@ -467,6 +467,21 @@ internal class DataframeTest: StringSpec({
 
     }
 
+    "rich text headers for xlsx" {
+
+        val dataframe = DataFrame().fromXlsx(
+            "file/naomi.xlsx".toResource()?.toFile()?.toPath()!!,
+        )
+
+        dataframe.keys.contains("tab") shouldBe true
+        dataframe.keys.contains("System") shouldBe true
+        dataframe.keys.contains("Video") shouldBe true
+        dataframe.keys.contains("Performance") shouldBe true
+        dataframe.keys.contains("Hack") shouldBe true
+        dataframe.keys.contains("Input") shouldBe true
+
+    }
+
     "sparse column layout for csv" {
 
         val dataframe = DataFrame().fromCsv(
