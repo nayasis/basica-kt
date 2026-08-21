@@ -287,9 +287,10 @@ class XlsxImporter private constructor(
         doc.getElementsByTagName("si").let { nodes ->
             for (i in 0 until nodes.length) {
                 val siNode = nodes.item(i)
-                siNode.childrenByTagName("t").firstOrNull()?.let {
-                    sharedStrings.add(it.textContent.unescapeXml())
-                }
+                val value = siNode.childrenByTagName("t")
+                    .joinToString("") { it.textContent }
+                    .unescapeXml()
+                sharedStrings.add(value)
             }
         }
         return sharedStrings
