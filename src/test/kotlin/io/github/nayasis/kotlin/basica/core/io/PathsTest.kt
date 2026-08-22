@@ -101,13 +101,13 @@ class PathsTest: StringSpec({
         txt.isEmpty() shouldBe false
     }
     "invariant path" {
-        "c:\\documents\\merong\\".toPath().invariantPath shouldBe "c:/documents/merong"
-        "\\\\NAS\\Game & Watch - Zelda".toPath().invariantPath shouldBe  "//NAS/Game & Watch - Zelda"
-        "a\\".toPath().invariantPath shouldBe "a"
-        "\\".toPath().invariantPath shouldBe "/"
+        Paths.get("documents", "merong").invariantPath shouldBe "documents/merong"
+        Paths.get("a${Paths.FOLDER_SEPARATOR}").pathString shouldBe "a"
+        Paths.get(Paths.FOLDER_SEPARATOR.toString()).invariantPath shouldBe "/"
     }
     "relative path" {
-        val relative = "\\\\NAS\\emul\\ArcadeMame\\Game & Watch - Zelda".toPath().toRelative("//NAS/emul/ArcadeMame")
+        val base = Paths.get("NAS", "emul", "ArcadeMame")
+        val relative = base.resolve("Game & Watch - Zelda").toRelative(base)
         relative.toString() shouldBe "Game & Watch - Zelda"
     }
     "normalize" {
@@ -230,48 +230,46 @@ class PathsTest: StringSpec({
         }
     }
     "isCommonPrefix" {
+        val base = Paths.get("NAS2", "game", "pc", "_backup")
         listOf(
-            "\\\\NAS2\\game\\pc\\_backup\\Fight\\",
-            "\\\\NAS2\\game\\pc\\_backup\\",
-            "\\\\NAS2\\game\\pc\\_backup\\Adult\\"
-        ).map{it.toPath()}.isCommonPrefix(
-            "//NAS2/game/pc/_backup".toPath()
-        ) shouldBe true
+            base.resolve("Fight"),
+            base,
+            base.resolve("Adult")
+        ).isCommonPrefix(base) shouldBe true
 
         listOf(
-            "\\\\NAS2\\game\\pc\\_backup\\Fight\\",
-            "\\\\NAS2\\game\\pc\\_backup\\",
-            "\\\\NAS1\\game\\pc\\_backup\\Adult\\"
-        ).map{it.toPath()}.isCommonPrefix(
-            "//NAS2/game/pc/_backup".toPath()
-        ) shouldBe false
+            base.resolve("Fight"),
+            base,
+            Paths.get("NAS1", "game", "pc", "_backup", "Adult")
+        ).isCommonPrefix(base) shouldBe false
 
+        val drive = Paths.get("c")
         listOf(
-            "c:/NAS2/game/pc/_backup/Fight",
-            "c:/NAS2/game/pc/_backup/merong.txt",
-            "c:/NAS1/game/pc/_backup/Adult"
-        ).map{it.toPath()}.isCommonPrefix(
-            "c:/".toPath()
-        ) shouldBe true
+            Paths.get("c", "NAS2", "game", "pc", "_backup", "Fight"),
+            Paths.get("c", "NAS2", "game", "pc", "_backup", "merong.txt"),
+            Paths.get("c", "NAS1", "game", "pc", "_backup", "Adult")
+        ).isCommonPrefix(drive) shouldBe true
     }
     "findLongestPrefix" {
+        val root = requireNotNull(Paths.applicationRoot.root)
+        val base = root.resolve(Paths.get("NAS2", "game", "pc", "_backup"))
         listOf(
-            "\\\\NAS2\\game\\pc\\_backup\\Fight\\",
-            "\\\\NAS2\\game\\pc\\_backup\\",
-            "\\\\NAS2\\game\\pc\\_backup\\Adult\\"
-        ).map{it.toPath()}.findLongestPrefix() shouldBe "//NAS2/game/pc/_backup".toPath()
+            base.resolve("Fight"),
+            base,
+            base.resolve("Adult")
+        ).findLongestPrefix() shouldBe base
 
         listOf(
-            "\\\\NAS2\\game\\pc\\_backup\\Fight\\",
-            "\\\\NAS2\\game\\pc\\_backup\\",
-            "\\\\NAS1\\game\\pc\\_backup\\Adult\\"
-        ).map{it.toPath()}.findLongestPrefix() shouldBe null
+            base.resolve("Fight"),
+            base,
+            Paths.get("NAS1", "game", "pc", "_backup", "Adult")
+        ).findLongestPrefix() shouldBe null
 
         listOf(
-            "c:/NAS2/game/pc/_backup/Fight",
-            "c:/NAS2/game/pc/_backup/merong.txt",
-            "c:/NAS1/game/pc/_backup/Adult"
-        ).map{it.toPath()}.findLongestPrefix() shouldBe "c:/".toPath()
+            root.resolve(Paths.get("NAS2", "game", "pc", "_backup", "Fight")),
+            root.resolve(Paths.get("NAS2", "game", "pc", "_backup", "merong.txt")),
+            root.resolve(Paths.get("NAS1", "game", "pc", "_backup", "Adult"))
+        ).findLongestPrefix() shouldBe root
     }
     "get name" {
         "c:/test/dir v0.9.22.0".toPath().let {
@@ -281,11 +279,11 @@ class PathsTest: StringSpec({
         }
     }
     "get name without extension" {
-        "c:/test/file v0.9.22.0 .txt".toPath().let {
+        Paths.get("test", "file v0.9.22.0 .txt").let {
             it.name shouldBe "file v0.9.22.0 .txt"
             it.nameWithoutExtension shouldBe "file v0.9.22.0 "
-            it.pathWithoutExtension shouldBe "c:\\test\\file v0.9.22.0 "
-            it.invariantPathWithoutExtension shouldBe "c:/test/file v0.9.22.0 "
+            it.pathWithoutExtension shouldBe "test${Paths.FOLDER_SEPARATOR}file v0.9.22.0 "
+            it.invariantPathWithoutExtension shouldBe "test/file v0.9.22.0 "
         }
     }
     "get extension" {

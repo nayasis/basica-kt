@@ -231,11 +231,15 @@ fun Date.toLocalTime(zoneId: ZoneId = ZoneId.systemDefault()): LocalTime =
 fun Date.toSqlDate(zoneId: ZoneId = ZoneId.systemDefault()): SqlDate =
     SqlDate.valueOf(this.toLocalDate(zoneId))
 
-fun LocalDateTime.toLong(): Long = this.toZonedDateTime().toInstant().toEpochMilli()
+fun LocalDateTime.toLong(): Long = this.toLong(ZoneId.systemDefault())
+
+fun LocalDateTime.toLong(zoneId: ZoneId): Long = this.toZonedDateTime(zoneId).toInstant().toEpochMilli()
 
 fun LocalDateTime.toFileTime(): FileTime = FileTime.fromMillis(this.toLong())
 
-fun LocalDate.toLong(): Long = this.toLocalDateTime().toLong()
+fun LocalDate.toLong(): Long = this.toLong(ZoneId.systemDefault())
+
+fun LocalDate.toLong(zoneId: ZoneId): Long = this.toLocalDateTime().toLong(zoneId)
 
 fun Long.toZonedDateTime(zoneId: ZoneId = ZoneId.systemDefault()): ZonedDateTime =
     Instant.ofEpochMilli(this).atZone(zoneId)

@@ -35,12 +35,14 @@ internal class LocalDatesTest: StringSpec({
     }
 
     "oldTime" {
+        val zoneId = ZoneId.of("Asia/Seoul")
+
         "0423-01-01".toDate().format("YYYY-MM-DD") shouldBe "0423-01-01"
-        "0423-01-01".toDate().time shouldBe -48818622472000
+        "0423-01-01".toDate(zoneId = zoneId).time shouldBe -48818622472000
         "0423-01-01".toLocalDate().format("YYYY-MM-DD") shouldBe "0423-01-01"
-        "0423-01-01".toLocalDate().toLong()shouldBe -48818622472000
+        "0423-01-01".toLocalDate().toLong(zoneId) shouldBe -48818622472000
         "0423-01-01".toLocalDateTime().format("YYYY-MM-DD") shouldBe "0423-01-01"
-        "0423-01-01".toLocalDateTime().toLong() shouldBe -48818622472000
+        "0423-01-01".toLocalDateTime().toLong(zoneId) shouldBe -48818622472000
     }
 
     "ZonedDateTime format and toString" {
