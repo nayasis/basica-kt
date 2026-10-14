@@ -9,10 +9,13 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import java.util.*
 
+private val EMPTY = Locale("", "")
+
 internal class MessagesTest: StringSpec({
 
     beforeTest {
         Messages.clear()
+        Messages.fallbackLocale = Locale.ENGLISH
     }
 
     "load from file" {
@@ -50,6 +53,36 @@ internal class MessagesTest: StringSpec({
         "message/*".loadMessages()
 
         "message with space".message() shouldBe "띄어쓰기가 포함된 메세지"
+
+    }
+
+    "use fallback locale when requested locale is missing" {
+
+        "/message/**.prop".loadMessages()
+
+        Messages["err.session.expired", Locale.JAPANESE] shouldBe "Session is expired."
+
+        Messages.fallbackLocale = Locale.KOREAN
+        Messages["err.session.expired", Locale.JAPANESE] shouldBe "세션이 종료되었습니다."
+
+    }
+
+    "prefer empty locale to fallback locale" {
+
+        Messages[EMPTY, "greeting"]          = "hi"
+        Messages[Locale.ENGLISH, "greeting"] = "hello"
+
+        Messages["greeting", Locale.JAPANESE] shouldBe "hi"
+        Messages["greeting", Locale.ENGLISH]  shouldBe "hello"
+
+    }
+
+    "use first registered message when fallback locale is also missing" {
+
+        Messages[Locale.KOREAN, "greeting"]  = "안녕하세요"
+        Messages[Locale.CHINESE, "greeting"] = "你好"
+
+        Messages["greeting", Locale.JAPANESE] shouldBe "안녕하세요"
 
     }
 

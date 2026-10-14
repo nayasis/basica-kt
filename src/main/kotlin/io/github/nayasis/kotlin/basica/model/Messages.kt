@@ -28,7 +28,12 @@ private val EMPTY_LOCALE = Locale("", "")
  */
 open class Messages { companion object {
 
-    private val pool = Hashtable<String,Hashtable<Locale, String>>()
+    private val pool = Hashtable<String,MutableMap<Locale, String>>()
+
+    /**
+     * locale used when no message matches the requested locale
+     */
+    var fallbackLocale: Locale = Locale.ENGLISH
 
     /**
      * get message corresponding code
@@ -49,10 +54,11 @@ open class Messages { companion object {
      */
     operator fun set(locale: Locale?, code: String?, message: Any?) {
         val cd = code?.trim() ?: ""
-        if( ! pool.containsKey(cd) )
-            pool[cd] = Hashtable<Locale, String>()
-        val messages = pool[cd]!!
-        messages[locale.ifNull{Locale.getDefault()}] = "$message"
+        put(cd, locale.ifNull{Locale.getDefault()}, "$message")
+    }
+
+    private fun put(code: String, locale: Locale, message: String) {
+        pool.computeIfAbsent(code) { Collections.synchronizedMap(LinkedHashMap()) }[locale] = message
     }
 
     /**
@@ -75,8 +81,19 @@ open class Messages { companion object {
     private fun getMessage(code: String?, locale: Locale): String? {
         val cd        = code?.trim()?.takeIf { it.isNotEmpty() } ?: return null
         val messages  = pool[cd] ?: return cd
-        return messages[locale] ?: messages[Locale(locale.language)] ?: messages[EMPTY_LOCALE] ?: messages.values.first()
+        return synchronized(messages) {
+            messages.find(locale) ?: messages[EMPTY_LOCALE] ?: messages.find(fallbackLocale) ?: messages.values.first()
+        }
     }
+
+    private fun Map<Locale,String>.find(locale: Locale): String? =
+        this[locale] ?: this[Locale(locale.language)]
+
+    /**
+     * sort message files to load them in a fixed order regardless of classpath or file system
+     */
+    private fun List<URL>.sortedForLoading(): List<URL> =
+        sortedWith(compareBy({ it.path.substringAfterLast('/') }, { it.toString() }))
 
     /**
      * clear message pool
@@ -110,10 +127,7 @@ open class Messages { companion object {
         val locale = getLocaleFrom(this)
         val properties = NProperties(this)
         for (key in properties.keys.map {"$it"} ) {
-            if (!pool.containsKey(key))
-                pool[key] = Hashtable()
-            val messages = pool[key]!!
-            messages[locale] = properties.getProperty(key)
+            put(key, locale, properties.getProperty(key))
         }
     }
 
@@ -121,7 +135,7 @@ open class Messages { companion object {
         if(this.isFile) {
             this.toUrl().loadMessages()
         } else if(this.isDirectory) {
-            this.toPath().findFiles().forEach { it.toUrl().loadMessages() }
+            this.toPath().loadMessages()
         }
     }
 
@@ -129,12 +143,12 @@ open class Messages { companion object {
         if(this.isFile()) {
             this.toUrl().loadMessages()
         } else if(this.isDirectory()) {
-            this.findFiles().forEach { it.toUrl().loadMessages() }
+            this.findFiles().map { it.toUrl() }.sortedForLoading().forEach { it.loadMessages() }
         }
     }
 
     fun String.loadMessages() {
-        Classes.findResources(this).toList().takeIf { it.isNotEmpty() }?.forEach { it.loadMessages() } ?:
+        Classes.findResources(this).takeIf { it.isNotEmpty() }?.sortedForLoading()?.forEach { it.loadMessages() } ?:
         runCatching { this.toPath() }.getOrNull()?.takeIf { it.exists() }?.loadMessages() ?:
         runCatching { this.toFile() }.getOrNull()?.takeIf { it.exists() }?.loadMessages()
     }
