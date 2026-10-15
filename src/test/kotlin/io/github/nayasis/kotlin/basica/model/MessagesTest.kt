@@ -7,7 +7,9 @@ import io.github.nayasis.kotlin.basica.core.string.message
 import io.github.nayasis.kotlin.basica.model.Messages.Companion.loadMessages
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
+import java.nio.file.Files
 import java.util.*
+import kotlin.io.path.writeText
 
 private val EMPTY = Locale("", "")
 
@@ -15,7 +17,21 @@ internal class MessagesTest: StringSpec({
 
     beforeTest {
         Messages.clear()
+        Messages.defaultLocale  = Locale.getDefault()
         Messages.fallbackLocale = Locale.ENGLISH
+    }
+
+    "use default locale when locale is not given" {
+
+        "/message/**.prop".loadMessages()
+
+        Messages.defaultLocale = Locale.KOREAN
+        Messages["err.session.expired"] shouldBe "세션이 종료되었습니다."
+        "err.session.expired".message() shouldBe "세션이 종료되었습니다."
+
+        Messages.defaultLocale = Locale.ENGLISH
+        Messages["err.session.expired"] shouldBe "Session is expired."
+
     }
 
     "load from file" {
@@ -83,6 +99,23 @@ internal class MessagesTest: StringSpec({
         Messages[Locale.CHINESE, "greeting"] = "你好"
 
         Messages["greeting", Locale.JAPANESE] shouldBe "안녕하세요"
+
+    }
+
+    "load files in order of language priority" {
+
+        val dir = Files.createTempDirectory("messages")
+        try {
+            (dir / "a.xx.prop").writeText("greeting = xx")
+            (dir / "b.ko.prop").writeText("greeting = ko")
+            (dir / "c.zh.prop").writeText("greeting = zh")
+
+            dir.loadMessages()
+
+            Messages["greeting", Locale.JAPANESE] shouldBe "zh"
+        } finally {
+            dir.toFile().deleteRecursively()
+        }
 
     }
 
