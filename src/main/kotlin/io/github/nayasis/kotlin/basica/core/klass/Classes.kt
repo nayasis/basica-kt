@@ -1,7 +1,6 @@
 package io.github.nayasis.kotlin.basica.core.klass
 
-import io.github.nayasis.kotlin.basica.core.resource.PathMatchingResourceLoader
-import io.github.nayasis.kotlin.basica.core.resource.util.URL_PREFIX_CLASSPATH
+import io.github.nayasis.kotlin.basica.core.resource.ResourceFinder
 import io.github.nayasis.kotlin.basica.core.url.toFile
 import io.github.nayasis.kotlin.basica.etc.error
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -293,41 +292,34 @@ class Classes { companion object{
     /**
      * find resources
      *
-     * @param pattern   path matching pattern (glob expression. if not exists, add all result)
+     * @param pattern   resource path in classpath (glob expression. if not exists, find all resources having the path)
      * <pre>
-     * ** : ignore directory variation
-     * *  : filename LIKE search
+     * 1. message/&#42;.prop          : all "prop" files in "message" directory
+     * 2. message/&#42;*.prop         : all "prop" files below "message" directory and it's all sub directories.
+     * 3. message/&#42;&#42;/&#42;.prop      : same as 2 ("**" also matches zero directory)
+     * 4. message/&#42;.{prop,yml}    : all "prop" or "yml" files in "message" directory
+     * 5. message/message.??.prop : "message.en.prop", "message.ko.prop", ...
+     * 6. META-INF/LICENSE.md     : all "META-INF/LICENSE.md" in classpath (including jars)
      *
-     * 1. **.xml           : all files having "xml" extension below searchDir and it's all sub directories.
-     * 2. *.xml            : all files having "xml" extension in searchDir
-     * 3. c:\home\*\*.xml  : all files having "xml" extension below 'c:\home\' and it's just 1 depth below directories.
-     * 4. c:\home\**\*.xml : all files having "xml" extension below 'c:\home\' and it's all sub directories.
-     *
-     * 1. *  It matches zero , one or more than one characters. While matching, it will not cross directories boundaries.
-     * 2. ** It does the same as * but it crosses the directory boundaries.
-     * 3. ?  It matches only one character for the given name.
-     * 4. \  It helps to avoid characters to be interpreted as special characters.
-     * 5. [] In a set of characters, only single character is matched. If (-) hyphen is used then, it matches a range of characters. Example: [efg] matches "e","f" or "g" . [a-d] matches a range from a to d.
-     * 6. {} It helps to matches the group of sub patterns.
-     *
-     * 1. *.java when given path is java , we will get true by PathMatcher.matches(path).
-     * 2. *.* if file contains a dot, pattern will be matched.
-     * 3. *.{java,txt} If file is either java or txt, path will be matched.
-     * 4. abc.? matches a file which start with abc and it has extension with only single character.
+     * *   matches zero or more characters without crossing directory boundaries.
+     * **  matches zero or more characters crossing directory boundaries.
+     * ?   matches exactly one character.
+     * []  matches one character in set. (ex. [efg], [a-d], [!a-d])
+     * {}  matches one of sub patterns. (ex. *.{java,txt})
+     * \   escapes next character.
      * </pre>
      * @return found resource names
      */
     fun findResources(vararg pattern: String): List<URL> {
-        val urls   = mutableListOf<URL>()
-        val loader = PathMatchingResourceLoader()
-        for (ptn in pattern) {
+        val finder = ResourceFinder(classLoader)
+        return pattern.flatMap { ptn ->
             try {
-                loader.getResources(URL_PREFIX_CLASSPATH + ptn).forEach { urls.add(it.getURL()) }
+                finder.find(ptn)
             } catch (e: IOException) {
                 log.error(e)
+                emptyList()
             }
         }
-        return urls
     }
 
     fun getRootLocation(klass: KClass<*>): URL {
