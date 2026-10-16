@@ -4,9 +4,6 @@ import io.github.nayasis.kotlin.basica.core.string.unescapeXml
 import io.github.nayasis.kotlin.basica.model.dataframe.DataFrame
 import io.github.nayasis.kotlin.basica.model.dataframe.helper.toDocument
 import io.github.nayasis.kotlin.basica.xml.attr
-import io.github.nayasis.kotlin.basica.xml.childrenByTagName
-import io.github.nayasis.kotlin.basica.xml.firstOrNull
-import io.github.nayasis.kotlin.basica.xml.iterator
 import org.w3c.dom.Element
 import org.w3c.dom.Node
 import java.io.InputStream
@@ -101,21 +98,22 @@ class XlsxImporter private constructor(
         dateStyleIndexes: DateStyleIndexes,
     ): DataFrame {
         val dataframe = DataFrame()
-        val rows = sheet.childrenByTagName("row")
+        val rows = sheet.childElements("sheetData").firstOrNull()?.childElements("row").orEmpty()
         val rowCache = mutableMapOf<Int, MutableMap<Int, Any?>>()
         var appliedLastColumnIndex = -1
 
         fun parseRowValues(row: Node): MutableMap<Int, Any?> {
             val result = mutableMapOf<Int, Any?>()
             var nextSequentialCol = 0
-            row.childrenByTagName("c").forEach { cell ->
+            row.childElements("c").forEach { cell ->
                 val colIdx = cell.attr("r")?.let { parseColumnIndex(it) }?.takeIf { it >= 0 } ?: nextSequentialCol
                 nextSequentialCol = colIdx + 1
                 val type = cell.attr("t")
                 val sIdx = cell.attr("s")?.toIntOrNull()
-                val vElem = cell.childrenByTagName("v").firstOrNull()
+                val vElem = cell.childElements("v").firstOrNull()
                 val raw = vElem?.textContent ?: ""
                 val value = when {
+                    type == "inlineStr" -> cell.childElements("is").firstOrNull()?.textValue()
                     vElem == null -> null
                     sIdx in dateStyleIndexes.dateIndexes -> excelSerialToDate(raw) ?: raw
                     sIdx in dateStyleIndexes.dateTimeIndexes -> excelSerialToDateTime(raw) ?: raw
@@ -257,7 +255,7 @@ class XlsxImporter private constructor(
         val numFmtIdToDateTime = mutableSetOf<Int>()
         val numFmtIdBuiltIn    = setOf(14, 15, 16, 17, 18, 19, 20, 21, 22, 45, 46, 47, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180)
 
-        doc.getElementsByTagName("numFmt").iterator().forEach { node ->
+        doc.childElements("numFmts").firstOrNull()?.childElements("numFmt")?.forEach { node ->
             val id         = node.attr("numFmtId")?.toIntOrNull() ?: return@forEach
             val formatCode = node.attr("formatCode")?.lowercase() ?: ""
             when {
@@ -268,8 +266,8 @@ class XlsxImporter private constructor(
 
         // find date format style in [cellXfs > xf]
         val rs = DateStyleIndexes()
-        doc.getElementsByTagName("cellXfs").firstOrNull()?.let { cellXfs ->
-            cellXfs.childrenByTagName("xf").forEachIndexed { index, xf ->
+        doc.childElements("cellXfs").firstOrNull()?.let { cellXfs ->
+            cellXfs.childElements("xf").forEachIndexed { index, xf ->
                 val numFmtId = xf.attr("numFmtId")?.toIntOrNull() ?: 0
                 when (numFmtId) {
                     in numFmtIdToDate     -> rs.dateIndexes.add(index)
@@ -284,14 +282,8 @@ class XlsxImporter private constructor(
 
     private fun getSharedStrings(doc: Element): MutableList<String> {
         val sharedStrings = mutableListOf<String>()
-        doc.getElementsByTagName("si").let { nodes ->
-            for (i in 0 until nodes.length) {
-                val siNode = nodes.item(i)
-                val value = siNode.childrenByTagName("t")
-                    .joinToString("") { it.textContent }
-                    .unescapeXml()
-                sharedStrings.add(value)
-            }
+        doc.childElements("si").forEach { node ->
+            sharedStrings.add(node.textValue().unescapeXml())
         }
         return sharedStrings
     }
@@ -302,16 +294,13 @@ class XlsxImporter private constructor(
         sheetName: String
     ): String? {
         if (workbookDoc == null) return null
-        val sheet = workbookDoc.getElementsByTagName("sheet").iterator()
-            .asSequence()
-            .mapNotNull { it as? Element }
+        val sheet = workbookDoc.childElements("sheets").firstOrNull()?.childElements("sheet")
+            .orEmpty()
             .firstOrNull { it.attr("name") == sheetName } ?: return null
 
         val relId = sheet.attr("r:id")
         val target = relId?.let { id ->
-            workbookRelsDoc?.getElementsByTagName("Relationship")?.iterator()
-                ?.asSequence()
-                ?.mapNotNull { it as? Element }
+            workbookRelsDoc?.childElements("Relationship")
                 ?.firstOrNull { it.attr("Id") == id }
                 ?.attr("Target")
         }
@@ -325,6 +314,23 @@ class XlsxImporter private constructor(
     private fun normalizeSheetTargetPath(target: String): String {
         val cleaned = target.trimStart('/')
         return if (cleaned.startsWith("xl/")) cleaned else "xl/$cleaned"
+    }
+
+    // OOXML row/cell/value elements are direct children; avoid compiling XPath per cell.
+    private fun Node.childElements(name: String): List<Element> = buildList {
+        var child = firstChild
+        while (child != null) {
+            if (child is Element && child.tagName.substringAfter(':') == name) add(child)
+            child = child.nextSibling
+        }
+    }
+
+    private fun Element.textValue(): String = buildString {
+        val descendants = getElementsByTagName("*")
+        for (i in 0 until descendants.length) {
+            val node = descendants.item(i) as Element
+            if (node.tagName.substringAfter(':') == "t") append(node.textContent)
+        }
     }
 
 } 
