@@ -36,22 +36,53 @@ private val PATTERN_BASIC = ExtractPattern("\\{([^\\s{}]*?)}".toPattern(), ESCAP
 private const val JOSA_SKIPPABLE = "'\"’”)]>）］」』〉》"
 
 /**
- * endings following copula '이' (이다, 이며, 이고, ...)
+ * pronunciation markup in binding value ({{value|pronunciation}}, escaped by backslash as \{{value|pronunciation}})
  */
-private const val COPULA_ENDINGS = "다며고면지니므기자든야냐래라"
+private val PATTERN_PRONUNCIATION = "(\\\\?)\\{\\{([^{}|]*)\\|([^{}]*)}}".toRegex()
+
+/**
+ * marker of binding value in buffer to protect it from escape remover
+ */
+private const val VALUE_MARK_START = '\uE000'
+private const val VALUE_MARK_END   = '\uE001'
+private val PATTERN_VALUE_MARK = "$VALUE_MARK_START(\\d+)$VALUE_MARK_END".toRegex()
+
+/**
+ * endings following copula '이' whose '이' is omitted after character without jongsung (사과이다 -> 사과다, 사과이고 -> 사과고, ...)
+ *
+ * '이' followed by other korean character is kept as it is (이자, 이상, 이하, 이내, ...)
+ */
+private const val COPULA_ENDINGS = "다며고면지니므기든나랑야여시라란래냐요죠네군구거던더잖세셨"
 
 /**
  * jongsung of korean pronunciation of digit (영,일,이,삼,사,오,육,칠,팔,구)
  */
 private val DIGIT_JONGSUNG = charArrayOf('ㅇ','ㄹ',NULL_CHAR,'ㅁ',NULL_CHAR,NULL_CHAR,'ㄱ','ㄹ','ㄹ',NULL_CHAR)
 
+/**
+ * condition of josa followed by non korean or another josa (ex. 과의, 은요, 으로부터)
+ */
+private fun notKoreanOr(josa: String) = { c: Char? -> c == null || ! c.isKorean() || c in josa }
+
+private val NOT_KOREAN = notKoreanOr("")
+
+/**
+ * korean josa changed by jongsung of preceding word
+ *
+ * @param withJongsung      form used after jongsung
+ * @param withoutJongsung   form used after no jongsung
+ * @param aliases           other forms written in template (ex. "을(를)", "(으)로")
+ * @param rieulAsVowel      treat jongsung 'ㄹ' as no jongsung (only for 으로/로)
+ * @param followedBy        condition of character following josa in template
+ */
 private class Josa(
     val withJongsung: String,
     val withoutJongsung: String,
+    aliases: List<String> = emptyList(),
     val rieulAsVowel: Boolean = false,
     val followedBy: (Char?) -> Boolean = { true },
 ) {
-    private val forms = listOf(withJongsung, withoutJongsung).filter { it.isNotEmpty() }.sortedByDescending { it.length }
+    private val forms = (listOf(withJongsung, withoutJongsung) + aliases).filter { it.isNotEmpty() }.sortedByDescending { it.length }
 
     /**
      * return form of josa matched at index of source
@@ -64,36 +95,56 @@ private class Josa(
 }
 
 /**
- * pronunciation markup in binding value ({{value|pronunciation}})
- */
-private val PATTERN_PRONUNCIATION = "\\{\\{([^{}|]*)\\|([^{}]*)}}".toRegex()
-
-private val NOT_KOREAN ={ c: Char? -> c == null || ! c.isKorean() }
-
-/**
  * josa candidates in order of matching priority (longer and more specific first)
+ *
+ * josa written in one character form without jongsung (ex. "나", "다", "란") is matched only when it is not followed by korean
+ * to avoid changing other words (ex. 나라, 다음, 란에)
  */
 private val JOSAS = listOf(
+    // contraction of copula
+    Josa("이에요", "예요", listOf("(이)에요", "에요")),
+    Josa("이었", "였", listOf("(이)었", "었")),
+    Josa("이어서", "여서", listOf("(이)어서")),
+    Josa("이어도", "여도", listOf("(이)어도")),
+    Josa("이어야", "여야", listOf("(이)어야")),
+    // josa starting with '이' after jongsung
+    Josa("이야말로", "야말로"),
     Josa("이라고", "라고"),
     Josa("이라는", "라는"),
     Josa("이라도", "라도"),
     Josa("이라면", "라면"),
     Josa("이라서", "라서"),
-    Josa("이어서", "여서"),
-    Josa("이어도", "여도"),
-    Josa("이어야", "여야"),
-    Josa("이에요", "예요"),
-    Josa("이었", "였"),
-    Josa("이나", "나"),
+    Josa("이나마", "나마"),
+    Josa("이든지", "든지"),
+    Josa("이든가", "든가"),
+    Josa("이시여", "시여"),
+    Josa("이지만", "지만"),
+    Josa("이니까", "니까"),
+    Josa("이므로", "므로"),
+    Josa("이세요", "세요"),
+    Josa("이셨", "셨"),
     Josa("이랑", "랑"),
+    Josa("이라", "라", followedBy = NOT_KOREAN),
+    Josa("이란", "란", followedBy = NOT_KOREAN),
+    Josa("이나", "나", followedBy = NOT_KOREAN),
+    Josa("이든", "든", followedBy = NOT_KOREAN),
     Josa("이여", "여", followedBy = NOT_KOREAN),
-    Josa("으로", "로", rieulAsVowel = true),
-    Josa("이", "", followedBy = { it != null && it in COPULA_ENDINGS }),
-    Josa("은", "는"),
-    Josa("을", "를"),
-    Josa("과", "와"),
-    Josa("아", "야", followedBy = NOT_KOREAN),
-    Josa("이", "가"),
+    Josa("이요", "요", followedBy = NOT_KOREAN),
+    Josa("이다", "다", followedBy = NOT_KOREAN),
+    Josa("이며", "며", followedBy = NOT_KOREAN),
+    Josa("이고", "고", followedBy = NOT_KOREAN),
+    Josa("이면", "면", followedBy = NOT_KOREAN),
+    Josa("이지", "지", followedBy = NOT_KOREAN),
+    Josa("이니", "니", followedBy = NOT_KOREAN),
+    Josa("이냐", "냐", followedBy = NOT_KOREAN),
+    Josa("이", "", listOf("(이)"), followedBy = { it != null && it in COPULA_ENDINGS }),
+    // josa alternated by jongsung
+    Josa("으로", "로", listOf("(으)로"), rieulAsVowel = true, followedBy = notKoreanOr("서써부는도만의요")),
+    Josa("은", "는", listOf("은(는)", "는(은)"), followedBy = notKoreanOr("요")),
+    Josa("을", "를", listOf("을(를)", "를(을)"), followedBy = notKoreanOr("요")),
+    Josa("과", "와", listOf("과(와)", "와(과)"), followedBy = notKoreanOr("의도는만")),
+    Josa("아", "야", listOf("아(야)", "야(아)"), followedBy = NOT_KOREAN),
+    Josa("이", "가", listOf("이(가)", "가(이)"), followedBy = NOT_KOREAN),
 )
 
 class Formatter {
@@ -109,12 +160,16 @@ class Formatter {
      * | {key:format} | parameter based with format | "{name}:{age:%3d}".bind(mapOf<String,Any>("name" to "abc", "age" to 10)) -> "abc:   10" |
      *
      *
-     * @receiver template
-     * @param parameter binding parameter
      * korean josa following markup is modified by pronunciation of binding value.
      * pronunciation can be given in value as `{{value|pronunciation}}` (ex. "{{James|제임스}}" is printed as "James")
+     * value can be written in any language, and pronunciation must be written in hangul (ex. "{{東京|도쿄}}", "{{München|뮌헨}}")
+     * value without pronunciation markup is guessed only when it ends with hangul, digit or english alphabet.
+     * to print markup as it is, escape it with backslash (ex. "\{{James|제임스}}" is printed as "{{James|제임스}}")
      *
+     * @receiver template
+     * @param parameter binding parameter
      * @param modifyKorean if true modify josa following parameter binding markup by rule of korean.
+     *                     (if false, binding value including pronunciation markup is printed as it is)
      * @return formatted string
      */
     fun bind(format: String, vararg parameter: Any?, modifyKorean: Boolean = true): String =
@@ -126,6 +181,7 @@ class Formatter {
         val matcher = pattern.pattern.matcher(source)
         val params  = toParam(*parameter)
         val buffer  = StringBuilder()
+        val values  = mutableListOf<String?>()
 
         var cursor = 0
         var index  = 0
@@ -144,25 +200,40 @@ class Formatter {
             buffer.append(source.substring(cursor,matcher.start()))
 
             val key   = BindingKey(matcher.group(1), index)
-            val value         = binder(key,params)
-            val display       = value?.replace(PATTERN_PRONUNCIATION) { it.groupValues[1] }
-            val pronunciation = value?.replace(PATTERN_PRONUNCIATION) { it.groupValues[2] }
+            val value = binder(key,params)
 
-            buffer.append(display)
+            buffer.append(VALUE_MARK_START).append(values.size).append(VALUE_MARK_END)
 
             index++
             cursor = end
 
             if(modifyKorean) {
-                cursor += modifyKorean(pronunciation,cursor,buffer,source)
+                values.add(value?.resolvePronunciation(display = true))
+                cursor += modifyKorean(value?.resolvePronunciation(display = false),cursor,buffer,source)
+            } else {
+                values.add(value)
             }
 
         }
 
         buffer.append(source.substring(cursor))
 
-        return pattern.escapeRemover(buffer.toString())
+        return pattern.escapeRemover(buffer.toString()).replace(PATTERN_VALUE_MARK) { "${values[it.groupValues[1].toInt()]}" }
 
+    }
+
+    /**
+     * resolve pronunciation markup in binding value
+     *
+     * @param display if true, resolve to value to display. if false, resolve to pronunciation.
+     */
+    private fun String.resolvePronunciation(display: Boolean): String = replace(PATTERN_PRONUNCIATION) {
+        val (escape, value, pronunciation) = it.destructured
+        when {
+            escape.isNotEmpty() -> it.value.substring(1)
+            display             -> value
+            else                -> pronunciation
+        }
     }
 
     /**
