@@ -110,6 +110,17 @@ class PathsTest: StringSpec({
         val relative = base.resolve("Game & Watch - Zelda").toRelative(base)
         relative.toString() shouldBe "Game & Watch - Zelda"
     }
+    "relative path edge cases on JDK 17" {
+        val empty = Paths.get("")
+        Paths.get("child").toRelative(empty) shouldBe Paths.get("child")
+        empty.toRelative(empty) shouldBe empty
+        Paths.get("a", "b").toRelative(Paths.get("a", "b")) shouldBe empty
+        Paths.get("a", "b", "..", "c").toRelative(Paths.get("a", ".")) shouldBe Paths.get("c")
+        Paths.get("a").toRelative(Paths.get("a", "b")) shouldBe Paths.get("..")
+        Paths.get("..", "b").toRelative(Paths.get("..", "a")) shouldBe Paths.get("..", "b")
+        Paths.get("child").toRelative(Paths.get("..", "base")) shouldBe null
+        Paths.applicationRoot.toRelative(Paths.get("relative")) shouldBe null
+    }
     "normalize" {
         val root = "/root/bin/".toPath()
         root.resolve(".././temp").normalize().invariantPath shouldBe "/root/temp"

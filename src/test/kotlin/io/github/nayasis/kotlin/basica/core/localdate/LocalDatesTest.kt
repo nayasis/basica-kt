@@ -3,6 +3,8 @@ package io.github.nayasis.kotlin.basica.core.localdate
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
+import java.time.LocalDateTime
+import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.*
@@ -17,6 +19,19 @@ internal class LocalDatesTest: StringSpec({
         "1977-01-22".toLocalDate().toString() shouldBe "1977-01-22"
         "1977-01-22T23:59:59.999".toLocalDateTime().toString() shouldBe "1977-01-22T23:59:59.999"
         "1977-01-22T23:59:59.999".toLocalDate().toString() shouldBe "1977-01-22"
+    }
+
+    "fractional seconds without Java 8 parsing workaround" {
+        for (fraction in listOf("1", "12", "123", "123456", "123456789")) {
+            val precision = "S".repeat(maxOf(3, fraction.length))
+            val time = LocalTime.of(12, 34, 56, fraction.padEnd(9, '0').toInt())
+            val dateTime = LocalDateTime.of(2026, 1, 2, 12, 34, 56, time.nano)
+
+            "20260102123456$fraction".toLocalDateTime("yyyyMMddHHmmss$precision") shouldBe dateTime
+            "123456$fraction".toLocalTime("HHmmss$precision") shouldBe time
+            "12:34:56.$fraction".toLocalTime("HH:mm:ss.$precision") shouldBe time
+            "2026-01-02T12:34:56.$fraction+03:00".toLocalDateTime("yyyyMMddHHmmss$precision") shouldBe dateTime.plusHours(3)
+        }
     }
 
     "atStartOfMonth" {
