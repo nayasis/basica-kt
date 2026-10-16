@@ -41,3 +41,6 @@ out/
 /.kotlin/
 /.idea/
 /.gradle/
+/.bkit/
+/.claude/
+/.orca/
