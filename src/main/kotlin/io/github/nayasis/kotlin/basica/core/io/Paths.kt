@@ -150,7 +150,7 @@ fun Path.toUrl(): URL = this.toUri().toURL()
  * @return the relative path from [base] to this.
  */
 fun Path.toRelative(base: Path): Path? = try {
-    PathRelatives.tryRelativeTo(this, base)
+    base.normalize().relativize(this.normalize())
 } catch (e: IllegalArgumentException) {
     null
 }
@@ -184,39 +184,6 @@ fun Path.toRelative(base: String): Path? = this.toRelative(base.toPath())
  * @return the relative path from [base] to this, or `null` if this and base paths have different roots.
  */
 fun Path.toRelativeOrSelf(base: String): Path = this.toRelativeOrSelf(base.toPath())
-
-/*
- * Copyright 2010-2020 JetBrains s.r.o. and Kotlin Programming Language contributors.
- * Use of this source code is governed by the Apache 2.0 license that can be found in the license/LICENSE.txt file.
- */
-private object PathRelatives {
-    private val emptyPath = Paths.get("")
-    private val parentPath = Paths.get("..")
-
-    // Workarounds some bugs in Path.relativize that were fixed only in JDK9
-    fun tryRelativeTo(path: Path, base: Path): Path {
-        val bn = base.normalize()
-        val pn = path.normalize()
-        val rn = bn.relativize(pn)
-        // work around https://bugs.openjdk.java.net/browse/JDK-8066943
-        for (i in 0 until minOf(bn.nameCount, pn.nameCount)) {
-            if (bn.getName(i) != parentPath) break
-            if (pn.getName(i) != parentPath) throw IllegalArgumentException("Unable to compute relative path")
-        }
-        // work around https://bugs.openjdk.java.net/browse/JDK-8072495
-        val r = if (pn != bn && bn == emptyPath) {
-            pn
-        } else {
-            val rnString = rn.toString()
-            // drop invalid dangling separator from path string https://bugs.openjdk.java.net/browse/JDK-8140449
-            if (rnString.endsWith(rn.fileSystem.separator))
-                rn.fileSystem.getPath(rnString.dropLast(rn.fileSystem.separator.length))
-            else
-                rn
-        }
-        return r
-    }
-}
 
 fun Path?.exists(vararg options: LinkOption): Boolean = this != null && Files.exists(this, *options)
 fun Path?.notExists(vararg options: LinkOption): Boolean = this == null || Files.notExists(this, *options)

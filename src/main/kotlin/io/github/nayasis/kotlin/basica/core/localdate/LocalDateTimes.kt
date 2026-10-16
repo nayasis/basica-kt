@@ -27,7 +27,6 @@ private val REGEX_REMAINS_TIME     = "[^HmsS]".toRegex()
  * @param native consider input format as Java's LocalDateTime format
  * @return LocalDateTime
  */
-@Suppress("DuplicatedCode")
 fun String.toLocalDateTime(format: String = "", native: Boolean = false): LocalDateTime {
 
     if(native && format.isNotEmpty())
@@ -43,22 +42,8 @@ fun String.toLocalDateTime(format: String = "", native: Boolean = false): LocalD
         }
     }
 
-    val pattern = StringBuilder()
-    val value   = StringBuilder()
-
-    for( i in 0 until min(fmt.length, body.length) ) {
-        val curr = fmt[i]
-        val next = fmt.getOrNull(i+1)
-        pattern.append(curr)
-        value.append( body[i] )
-        // avoid bug(JDK-8031085) in Java8
-        if( curr != 'S' && next == 'S' ) {
-            pattern.append('.')
-            value.append('.')
-        }
-    }
-
-    return toLocalDateTime("$value", "$pattern").let {
+    val length = min(fmt.length, body.length)
+    return toLocalDateTime(body.take(length), fmt.take(length)).let {
         if( offset.isEmpty() ) it else it.withOffset(ZoneOffset.of(offset))
     }
 
@@ -72,7 +57,6 @@ fun String.toLocalDateTime(format: String = "", native: Boolean = false): LocalD
  * @param native use input format itself
  * @return LocalDateTime
  */
-@Suppress("DuplicatedCode")
 fun String.toLocalTime(format: String = "", native: Boolean = false): LocalTime {
 
     if( native && format.isNotEmpty() )
@@ -81,22 +65,8 @@ fun String.toLocalTime(format: String = "", native: Boolean = false): LocalTime 
     val fmt  = if(format.isEmpty()) "HHmmssSSS" else format.toJvmTimeFormat(true).replace(REGEX_REMAINS_TIME, "")
     val body = this.extractDigit()
 
-    val pattern = StringBuilder()
-    val value   = StringBuilder()
-
-    for( i in 0 until min(fmt.length, body.length) ) {
-        val curr = fmt[i]
-        val next = fmt.getOrNull(i+1)
-        pattern.append(curr)
-        value.append( body[i] )
-        // avoid bug(JDK-8031085) in Java8
-        if( curr != 'S' && next == 'S' ) {
-            pattern.append('.')
-            value.append('.')
-        }
-    }
-
-    return toLocalTime(value.toString(),pattern.toString())
+    val length = min(fmt.length, body.length)
+    return toLocalTime(body.take(length), fmt.take(length))
 }
 
 private fun String.cleansing(): String {
@@ -231,11 +201,15 @@ fun Date.toLocalTime(zoneId: ZoneId = ZoneId.systemDefault()): LocalTime =
 fun Date.toSqlDate(zoneId: ZoneId = ZoneId.systemDefault()): SqlDate =
     SqlDate.valueOf(this.toLocalDate(zoneId))
 
-fun LocalDateTime.toLong(): Long = this.toZonedDateTime().toInstant().toEpochMilli()
+fun LocalDateTime.toLong(): Long = this.toLong(ZoneId.systemDefault())
+
+fun LocalDateTime.toLong(zoneId: ZoneId): Long = this.toZonedDateTime(zoneId).toInstant().toEpochMilli()
 
 fun LocalDateTime.toFileTime(): FileTime = FileTime.fromMillis(this.toLong())
 
-fun LocalDate.toLong(): Long = this.toLocalDateTime().toLong()
+fun LocalDate.toLong(): Long = this.toLong(ZoneId.systemDefault())
+
+fun LocalDate.toLong(zoneId: ZoneId): Long = this.toLocalDateTime().toLong(zoneId)
 
 fun Long.toZonedDateTime(zoneId: ZoneId = ZoneId.systemDefault()): ZonedDateTime =
     Instant.ofEpochMilli(this).atZone(zoneId)

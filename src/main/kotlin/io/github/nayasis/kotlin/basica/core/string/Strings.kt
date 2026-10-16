@@ -53,7 +53,7 @@ private val REGEX_EXTRACT_LOWER = "[^a-z]".toRegex()
 
 private val FORMATTER   = Formatter()
 
-fun String.message(locale: Locale = Locale.getDefault()): String = Messages[this, locale]
+fun String.message(locale: Locale = Messages.defaultLocale): String = Messages[this, locale]
 
 fun String.toPath(): Path = Path(this)
 
@@ -569,9 +569,16 @@ fun String?.toMap(): Map<String,*> {
  * | {key:format} | parameter based with format | "{name}:{age:%3d}".bind(mapOf<String,Any>("name" to "abc", "age" to 10)) -> "abc:   10" |
  *
  *
+ * korean josa following markup is modified by pronunciation of binding value.
+ * pronunciation can be given in value as `{{value|pronunciation}}` (ex. "{{James|제임스}}" is printed as "James")
+ * value can be written in any language, and pronunciation must be written in hangul (ex. "{{東京|도쿄}}", "{{München|뮌헨}}")
+ * value without pronunciation markup is guessed only when it ends with hangul, digit or english alphabet.
+ * to print markup as it is, escape it with backslash (ex. "\{{James|제임스}}" is printed as "{{James|제임스}}")
+ *
  * @receiver template
  * @param parameter binding parameter
- * @param modifyKorean if true modify first outer character of parameter binding markup by rule of korean.
+ * @param modifyKorean if true modify josa following parameter binding markup by rule of korean.
+ *                     (if false, binding value including pronunciation markup is printed as it is)
  * @return formatted string
  */
 fun String.bind(vararg parameter: Any?, modifyKorean: Boolean = true): String {

@@ -38,3 +38,9 @@ out/
 /basica-kt.code-workspace
 /gradle.properties
 /.history/
+/.kotlin/
+/.idea/
+/.gradle/
+/.bkit/
+/.claude/
+/.orca/

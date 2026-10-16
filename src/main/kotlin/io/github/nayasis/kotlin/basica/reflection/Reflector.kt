@@ -249,7 +249,7 @@ class Reflector { companion object {
                 result[key] as MutableMap<String,Any?>?
             }
             newVal?.let {
-                val pathChild = pathParent.replaceFirst("${pathCurr.replace("[", "\\[")}.".toRegex(), "")
+                val pathChild = pathParent.removePrefix("$pathCurr.")
                 unflattenKeys(pathChild, value, newVal)
             }
         }

@@ -4,6 +4,15 @@ Basic Kotlin utility library providing common functionality for Kotlin applicati
 
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.nayasis/basica-kt.svg)](https://central.sonatype.com/artifact/io.github.nayasis/basica-kt)
 
+## Build
+
+JDK 17 or later is required to use this library.
+Install JDK 17 and set `JAVA_HOME` to JDK 17 to build and run tests with the Gradle wrapper.
+
+```shell
+./gradlew build
+```
+
 ## Dependency
 
 ### gradle (build.gradle.kts)

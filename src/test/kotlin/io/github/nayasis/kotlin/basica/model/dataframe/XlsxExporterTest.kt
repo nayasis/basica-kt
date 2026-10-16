@@ -91,7 +91,7 @@ internal class XlsxExporterTest : StringSpec({
         trg.getData(15, 1).testString shouldBe src.getData(15, 1).testString
         trg.getData(16, 1) shouldBe src.getData(16, 1).testString
         trg.getData(17, 1) shouldBe src.getData(17, 1).testString
-        trg.getData(18, 1).toString().let { it.substring(0, it.indexOf("+")) } shouldBe src.getData(18, 1).testString
+        trg.getData(18, 1).toString().toZonedDateTime().toLocalDateTime() shouldBe src.getData(18, 1)?.cast<Calendar>()?.toLocalDateTime()
         trg.getData(19, 1).toString().toZonedDateTime() shouldBe src.getData(19, 1)
 
     }

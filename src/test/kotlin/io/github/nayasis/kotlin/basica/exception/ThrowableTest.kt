@@ -32,7 +32,7 @@ class ThrowableTest: AnnotationSpec() {
                     "kotlin.coroutines",
                     "kotlinx.coroutines",
                     "io.kotest",
-                    "sun.reflect",
+                    "jdk.internal.reflect",
                 ).joinToString("|") { it.replace(".", "\\.") }.toRegex()
             ).also {
                 logger.error(it)
