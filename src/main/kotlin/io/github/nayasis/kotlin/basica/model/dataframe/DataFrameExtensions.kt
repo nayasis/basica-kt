@@ -138,6 +138,7 @@ fun DataFrame.toJson(
  * @param sheetIndex sheet index
  * @param firstRowAsHeader whether to include header
  * @param lastColumnIndex last column index to read (default: -1 to auto-detect)
+ * @param includePhonetics append phonetic hints on a new line after cell text (default: false)
  * @return DataFrame object
  */
 fun DataFrame.fromXlsx(
@@ -145,8 +146,9 @@ fun DataFrame.fromXlsx(
     sheetIndex: Int = 0,
     firstRowAsHeader: Boolean = true,
     lastColumnIndex: Int = -1,
+    includePhonetics: Boolean = false,
 ): DataFrame {
-    return XlsxImporter(sheetIndex, firstRowAsHeader, lastColumnIndex).import(filePath)
+    return XlsxImporter(sheetIndex, firstRowAsHeader, lastColumnIndex, includePhonetics = includePhonetics).import(filePath)
 }
 
 /**
@@ -155,6 +157,7 @@ fun DataFrame.fromXlsx(
  * @param sheetName sheet name
  * @param firstRowAsHeader whether to include header
  * @param lastColumnIndex last column index to read (default: -1 to auto-detect)
+ * @param includePhonetics append phonetic hints on a new line after cell text (default: false)
  * @return DataFrame object
  */
 fun DataFrame.fromXlsx(
@@ -162,8 +165,9 @@ fun DataFrame.fromXlsx(
     sheetName: String,
     firstRowAsHeader: Boolean = true,
     lastColumnIndex: Int = -1,
+    includePhonetics: Boolean = false,
 ): DataFrame {
-    return XlsxImporter(sheetName, firstRowAsHeader, lastColumnIndex).import(filePath)
+    return XlsxImporter(sheetName, firstRowAsHeader, lastColumnIndex, includePhonetics = includePhonetics).import(filePath)
 }
 
 /**

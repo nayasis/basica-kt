@@ -14,6 +14,7 @@ import kotlin.math.roundToLong
 
 /**
  * XLSX importer
+ * @param includePhonetics append phonetic hints on a new line after cell text (default: false)
  */
 class XlsxImporter private constructor(
     private val firstRowAsHeader: Boolean,
@@ -21,6 +22,7 @@ class XlsxImporter private constructor(
     private val sheetIndex: Int?,
     private val sheetName: String?,
     private val lastColumnIndex: Int,
+    private val includePhonetics: Boolean,
 ) : DataFrameImporter() {
 
     constructor(
@@ -28,12 +30,14 @@ class XlsxImporter private constructor(
         firstRowAsHeader: Boolean = true,
         lastColumnIndex: Int = -1,
         charset: Charset = Charsets.UTF_8,
+        includePhonetics: Boolean = false,
     ) : this(
         firstRowAsHeader = firstRowAsHeader,
         charset = charset,
         sheetIndex = sheetIndex,
         sheetName = null,
         lastColumnIndex = lastColumnIndex,
+        includePhonetics = includePhonetics,
     )
 
     constructor(
@@ -41,12 +45,14 @@ class XlsxImporter private constructor(
         firstRowAsHeader: Boolean = true,
         lastColumnIndex: Int = -1,
         charset: Charset = Charsets.UTF_8,
+        includePhonetics: Boolean = false,
     ) : this(
         firstRowAsHeader = firstRowAsHeader,
         charset = charset,
         sheetIndex = null,
         sheetName = sheetName,
         lastColumnIndex = lastColumnIndex,
+        includePhonetics = includePhonetics,
     )
 
     private val REGEX_EXPONENTIAL = "[eE][+-]?\\d+".toRegex()
@@ -326,10 +332,15 @@ class XlsxImporter private constructor(
     }
 
     private fun Element.textValue(): String = buildString {
-        val descendants = getElementsByTagName("*")
-        for (i in 0 until descendants.length) {
-            val node = descendants.item(i) as Element
-            if (node.tagName.substringAfter(':') == "t") append(node.textContent)
+        childElements("t").forEach { append(it.textContent) }
+        childElements("r").forEach { run ->
+            run.childElements("t").forEach { append(it.textContent) }
+        }
+        if (includePhonetics) {
+            val phonetics = childElements("rPh").joinToString("") { run ->
+                run.childElements("t").joinToString("") { it.textContent }
+            }
+            if (phonetics.isNotEmpty()) append('\n').append(phonetics)
         }
     }
 

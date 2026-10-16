@@ -3,7 +3,10 @@ package io.github.nayasis.kotlin.basica.model.dataframe
 import io.github.nayasis.kotlin.basica.model.dataframe.helper.importer.XlsxImporter
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
 import java.io.ByteArrayOutputStream
+import java.nio.file.Files
+import java.nio.file.Path
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.zip.ZipEntry
@@ -41,6 +44,49 @@ class XlsxImporterTraversalTest {
         assertEquals("name", result.getData(0, 0))
         assertEquals("Hello & World", result.getData(2, 0))
         assertEquals(1500.0, result.getData(2, 1))
+    }
+
+    @Test
+    fun `excludes phonetic hints from shared and inline strings by default`() {
+        for (prefixed in listOf(false, true)) {
+            val result = XlsxImporter(firstRowAsHeader = false).import(phoneticFixture(prefixed).inputStream())
+            for (column in 0..5) {
+                assertEquals(if (column % 3 == 2) "Plain & text" else "東京", result.getData(0, column))
+            }
+        }
+    }
+
+    @Test
+    fun `appends phonetic hints on one new line only when present and enabled`() {
+        for (prefixed in listOf(false, true)) {
+            val importers = listOf(
+                XlsxImporter(firstRowAsHeader = false, includePhonetics = true),
+                XlsxImporter(sheetName = "Data", firstRowAsHeader = false, includePhonetics = true),
+            )
+            for (importer in importers) {
+                val result = importer.import(phoneticFixture(prefixed).inputStream())
+                for (column in 0..5) {
+                    assertEquals(if (column % 3 == 2) "Plain & text" else "東京\nトウキョウ", result.getData(0, column))
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `applies phonetic option to headers`() {
+        val input = phoneticFixture()
+        assertEquals("東京", XlsxImporter().import(input.inputStream()).keys.first())
+        assertEquals("東京\nトウキョウ", XlsxImporter(includePhonetics = true).import(input.inputStream()).keys.first())
+    }
+
+    @Test
+    fun `forwards phonetic option through fromXlsx overloads`(@TempDir directory: Path) {
+        val path = directory.resolve("phonetics.xlsx")
+        Files.write(path, phoneticFixture())
+        assertEquals("東京", DataFrame().fromXlsx(path, firstRowAsHeader = false).getData(0, 0))
+        assertEquals("東京", DataFrame().fromXlsx(path, sheetName = "Data", firstRowAsHeader = false).getData(0, 0))
+        assertEquals("東京\nトウキョウ", DataFrame().fromXlsx(path, firstRowAsHeader = false, includePhonetics = true).getData(0, 0))
+        assertEquals("東京\nトウキョウ", DataFrame().fromXlsx(path, sheetName = "Data", firstRowAsHeader = false, includePhonetics = true).getData(0, 0))
     }
 
     @Test
@@ -95,6 +141,23 @@ class XlsxImporterTraversalTest {
             }
         }
     }.toByteArray()
+
+    private fun phoneticFixture(prefixed: Boolean = false): ByteArray {
+        val hints = "<rPh sb=\"0\" eb=\"1\"><t>トウ</t></rPh><rPh sb=\"1\" eb=\"2\"><t>キョウ</t></rPh>"
+        val strings = listOf("<t>東京</t>$hints", "<r><t>東</t></r><r><t>京</t></r>$hints", "<t>Plain &amp; text</t>")
+        val entries = mapOf(
+            "xl/workbook.xml" to "<workbook xmlns=\"$NS\"><sheets><sheet name=\"Data\" sheetId=\"1\"/></sheets></workbook>",
+            "xl/sharedStrings.xml" to "<sst xmlns=\"$NS\">${strings.joinToString("") { "<si>$it</si>" }}</sst>",
+            "xl/worksheets/sheet1.xml" to "<worksheet xmlns=\"$NS\"><sheetData><row r=\"1\">" +
+                strings.indices.joinToString("") { "<c r=\"${address(it)}1\" t=\"s\"><v>$it</v></c>" } +
+                strings.mapIndexed { index, text -> "<c r=\"${address(index + 3)}1\" t=\"inlineStr\"><is>$text</is></c>" }.joinToString("") +
+                "</row></sheetData></worksheet>",
+        )
+        return archive(entries.mapValues { (_, xml) ->
+            if (!prefixed) xml else xml.replace("xmlns=", "xmlns:x=")
+                .replace(Regex("<(/?)([A-Za-z][A-Za-z0-9]*)(?=[\\s/>])"), "<$1x:$2")
+        })
+    }
 
     private fun address(column: Int): String = if(column < 26) ('A' + column).toString()
         else address(column / 26 - 1) + ('A' + column % 26)
